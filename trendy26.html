@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrendyOptics - Sistema Clínico y Contable</title>
+    <style>
+        :root {
+            --royal-blue: #091235;
+            --navy-blue: #14202E;
+            --midnight-blue: #2B4257;
+            --blue-gray: #88A9C3;
+            --bg-light: #F4F7F9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+        body { background-color: var(--bg-light); color: var(--navy-blue); padding: 15px; padding-bottom: 40px; }
+        
+        .header { 
+            background: linear-gradient(135deg, var(--royal-blue), var(--navy-blue)); 
+            color: white; 
+            padding: 16px 24px; 
+            border-radius: 12px; 
+            margin-bottom: 16px; 
+            box-shadow: 0 4px 15px rgba(9,12,53,0.15); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-brand { display: flex; align-items: center; gap: 12px; }
+        
+        .logo-gafas { display: flex; align-items: center; position: relative; width: 48px; height: 24px; }
+        .logo-gafas::before, .logo-gafas::after { content: ''; width: 20px; height: 20px; border: 3px solid #ffffff; border-radius: 50%; display: inline-block; }
+        .logo-bridge { position: absolute; width: 8px; height: 3px; background-color: #ffffff; left: 20px; top: 9px; border-radius: 2px; }
+
+        .header h1 { font-size: 26px; font-weight: 800; letter-spacing: 0.5px; color: #ffffff; }
+        .header-info { text-align: right; font-size: 11.5px; opacity: 0.9; line-height: 1.5; }
+
+        .main-container { display: flex; flex-direction: column; gap: 14px; }
+        
+        .card { background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(10,17,40,0.04); overflow: hidden; border: 1px solid #E2E8F0; display: flex; flex-direction: column; }
+        .card-header { background-color: #F8FAFC; padding: 12px 16px; font-weight: 700; font-size: 13.5px; color: var(--royal-blue); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; cursor: pointer; }
+        .card-body { padding: 16px; flex-grow: 1; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-row { display: flex; gap: 12px; margin-bottom: 14px; }
+        .form-row .form-group { flex: 1; margin-bottom: 0; }
+        label { display: block; font-size: 10.5px; font-weight: 700; color: var(--midnight-blue); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px; }
+        
+        input[type="text"], textarea { text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; background-color: #fff; color: var(--navy-blue); transition: all 0.2s ease; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--midnight-blue); box-shadow: 0 0 0 4px rgba(43, 66, 87, 0.15); }
+        
+        select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232B4257' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; padding-right: 35px; appearance: none; -webkit-appearance: none; }
+        
+        .ojo-section { background-color: #F8FAFC; border: 1px dashed var(--blue-gray); border-radius: 10px; padding: 12px; margin-bottom: 14px; }
+        .ojo-title { font-size: 11px; font-weight: 800; color: var(--midnight-blue); margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; display: flex; justify-content: space-between; }
+        
+        .diag-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        .diag-table td { padding: 8px; border: 1px solid #E2E8F0; vertical-align: middle; position: relative; }
+        .diag-num { font-size: 13px; font-weight: bold; color: var(--midnight-blue); text-align: center; width: 35px; background-color: #F8FAFC; }
+
+        .cie-container { position: relative; }
+        .datalist-custom { border: 1px solid #CBD5E1; border-radius: 8px; max-height: 200px; overflow-y: auto; background: white; position: absolute; width: 100%; z-index: 100; display: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08); margin-top: 4px; }
+        .datalist-item { padding: 10px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #F1F5F9; color: var(--navy-blue); text-align: left; }
+        .datalist-item:hover { background-color: #F0FDF4; color: #166534; font-weight: 600; }
+
+        .action-bar { background: white; padding: 16px; border-radius: 12px; margin-top: 16px; border: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 10px; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; }
+        
+        .btn-save { background-color: var(--royal-blue); color: white; }
+        .btn-pdf { background-color: #0284C7; color: white; }
+        .btn-whatsapp { background-color: #16A34A; color: white; }
+        button:hover { opacity: 0.95; transform: translateY(-1px); }
+        button:disabled { background-color: #CBD5E1; color: #94A3B8; cursor: not-allowed; }
+
+        #print-area { display: none; }
+
+        @media print {
+            body > *:not(#print-area) { display: none !important; }
+            html, body { background: white; color: black; padding: 0; margin: 0; }
+            #print-area { display: block !important; width: 100%; padding: 25px; box-sizing: border-box; }
+            .print-header { border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+            .print-title { font-size: 26px; font-weight: 800; letter-spacing: 0.5px; }
+            .print-section { margin-bottom: 16px; border: 1px solid #CBD5E1; padding: 12px; border-radius: 8px; background: #fff; }
+            .print-section-title { font-size: 12px; font-weight: bold; background: #F1F5F9; padding: 6px 10px; margin-bottom: 10px; text-transform: uppercase; border-radius: 4px; border-left: 4px solid var(--royal-blue); }
+            .print-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 12px; line-height: 1.5; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 12px; }
+            .print-table th, .print-table td { border: 1px solid #CBD5E1; padding: 8px; text-align: left; }
+            .print-table th { background: #F8FAFC; font-weight: bold; }
+        }
+
+        @media (min-width: 992px) {
+            body { padding: 24px; }
+            .header { padding: 20px 30px; }
+            .main-container { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 20px; }
+            .card-header { cursor: default; }
+            .card-header span:last-child { display: none; }
+            .card-body { display: block !important; }
+            .action-bar { flex-direction: row; justify-content: flex-end; padding: 16px 24px; gap: 16px; margin-top: 20px; }
+            button { width: auto; padding: 12px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-brand">
+            <div class="logo-gafas"><div class="logo-bridge"></div></div>
+            <h1>TrendyOptics</h1>
+        </div>
+        <div class="header-info">
+            <p><strong>Dirección:</strong> Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá</p>
+            <p><strong>NIT:</strong> 1073263942-5 | <strong>Celular:</strong> 3003391055</p>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="card">
+            <div class="card-header" onclick="toggleCard('body-datos')"><span>👤 Identificación y Admisión</span><span>▼</span></div>
+            <div class="card-body" id="body-datos">
+                <div class="form-group"><label>Fecha de Consulta</label><input type="date" id="fecha" value="2026-05-19" class="navegable"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipo Documento</label>
+                        <select id="tipoDoc" class="navegable">
+                            <option>Cédula de Ciudadanía</option><option>Tarjeta de Identidad</option>
+                            <option>Cédula de Extranjería</option><option>Registro Civil</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Documento</label><input type="text" id="documento" class="navegable"></div>
+                </div>
+                <div class="form-group"><label>Nombre Completo del Paciente</label><input type="text" id="nombre" class="navegable"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Fecha de Nacimiento</label><input type="date" id="fechaNac" class="navegable"></div>
+                    <div class="form-group"><label>Teléfono Celular</label><input type="text" id="telefono" placeholder="Ej. 3003391055" class="navegable"></div>
+                </div>
+                <div class="form-group"><label>Dirección de Residencia</label><input type="text" id="direccion" class="navegable"></div>
+                <div class="form-group"><label>Aseguradora / EPS</label><input type="text" id="eps" class="navegable"></div>
+                
+                <div class="ojo-section" style="background-color: #F1F5F9; border-color: #CBD5E1;">
+                    <div class="ojo-title" style="color: #475569;">📊 Agudeza Visual Sin Corrección (Inicial)</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>AV. Ojo Derecho (OD)</label>
+                            <input type="text" id="avSinOD" placeholder="Ej. 20/50" class="navegable">
+                        </div>
+                        <div class="form-group">
+                            <label>AV. Ojo Izquierdo (OI)</label>
+                            <input type="text" id="avSinOI" placeholder="Ej. 20/40" class="navegable">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" onclick="toggleCard('body-formula')"><span>👓 Examen Ocular y Rx Lentes</span><span>▼</span></div>
+            <div class="card-body" id="body-formula">
+                <div class="ojo-section">
+                    <div class="ojo-title">📊 Lensometría (Fórmula Anterior)</div>
+                    <div class="form-row">
+                        <div class="form-group"><label>OD Rx Anterior</label><input type="text" id="lenOD" placeholder="EJ. -1.00 -0.50 x 10" class="navegable"></div>
+                        <div class="form-group"><label>OI Rx Anterior</label><input type="text" id="lenOI" placeholder="EJ. -0.75 MIOPE" class="navegable"></div>
+                    </div>
+                </div>
+
+                <div class="ojo-section">
+                    <div class="ojo-title">👁️ Ojo Derecho (OD)</div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Esfera</label><input type="text" id="odEsfera" placeholder="0.00" class="navegable"></div>
+                        <div class="form-group"><label>Cilindro</label><input type="text" id="odCilindro" placeholder="0.00" onblur="forzarMenosCilindro('odCilindro')" class="navegable"></div>
+                        <div class="form-group"><label>Eje</label><input type="text" id="odEje" placeholder="0" class="navegable"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Adición</label><input type="text" id="odAdicion" placeholder="0.00" class="navegable"></div>
+                        <div class="form-group">
+                            <label>AV Recetada (Final)</label>
+                            <select id="odAv" class="navegable">
+                                <option value=""></option>
+                                <option>20/20</option><option>20/25</option><option>20/30</option><option>20/40</option>
+                                <option>20/50</option><option>20/70</option><option>20/100</option><option>20/200</option>
+                                <option>20/400</option><option>20/800</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ojo-section">
+                    <div class="ojo-title">👁️ Ojo Izquierdo (OI)</div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Esfera</label><input type="text" id="oiEsfera" placeholder="0.00" class="navegable"></div>
+                        <div class="form-group"><label>Cilindro</label><input type="text" id="oiCilindro" placeholder="0.00" onblur="forzarMenosCilindro('oiCilindro')" class="navegable"></div>
+                        <div class="form-group"><label>Eje</label><input type="text" id="oiEje" placeholder="0" class="navegable"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Adición</label><input type="text" id="oiAdicion" placeholder="0.00" class="navegable"></div>
+                        <div class="form-group">
+                            <label>AV Recetada (Final)</label>
+                            <select id="oiAv" class="navegable">
+                                <option value=""></option>
+                                <option>20/20</option><option>20/25</option><option>20/30</option><option>20/40</option>
+                                <option>20/50</option><option>20/70</option><option>20/100</option><option>20/200</option>
+                                <option>20/400</option><option>20/800</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group"><label>Distancia Pupilar (DP)</label><input type="text" id="dp" class="navegable"></div>
+                <div class="form-group"><label>Tipo de Lente / Filtros Comprados</label><input type="text" id="tipoLente" class="navegable" placeholder="Ej. Poly Blue Defense"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" onclick="toggleCard('body-diagnostico')"><span>📋 Diagnóstico y Cierre de Caja</span><span>▼</span></div>
+            <div class="card-body" id="body-diagnostico">
+                <div class="form-group">
+                    <label>Diagnósticos Clínicos CIE-10</label>
+                    <table class="diag-table">
+                        <tbody>
+                            <tr><td class="diag-num">1</td><td><div class="cie-container"><input type="text" class="cie-input navegable" id="cie-1" oninput="filtrarCIE10(1)" onclick="filtrarCIE10(1)"><div class="datalist-custom" id="list-1"></div></div></td></tr>
+                            <tr><td class="diag-num">2</td><td><div class="cie-container"><input type="text" class="cie-input navegable" id="cie-2" oninput="filtrarCIE10(2)" onclick="filtrarCIE10(2)"><div class="datalist-custom" id="list-2"></div></div></td></tr>
+                            <tr><td class="diag-num">3</td><td><div class="cie-container"><input type="text" class="cie-input navegable" id="cie-3" oninput="filtrarCIE10(3)" onclick="filtrarCIE10(3)"><div class="datalist-custom" id="list-3"></div></div></td></tr>
+                            <tr><td class="diag-num">4</td><td><div class="cie-container"><input type="text" class="cie-input navegable" id="cie-4" oninput="filtrarCIE10(4)" onclick="filtrarCIE10(4)"><div class="datalist-custom" id="list-4"></div></div></td></tr>
+                            <tr><td class="diag-num">5</td><td><div class="cie-container"><input type="text" class="cie-input navegable" id="cie-5" oninput="filtrarCIE10(5)" onclick="filtrarCIE10(5)"><div class="datalist-custom" id="list-5"></div></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="form-group"><label>Notas Clínicas / Recomendaciones</label><textarea rows="3" style="resize: none;" id="notas" class="navegable"></textarea></div>
+                
+                <div class="form-group">
+                    <label>Optómetra Examinador</label>
+                    <input type="text" id="optometra" value="DR. JONIER RAMOS" class="navegable" placeholder="Escribe el nombre del profesional profesional">
+                </div>
+
+                <div class="ojo-section" style="background-color: #FFFBEB; border-color: #F59E0B;">
+                    <div class="ojo-title" style="color: #B45309;">💰 Finanzas de Caja y Abonos</div>
+                    <div class="form-group">
+                        <label>Precio Total Trabajo ($)</label>
+                        <input type="text" id="precioTotal" placeholder="0" style="border-color: #F59E0B;" class="navegable" oninput="calcularFinanzas(this)">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Valor Abonado ($)</label>
+                            <input type="text" id="precioAbono" placeholder="0" style="border-color: #F59E0B;" class="navegable" oninput="calcularFinanzas(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Saldo Pendiente ($)</label>
+                            <input type="text" id="precioSaldo" value="0" style="background-color: #FEF3C7; border-color: #F59E0B; font-weight: bold;" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Método de Pago Utilizado hoy</label>
+                        <select id="metodoPago" style="border-color: #F59E0B;" class="navegable">
+                            <option>Efectivo</option>
+                            <option>Nequi / Daviplata</option>
+                            <option>Tarjeta de Crédito</option>
+                            <option>Tarjeta de Débito</option>
+                            <option>Transferencia Bancaria</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn-pdf" onclick="descargarImprimirPDF()">🖨️ Imprimir / Guardar PDF</button>
+        <button class="btn-whatsapp" onclick="enviarHistoriaWhatsApp()">💬 Enviar por WhatsApp</button>
+        <button class="btn-save" id="btnGuardar" onclick="enviarContabilidadDrive()">💾 Registrar Contabilidad en Drive</button>
+    </div>
+
+    <div id="print-area">
+        <div class="print-header">
+            <div>
+                <div class="print-title" style="color:#091235;">TRENDYOPTICS</div>
+                <p style="font-size:11px;">Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá</p>
+                <p style="font-size:11px;">NIT: 1073263942-5 | Cel: 3003391055</p>
+            </div>
+            <div style="text-align: right;">
+                <h3 style="font-size:16px; font-weight:bold;">HISTORIA CLÍNICA OPTOMÉTRICA</h3>
+                <p id="p-fecha-consulta" style="font-size:12px; font-weight:bold; margin-top:4px;"></p>
+            </div>
+        </div>
+
+        <div class="print-section">
+            <div class="print-section-title">Datos Generales del Paciente</div>
+            <div class="print-grid">
+                <div><strong>Paciente:</strong> <span id="p-nombre"></span></div>
+                <div><strong>Documento:</strong> <span id="p-doc"></span></div>
+                <div><strong>Teléfono:</strong> <span id="p-tel"></span></div>
+                <div><strong>Dirección:</strong> <span id="p-dir"></span></div>
+                <div><strong>Convenio/EPS:</strong> <span id="p-eps"></span></div>
+                <div><strong>AV. Inicial Sin Corrección:</strong> OD: <span id="p-avsin-od"></span> | OI: <span id="p-avsin-oi"></span></div>
+            </div>
+        </div>
+
+        <div class="print-section">
+            <div class="print-section-title">Fórmula de Lentes Recetada (Rx)</div>
+            <table class="print-table">
+                <thead>
+                    <tr><th>OJO</th><th>ESFERA</th><th>CILINDRO</th><th>EJE</th><th>ADICIÓN</th><th>AV RECETADA FINAL</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>OD</strong></td><td id="p-od-esf"></td><td id="p-od-cil"></td><td id="p-od-eje"></td><td id="p-od-adi"></td><td id="p-od-av"></td></tr>
+                    <tr><td><strong>OI</strong></td><td id="p-oi-esf"></td><td id="p-oi-cil"></td><td id="p-oi-eje"></td><td id="p-oi-adi"></td><td id="p-oi-av"></td></tr>
+                </tbody>
+            </table>
+            <p style="margin-top:12px; font-size:12px;"><strong>Distancia Pupilar (DP):</strong> <span id="p-dp"></span> | <strong>Tipo de Lente Solicitado:</strong> <span id="p-tl" style="font-weight:bold;"></span></p>
+        </div>
+
+        <div class="print-section">
+            <div class="print-section-title">Diagnóstico y Recomendaciones Clínicas</div>
+            <p style="font-size:12px; line-height:1.6;"><strong>Diagnósticos (CIE-10):</strong> <span id="p-cie"></span></p>
+            <p style="font-size:12px; margin-top:6px; line-height:1.6;"><strong>Notas / Recomendaciones del Profesional:</strong> <span id="p-obs" style="font-weight:bold; color:#14202E;"></span></p>
+        </div>
+
+        <div class="print-section" style="border-color:#F59E0B;">
+            <div class="print-section-title" style="background:#FEF3C7; border-left-color:#F59E0B;">Resumen Financiero de Caja</div>
+            <div class="print-grid">
+                <div><strong>Valor Total Trabajo:</strong> <span id="p-total" style="font-weight:bold; font-size:13px;"></span></div>
+                <div><strong>Valor Abonado Hoy:</strong> <span id="p-abono" style="color:#16A34A; font-weight:bold; font-size:13px;"></span></div>
+                <div><strong>Saldo Restante:</strong> <span id="p-saldo" style="color:#DC2626; font-weight:bold; font-size:13px;"></span></div>
+            </div>
+            <p style="font-size:11px; margin-top:10px; color:#475569;">Método de pago de transacción: <span id="p-metodo"></span></p>
+        </div>
+        
+        <br><br><br>
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:20px;">
+            <div>_____________________________<br><strong>Firma del Optómetra Examinador</strong><br><span id="p-firm-dr"></span></div>
+            <div>_____________________________<br><strong>Firma del Paciente / Aceptación</strong></div>
+        </div>
+    </div>
+
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyMMTom4NrWVij2Qw_nsByALmC-WhmnLuNYOXxCq3PLB8pyi0aY7sXND0sONkhxRDd9/exec";
+
+        const baseCIE10 = [
+            {c: "H520", d: "HIPERMETROPIA"}, {c: "H521", d: "MIOPIA"}, {c: "H522", d: "ASTIGMATISMO"}, 
+            {c: "H523", d: "ASTIGMATISMO MIXTO"}, {c: "H524", d: "PRESBICIA"}, {c: "H041", d: "OJO SECO"}
+        ];
+
+        // Función matemática corregida para formatear y calcular con puntos de miles reales sin perder los ceros
+        function calcularFinanzas(input) {
+            if (input) {
+                let limpio = input.value.replace(/\./g, "").replace(/\D/g, "");
+                if (limpio === "") limpio = "0";
+                input.value = parseInt(limpio, 10).toLocaleString('es-CO').replace(/,/g, '.');
+            }
+
+            let totalStr = document.getElementById("precioTotal").value.replace(/\./g, "") || "0";
+            let abonoStr = document.getElementById("precioAbono").value.replace(/\./g, "") || "0";
+
+            let totalNum = parseInt(totalStr, 10);
+            let abonoNum = parseInt(abonoStr, 10);
+            let saldoNum = totalNum - abonoNum;
+
+            document.getElementById("precioSaldo").value = saldoNum.toLocaleString('es-CO').replace(/,/g, '.');
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.classList.contains('navegable')) {
+                e.preventDefault();
+                const campos = Array.from(document.querySelectorAll('.navegable'));
+                const index = campos.indexOf(e.target);
+                if (index > -1 && index + 1 < campos.length) {
+                    campos[index + 1].focus();
+                }
+            }
+        });
+
+        function forzarMenosCilindro(idCampo) {
+            const campo = document.getElementById(idCampo);
+            let valor = campo.value.trim();
+            if(valor.length > 0 && !valor.startsWith('-')) { campo.value = '-' + valor; }
+        }
+
+        function descargarImprimirPDF() {
+            if(!document.getElementById("nombre").value || !document.getElementById("documento").value) {
+                alert("❌ Primero diligencia el Nombre y Documento del paciente.");
+                return;
+            }
+            
+            document.getElementById("p-fecha-consulta").innerText = "Fecha: " + document.getElementById("fecha").value;
+            document.getElementById("p-nombre").innerText = document.getElementById("nombre").value.toUpperCase();
+            document.getElementById("p-doc").innerText = document.getElementById("documento").value;
+            document.getElementById("p-tel").innerText = document.getElementById("telefono").value;
+            document.getElementById("p-dir").innerText = document.getElementById("direccion").value.toUpperCase();
+            document.getElementById("p-eps").innerText = document.getElementById("eps").value.toUpperCase();
+            
+            document.getElementById("p-avsin-od").innerText = document.getElementById("avSinOD").value || "N/A";
+            document.getElementById("p-avsin-oi").innerText = document.getElementById("avSinOI").value || "N/A";
+
+            document.getElementById("p-od-esf").innerText = document.getElementById("odEsfera").value || "0.00";
+            document.getElementById("p-od-cil").innerText = document.getElementById("odCilindro").value || "0.00";
+            document.getElementById("p-od-eje").innerText = document.getElementById("odEje").value || "0";
+            document.getElementById("p-od-adi").innerText = document.getElementById("odAdicion").value || "0.00";
+            document.getElementById("p-od-av").innerText = document.getElementById("odAv").value || "20/20";
+            
+            document.getElementById("p-oi-esf").innerText = document.getElementById("oiEsfera").value || "0.00";
+            document.getElementById("p-oi-cil").innerText = document.getElementById("oiCilindro").value || "0.00";
+            document.getElementById("p-oi-eje").innerText = document.getElementById("oiEje").value || "0";
+            document.getElementById("p-oi-adi").innerText = document.getElementById("oiAdicion").value || "0.00";
+            document.getElementById("p-oi-av").innerText = document.getElementById("oiAv").value || "20/20";
+            
+            document.getElementById("p-dp").innerText = document.getElementById("dp").value;
+            document.getElementById("p-tl").innerText = document.getElementById("tipoLente").value.toUpperCase();
+            
+            let activos = [];
+            for(let i=1; i<=5; i++) {
+                let v = document.getElementById(`cie-${i}`).value;
+                if(v) activos.push(v.toUpperCase());
+            }
+            document.getElementById("p-cie").innerText = activos.join(" | ") || "SIN DIAGNÓSTICO REGISTRADO";
+            
+            document.getElementById("p-obs").innerText = document.getElementById("notas").value.toUpperCase() || "SIN RECOMENDACIONES PARTICULARES.";
+            
+            document.getElementById("p-total").innerText = "$" + (document.getElementById("precioTotal").value || "0");
+            document.getElementById("p-abono").innerText = "$" + (document.getElementById("precioAbono").value || "0");
+            document.getElementById("p-saldo").innerText = "$" + (document.getElementById("precioSaldo").value || "0");
+            
+            document.getElementById("p-metodo").innerText = document.getElementById("metodoPago").value.toUpperCase();
+            document.getElementById("p-firm-dr").innerText = document.getElementById("optometra").value.toUpperCase();
+
+            window.print();
+        }
+
+        function enviarHistoriaWhatsApp() {
+            let tel = document.getElementById("telefono").value.trim();
+            const paciente = document.getElementById("nombre").value.toUpperCase();
+            
+            if(!tel || !paciente) {
+                alert("❌ Necesitas ingresar el nombre y el celular del paciente.");
+                return;
+            }
+            
+            if (!tel.startsWith("57") && tel.length === 10) { tel = "57" + tel; }
+
+            const rxOD = `OD: Esf: ${document.getElementById("odEsfera").value || '0.00'} Cil: ${document.getElementById("odCilindro").value || '0.00'} Eje: ${document.getElementById("odEje").value || '0'} Ad: ${document.getElementById("odAdicion").value || '0.00'}`;
+            const rxOI = `OI: Esf: ${document.getElementById("oiEsfera").value || '0.00'} Cil: ${document.getElementById("oiCilindro").value || '0.00'} Eje: ${document.getElementById("oiEje").value || '0'} Ad: ${document.getElementById("oiAdicion").value || '0.00'}`;
+            
+            const avSinOD = document.getElementById("avSinOD").value || "N/A";
+            const avSinOI = document.getElementById("avSinOI").value || "N/A";
+            const avOD = document.getElementById("odAv").value || "20/20";
+            const avOI = document.getElementById("oiAv").value || "20/20";
+            const lente = document.getElementById("tipoLente").value.toUpperCase() || "POR DEFINIR";
+            const doctor = document.getElementById("optometra").value.toUpperCase();
+            const metodo = document.getElementById("metodoPago").value;
+            const recomendaciones = document.getElementById("notas").value.toUpperCase() || "SEGUIR RECOMENDACIONES GENERALES DE USO.";
+
+            const totalJob = document.getElementById("precioTotal").value || "0";
+            const abonoJob = document.getElementById("precioAbono").value || "0";
+            const saldoJob = document.getElementById("precioSaldo").value || "0";
+
+            const mensaje = `Hola *${paciente}*, te saludamos de *TrendyOptics* 👓. Te compartimos el resumen de tu consulta y orden de trabajo:\n\n` +
+                            `*Agudeza Visual Inicial:* OD: ${avSinOD} | OI: ${avSinOI}\n\n` +
+                            `*Fórmula Optométrica Recetada:*\n` +
+                            `• ${rxOD} (AV Final: ${avOD})\n` +
+                            `• ${rxOI} (AV Final: ${avOI})\n\n` +
+                            `*Lente Comprado:* ${lente}\n` +
+                            `*Profesional Tratante:* ${doctor}\n\n` +
+                            `*📋 Recomendaciones Clínicas:*\n${recomendaciones}\n\n` +
+                            `*📊 Estado Financiero de tu Orden:*\n` +
+                            `• Total Trabajo: $${totalJob}\n` +
+                            `• Valor Abonado: $${abonoJob} (${metodo})\n` +
+                            `• *Saldo Pendiente a la Entrega: $${saldoJob}*\n\n` +
+                            `¡Gracias por confiar en nuestra atención clínica!`;
+
+            const urlWhatsApp = `https://api.whatsapp.com/send?phone=${tel}&text=${encodeURIComponent(mensaje)}`;
+            window.open(urlWhatsApp, '_blank');
+        }
+
+        function enviarContabilidadDrive() {
+            const btn = document.getElementById("btnGuardar");
+            const nombre = document.getElementById("nombre").value;
+            const doc = document.getElementById("documento").value;
+            
+            if(!doc || !nombre) {
+                alert("❌ Completa Documento y Nombre antes de subir a contabilidad.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "⏳ Registrando Ingreso contable...";
+
+            let diagsEnviados = [];
+            for(let i=1; i<=5; i++) {
+                let v = document.getElementById(`cie-${i}`).value;
+                if(v) diagsEnviados.push(v.toUpperCase());
+            }
+
+            const payload = {
+                fecha: document.getElementById("fecha").value,
+                tipoDoc: document.getElementById("tipoDoc").value,
+                documento: doc,
+                nombre: nombre.toUpperCase(),
+                telefono: document.getElementById("telefono").value,
+                direccion: document.getElementById("direccion").value.toUpperCase(),
+                eps: document.getElementById("eps").value.toUpperCase(),
+                avSinOD: document.getElementById("avSinOD").value || "N/A",
+                avSinOI: document.getElementById("avSinOI").value || "N/A",
+                odEsfera: document.getElementById("odEsfera").value,
+                odCilindro: document.getElementById("odCilindro").value,
+                odEje: document.getElementById("odEje").value,
+                odAdicion: document.getElementById("odAdicion").value,
+                odAv: document.getElementById("odAv").value,
+                oiEsfera: document.getElementById("oiEsfera").value,
+                oiCilindro: document.getElementById("oiCilindro").value,
+                oiEje: document.getElementById("oiEje").value,
+                oiAdicion: document.getElementById("oiAdicion").value,
+                oiAv: document.getElementById("oiAv").value,
+                dp: document.getElementById("dp").value,
+                tipoLente: document.getElementById("tipoLente").value.toUpperCase(),
+                cie1: diagsEnviados.join(" | ") || "SIN DIAGNÓSTICO",
+                notas: document.getElementById("notas").value.toUpperCase(),
+                optometra: document.getElementById("optometra").value.toUpperCase(),
+                
+                precioTotal: document.getElementById("precioTotal").value || "0",
+                precioAbono: document.getElementById("precioAbono").value || "0",
+                precioSaldo: document.getElementById("precioSaldo").value || "0",
+                metodoPago: document.getElementById("metodoPago").value
+            };
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.status === "success" || res.message) {
+                    alert("🚀 ¡Contabilidad al día! Reporte financiero registrado en tu Google Sheets.");
+                } else {
+                    alert("⚠️ Nota: Verifica tu hoja, pero el script se ejecutó.");
+                }
+                btn.disabled = false;
+                btn.innerText = "💾 Registrar Contabilidad en Drive";
+            })
+            .catch(err => {
+                console.error(err);
+                alert("❌ Error de comunicación. Si el dato se guardó en tu Sheets, ignora este mensaje.");
+                btn.disabled = false;
+                btn.innerText = "💾 Registrar Contabilidad en Drive";
+            });
+        }
+
+        function filtrarCIE10(linea) {
+            const input = document.getElementById(`cie-${linea}`);
+            const filter = input.value.toUpperCase();
+            const list = document.getElementById(`list-${linea}`);
+            const match = filter.length === 0 ? baseCIE10 : baseCIE10.filter(i => i.c.includes(filter) || i.d.includes(filter));
+            
+            if (match.length > 0) {
+                list.innerHTML = match.map(i => `<div class="datalist-item" onclick="selectCIE(${linea}, '${i.c} - ${i.d}')"><strong>${i.c}</strong> - ${i.d}</div>`).join('');
+                list.style.display = "block";
+            } else { list.style.display = "none"; }
+        }
+
+        function selectCIE(linea, valor) {
+            document.getElementById(`cie-${linea}`).value = valor;
+            document.getElementById(`list-${linea}`).style.display = "none";
+        }
+
+        function toggleCard(id) { if (window.innerWidth < 992) { var x = document.getElementById(id); x.style.display = (x.style.display === "none") ? "block" : "none"; } }
+    </script>
+</body>
+</html>
