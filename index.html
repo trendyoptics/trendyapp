@@ -232,7 +232,7 @@
                 
                 <div class="form-group">
                     <label>Optómetra Examinador</label>
-                    <input type="text" id="optometra" value="DR. JONIER RAMOS" class="navegable" placeholder="Escribe el nombre del profesional profesional">
+                    <input type="text" id="optometra" value="DR. JONIER RAMOS" class="navegable" placeholder="Escribe el nombre del profesional">
                 </div>
 
                 <div class="ojo-section" style="background-color: #FFFBEB; border-color: #F59E0B;">
@@ -342,21 +342,17 @@
             {c: "H523", d: "ASTIGMATISMO MIXTO"}, {c: "H524", d: "PRESBICIA"}, {c: "H041", d: "OJO SECO"}
         ];
 
-        // Función matemática corregida para formatear y calcular con puntos de miles reales sin perder los ceros
         function calcularFinanzas(input) {
             if (input) {
                 let limpio = input.value.replace(/\./g, "").replace(/\D/g, "");
                 if (limpio === "") limpio = "0";
                 input.value = parseInt(limpio, 10).toLocaleString('es-CO').replace(/,/g, '.');
             }
-
             let totalStr = document.getElementById("precioTotal").value.replace(/\./g, "") || "0";
             let abonoStr = document.getElementById("precioAbono").value.replace(/\./g, "") || "0";
-
             let totalNum = parseInt(totalStr, 10);
             let abonoNum = parseInt(abonoStr, 10);
             let saldoNum = totalNum - abonoNum;
-
             document.getElementById("precioSaldo").value = saldoNum.toLocaleString('es-CO').replace(/,/g, '.');
         }
 
@@ -365,9 +361,7 @@
                 e.preventDefault();
                 const campos = Array.from(document.querySelectorAll('.navegable'));
                 const index = campos.indexOf(e.target);
-                if (index > -1 && index + 1 < campos.length) {
-                    campos[index + 1].focus();
-                }
+                if (index > -1 && index + 1 < campos.length) { campos[index + 1].focus(); }
             }
         });
 
@@ -377,192 +371,102 @@
             if(valor.length > 0 && !valor.startsWith('-')) { campo.value = '-' + valor; }
         }
 
+        function toggleCard(id) {
+            const el = document.getElementById(id);
+            el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+        }
+
+        function filtrarCIE10(idx) {
+            const input = document.getElementById(`cie-${idx}`);
+            const list = document.getElementById(`list-${idx}`);
+            const filtro = input.value.toUpperCase();
+            list.innerHTML = "";
+            const filtrados = baseCIE10.filter(item => item.c.includes(filtro) || item.d.includes(filtro));
+            
+            if(filtrados.length > 0 && filtro !== "") {
+                list.style.display = 'block';
+                filtrados.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'datalist-item';
+                    div.innerText = `${item.c} - ${item.d}`;
+                    div.onclick = () => { input.value = item.c; list.style.display = 'none'; };
+                    list.appendChild(div);
+                });
+            } else { list.style.display = 'none'; }
+        }
+
         function descargarImprimirPDF() {
             if(!document.getElementById("nombre").value || !document.getElementById("documento").value) {
                 alert("❌ Primero diligencia el Nombre y Documento del paciente.");
                 return;
             }
-            
             document.getElementById("p-fecha-consulta").innerText = "Fecha: " + document.getElementById("fecha").value;
             document.getElementById("p-nombre").innerText = document.getElementById("nombre").value.toUpperCase();
             document.getElementById("p-doc").innerText = document.getElementById("documento").value;
             document.getElementById("p-tel").innerText = document.getElementById("telefono").value;
             document.getElementById("p-dir").innerText = document.getElementById("direccion").value.toUpperCase();
             document.getElementById("p-eps").innerText = document.getElementById("eps").value.toUpperCase();
-            
             document.getElementById("p-avsin-od").innerText = document.getElementById("avSinOD").value || "N/A";
             document.getElementById("p-avsin-oi").innerText = document.getElementById("avSinOI").value || "N/A";
-
             document.getElementById("p-od-esf").innerText = document.getElementById("odEsfera").value || "0.00";
             document.getElementById("p-od-cil").innerText = document.getElementById("odCilindro").value || "0.00";
             document.getElementById("p-od-eje").innerText = document.getElementById("odEje").value || "0";
             document.getElementById("p-od-adi").innerText = document.getElementById("odAdicion").value || "0.00";
             document.getElementById("p-od-av").innerText = document.getElementById("odAv").value || "20/20";
-            
             document.getElementById("p-oi-esf").innerText = document.getElementById("oiEsfera").value || "0.00";
             document.getElementById("p-oi-cil").innerText = document.getElementById("oiCilindro").value || "0.00";
             document.getElementById("p-oi-eje").innerText = document.getElementById("oiEje").value || "0";
             document.getElementById("p-oi-adi").innerText = document.getElementById("oiAdicion").value || "0.00";
             document.getElementById("p-oi-av").innerText = document.getElementById("oiAv").value || "20/20";
-            
             document.getElementById("p-dp").innerText = document.getElementById("dp").value;
             document.getElementById("p-tl").innerText = document.getElementById("tipoLente").value.toUpperCase();
-            
             let activos = [];
-            for(let i=1; i<=5; i++) {
-                let v = document.getElementById(`cie-${i}`).value;
-                if(v) activos.push(v.toUpperCase());
-            }
-            document.getElementById("p-cie").innerText = activos.join(" | ") || "SIN DIAGNÓSTICO REGISTRADO";
-            
-            document.getElementById("p-obs").innerText = document.getElementById("notas").value.toUpperCase() || "SIN RECOMENDACIONES PARTICULARES.";
-            
+            for(let i=1; i<=5; i++) { let v = document.getElementById(`cie-${i}`).value; if(v) activos.push(v.toUpperCase()); }
+            document.getElementById("p-cie").innerText = activos.join(" | ") || "SIN DIAGNÓSTICO";
+            document.getElementById("p-obs").innerText = document.getElementById("notas").value.toUpperCase() || "SIN RECOMENDACIONES.";
             document.getElementById("p-total").innerText = "$" + (document.getElementById("precioTotal").value || "0");
             document.getElementById("p-abono").innerText = "$" + (document.getElementById("precioAbono").value || "0");
             document.getElementById("p-saldo").innerText = "$" + (document.getElementById("precioSaldo").value || "0");
-            
             document.getElementById("p-metodo").innerText = document.getElementById("metodoPago").value.toUpperCase();
             document.getElementById("p-firm-dr").innerText = document.getElementById("optometra").value.toUpperCase();
-
             window.print();
         }
 
         function enviarHistoriaWhatsApp() {
             let tel = document.getElementById("telefono").value.trim();
             const paciente = document.getElementById("nombre").value.toUpperCase();
-            
-            if(!tel || !paciente) {
-                alert("❌ Necesitas ingresar el nombre y el celular del paciente.");
-                return;
-            }
-            
+            if(!tel || !paciente) { alert("❌ Necesitas ingresar el nombre y el celular."); return; }
             if (!tel.startsWith("57") && tel.length === 10) { tel = "57" + tel; }
-
             const rxOD = `OD: Esf: ${document.getElementById("odEsfera").value || '0.00'} Cil: ${document.getElementById("odCilindro").value || '0.00'} Eje: ${document.getElementById("odEje").value || '0'} Ad: ${document.getElementById("odAdicion").value || '0.00'}`;
             const rxOI = `OI: Esf: ${document.getElementById("oiEsfera").value || '0.00'} Cil: ${document.getElementById("oiCilindro").value || '0.00'} Eje: ${document.getElementById("oiEje").value || '0'} Ad: ${document.getElementById("oiAdicion").value || '0.00'}`;
-            
-            const avSinOD = document.getElementById("avSinOD").value || "N/A";
-            const avSinOI = document.getElementById("avSinOI").value || "N/A";
             const avOD = document.getElementById("odAv").value || "20/20";
             const avOI = document.getElementById("oiAv").value || "20/20";
             const lente = document.getElementById("tipoLente").value.toUpperCase() || "POR DEFINIR";
             const doctor = document.getElementById("optometra").value.toUpperCase();
-            const metodo = document.getElementById("metodoPago").value;
-            const recomendaciones = document.getElementById("notas").value.toUpperCase() || "SEGUIR RECOMENDACIONES GENERALES DE USO.";
-
+            const recomendaciones = document.getElementById("notas").value.toUpperCase() || "SEGUIR RECOMENDACIONES.";
             const totalJob = document.getElementById("precioTotal").value || "0";
             const abonoJob = document.getElementById("precioAbono").value || "0";
             const saldoJob = document.getElementById("precioSaldo").value || "0";
-
-            const mensaje = `Hola *${paciente}*, te saludamos de *TrendyOptics* 👓. Te compartimos el resumen de tu consulta y orden de trabajo:\n\n` +
-                            `*Agudeza Visual Inicial:* OD: ${avSinOD} | OI: ${avSinOI}\n\n` +
-                            `*Fórmula Optométrica Recetada:*\n` +
-                            `• ${rxOD} (AV Final: ${avOD})\n` +
-                            `• ${rxOI} (AV Final: ${avOI})\n\n` +
-                            `*Lente Comprado:* ${lente}\n` +
-                            `*Profesional Tratante:* ${doctor}\n\n` +
-                            `*📋 Recomendaciones Clínicas:*\n${recomendaciones}\n\n` +
-                            `*📊 Estado Financiero de tu Orden:*\n` +
-                            `• Total Trabajo: $${totalJob}\n` +
-                            `• Valor Abonado: $${abonoJob} (${metodo})\n` +
-                            `• *Saldo Pendiente a la Entrega: $${saldoJob}*\n\n` +
-                            `¡Gracias por confiar en nuestra atención clínica!`;
-
-            const urlWhatsApp = `https://api.whatsapp.com/send?phone=${tel}&text=${encodeURIComponent(mensaje)}`;
-            window.open(urlWhatsApp, '_blank');
+            const mensaje = `Hola *${paciente}*, te saludamos de *TrendyOptics* 👓.\n\n*Rx Recetada:*\n• ${rxOD} (AV: ${avOD})\n• ${rxOI} (AV: ${avOI})\n\n*Lente:* ${lente}\n*Recomendaciones:* ${recomendaciones}\n\n*Finanzas:*\nTotal: $${totalJob} | Abono: $${abonoJob} | Saldo: $${saldoJob}\n\nGracias por confiar en el ${doctor}.`;
+            window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
         function enviarContabilidadDrive() {
             const btn = document.getElementById("btnGuardar");
-            const nombre = document.getElementById("nombre").value;
-            const doc = document.getElementById("documento").value;
-            
-            if(!doc || !nombre) {
-                alert("❌ Completa Documento y Nombre antes de subir a contabilidad.");
-                return;
-            }
-
             btn.disabled = true;
-            btn.innerText = "⏳ Registrando Ingreso contable...";
-
-            let diagsEnviados = [];
-            for(let i=1; i<=5; i++) {
-                let v = document.getElementById(`cie-${i}`).value;
-                if(v) diagsEnviados.push(v.toUpperCase());
-            }
-
-            const payload = {
+            btn.innerText = "Enviando...";
+            const datos = {
                 fecha: document.getElementById("fecha").value,
-                tipoDoc: document.getElementById("tipoDoc").value,
-                documento: doc,
-                nombre: nombre.toUpperCase(),
-                telefono: document.getElementById("telefono").value,
-                direccion: document.getElementById("direccion").value.toUpperCase(),
-                eps: document.getElementById("eps").value.toUpperCase(),
-                avSinOD: document.getElementById("avSinOD").value || "N/A",
-                avSinOI: document.getElementById("avSinOI").value || "N/A",
-                odEsfera: document.getElementById("odEsfera").value,
-                odCilindro: document.getElementById("odCilindro").value,
-                odEje: document.getElementById("odEje").value,
-                odAdicion: document.getElementById("odAdicion").value,
-                odAv: document.getElementById("odAv").value,
-                oiEsfera: document.getElementById("oiEsfera").value,
-                oiCilindro: document.getElementById("oiCilindro").value,
-                oiEje: document.getElementById("oiEje").value,
-                oiAdicion: document.getElementById("oiAdicion").value,
-                oiAv: document.getElementById("oiAv").value,
-                dp: document.getElementById("dp").value,
-                tipoLente: document.getElementById("tipoLente").value.toUpperCase(),
-                cie1: diagsEnviados.join(" | ") || "SIN DIAGNÓSTICO",
-                notas: document.getElementById("notas").value.toUpperCase(),
-                optometra: document.getElementById("optometra").value.toUpperCase(),
-                
-                precioTotal: document.getElementById("precioTotal").value || "0",
-                precioAbono: document.getElementById("precioAbono").value || "0",
-                precioSaldo: document.getElementById("precioSaldo").value || "0",
-                metodoPago: document.getElementById("metodoPago").value
+                paciente: document.getElementById("nombre").value,
+                total: document.getElementById("precioTotal").value,
+                abono: document.getElementById("precioAbono").value,
+                saldo: document.getElementById("precioSaldo").value,
+                metodo: document.getElementById("metodoPago").value
             };
-
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(res => {
-                if(res.status === "success" || res.message) {
-                    alert("🚀 ¡Contabilidad al día! Reporte financiero registrado en tu Google Sheets.");
-                } else {
-                    alert("⚠️ Nota: Verifica tu hoja, pero el script se ejecutó.");
-                }
-                btn.disabled = false;
-                btn.innerText = "💾 Registrar Contabilidad en Drive";
-            })
-            .catch(err => {
-                console.error(err);
-                alert("❌ Error de comunicación. Si el dato se guardó en tu Sheets, ignora este mensaje.");
-                btn.disabled = false;
-                btn.innerText = "💾 Registrar Contabilidad en Drive";
-            });
+            fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify(datos) })
+            .then(r => { alert("✅ Guardado en Google Sheets correctamente."); btn.disabled = false; btn.innerText = "💾 Registrar Contabilidad en Drive"; })
+            .catch(e => { alert("❌ Error: " + e); btn.disabled = false; });
         }
-
-        function filtrarCIE10(linea) {
-            const input = document.getElementById(`cie-${linea}`);
-            const filter = input.value.toUpperCase();
-            const list = document.getElementById(`list-${linea}`);
-            const match = filter.length === 0 ? baseCIE10 : baseCIE10.filter(i => i.c.includes(filter) || i.d.includes(filter));
-            
-            if (match.length > 0) {
-                list.innerHTML = match.map(i => `<div class="datalist-item" onclick="selectCIE(${linea}, '${i.c} - ${i.d}')"><strong>${i.c}</strong> - ${i.d}</div>`).join('');
-                list.style.display = "block";
-            } else { list.style.display = "none"; }
-        }
-
-        function selectCIE(linea, valor) {
-            document.getElementById(`cie-${linea}`).value = valor;
-            document.getElementById(`list-${linea}`).style.display = "none";
-        }
-
-        function toggleCard(id) { if (window.innerWidth < 992) { var x = document.getElementById(id); x.style.display = (x.style.display === "none") ? "block" : "none"; } }
     </script>
 </body>
 </html>
