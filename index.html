@@ -1,472 +1,1743 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrendyOptics - Sistema Clínico y Contable</title>
-    <style>
-        :root {
-            --royal-blue: #091235;
-            --navy-blue: #14202E;
-            --midnight-blue: #2B4257;
-            --blue-gray: #88A9C3;
-            --bg-light: #F4F7F9;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>TrendyOptics | Historia Clínica Optométrica y Cierre de Caja</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --navy-dark: #0B172A;
+      --navy-med: #162544;
+      --accent-blue: #0284C7;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F1F5F9;
+      color: #0F172A;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F1F5F9; }
+    ::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748B; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-        body { background-color: var(--bg-light); color: var(--navy-blue); padding: 15px; padding-bottom: 40px; }
-        
-        .header { 
-            background: linear-gradient(135deg, var(--royal-blue), var(--navy-blue)); 
-            color: white; 
-            padding: 16px 24px; 
-            border-radius: 12px; 
-            margin-bottom: 16px; 
-            box-shadow: 0 4px 15px rgba(9,12,53,0.15); 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header-brand { display: flex; align-items: center; gap: 12px; }
-        
-        .logo-gafas { display: flex; align-items: center; position: relative; width: 48px; height: 24px; }
-        .logo-gafas::before, .logo-gafas::after { content: ''; width: 20px; height: 20px; border: 3px solid #ffffff; border-radius: 50%; display: inline-block; }
-        .logo-bridge { position: absolute; width: 8px; height: 3px; background-color: #ffffff; left: 20px; top: 9px; border-radius: 2px; }
+    /* Estilos de Inputs Clínicos */
+    .clinical-input {
+      width: 100%;
+      background-color: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      color: #0F172A;
+      transition: all 0.15s ease-in-out;
+      text-transform: uppercase;
+    }
+    .clinical-input::placeholder {
+      text-transform: uppercase;
+    }
+    .clinical-input:focus {
+      outline: none;
+      border-color: #0284C7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+    .clinical-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #334155;
+      margin-bottom: 0.25rem;
+    }
 
-        .header h1 { font-size: 26px; font-weight: 800; letter-spacing: 0.5px; color: #ffffff; }
-        .header-info { text-align: right; font-size: 11.5px; opacity: 0.9; line-height: 1.5; }
+    /* Forzar mayúsculas en absolutamente todos los campos editables */
+    input[type="text"],
+    input[type="search"],
+    input[type="tel"],
+    textarea,
+    select {
+      text-transform: uppercase;
+    }
 
-        .main-container { display: flex; flex-direction: column; gap: 14px; }
-        
-        .card { background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(10,17,40,0.04); overflow: hidden; border: 1px solid #E2E8F0; display: flex; flex-direction: column; }
-        .card-header { background-color: #F8FAFC; padding: 12px 16px; font-weight: 700; font-size: 13.5px; color: var(--royal-blue); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; cursor: pointer; }
-        .card-body { padding: 16px; flex-grow: 1; }
-
-        .form-group { margin-bottom: 14px; }
-        .form-row { display: flex; gap: 12px; margin-bottom: 14px; }
-        .form-row .form-group { flex: 1; margin-bottom: 0; }
-        label { display: block; font-size: 10.5px; font-weight: 700; color: var(--midnight-blue); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px; }
-        
-        input[type="text"], textarea { text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 14px; background-color: #fff; color: var(--navy-blue); transition: all 0.2s ease; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--midnight-blue); box-shadow: 0 0 0 4px rgba(43, 66, 87, 0.15); }
-        
-        select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232B4257' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; padding-right: 35px; appearance: none; -webkit-appearance: none; }
-        
-        .ojo-section { background-color: #F8FAFC; border: 1px dashed var(--blue-gray); border-radius: 10px; padding: 12px; margin-bottom: 14px; }
-        .ojo-title { font-size: 11px; font-weight: 800; color: var(--midnight-blue); margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; display: flex; justify-content: space-between; }
-        
-        .diag-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
-        .diag-table td { padding: 8px; border: 1px solid #E2E8F0; vertical-align: middle; position: relative; }
-        .diag-num { font-size: 13px; font-weight: bold; color: var(--midnight-blue); text-align: center; width: 35px; background-color: #F8FAFC; }
-
-        .cie-container { position: relative; }
-        .datalist-custom { border: 1px solid #CBD5E1; border-radius: 8px; max-height: 200px; overflow-y: auto; background: white; position: absolute; width: 100%; z-index: 100; display: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08); margin-top: 4px; }
-        .datalist-item { padding: 10px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #F1F5F9; color: var(--navy-blue); text-align: left; }
-        .datalist-item:hover { background-color: #F0FDF4; color: #166534; font-weight: 600; }
-
-        .action-bar { background: white; padding: 16px; border-radius: 12px; margin-top: 16px; border: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 10px; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; }
-        
-        .btn-save { background-color: var(--royal-blue); color: white; }
-        .btn-pdf { background-color: #0284C7; color: white; }
-        .btn-whatsapp { background-color: #16A34A; color: white; }
-        button:hover { opacity: 0.95; transform: translateY(-1px); }
-        button:disabled { background-color: #CBD5E1; color: #94A3B8; cursor: not-allowed; }
-
-        #print-area { display: none; }
-
-        @media print {
-            body > *:not(#print-area) { display: none !important; }
-            html, body { background: white; color: black; padding: 0; margin: 0; }
-            #print-area { display: block !important; width: 100%; padding: 25px; box-sizing: border-box; }
-            .print-header { border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
-            .print-title { font-size: 26px; font-weight: 800; letter-spacing: 0.5px; }
-            .print-section { margin-bottom: 16px; border: 1px solid #CBD5E1; padding: 12px; border-radius: 8px; background: #fff; }
-            .print-section-title { font-size: 12px; font-weight: bold; background: #F1F5F9; padding: 6px 10px; margin-bottom: 10px; text-transform: uppercase; border-radius: 4px; border-left: 4px solid var(--royal-blue); }
-            .print-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 12px; line-height: 1.5; }
-            .print-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 12px; }
-            .print-table th, .print-table td { border: 1px solid #CBD5E1; padding: 8px; text-align: left; }
-            .print-table th { background: #F8FAFC; font-weight: bold; }
-        }
-
-        @media (min-width: 992px) {
-            body { padding: 24px; }
-            .header { padding: 20px 30px; }
-            .main-container { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 20px; }
-            .card-header { cursor: default; }
-            .card-header span:last-child { display: none; }
-            .card-body { display: block !important; }
-            .action-bar { flex-direction: row; justify-content: flex-end; padding: 16px 24px; gap: 16px; margin-top: 20px; }
-            button { width: auto; padding: 12px 24px; }
-        }
-    </style>
+    /* ==========================================================================
+       CONFIGURACIÓN DE IMPRESIÓN EN MEDIA CARTA (STATEMENT / HALF-LETTER)
+       Dimensiones Media Carta: 21.59cm ancho x 13.97cm alto (o Media Hoja Carta)
+       ========================================================================== */
+    @media print {
+      @page {
+        size: letter portrait;
+        margin: 0.4cm 0.6cm;
+      }
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      #print-area {
+        display: block !important;
+        width: 100% !important;
+        max-height: 13.4cm !important; /* Exactamente Media Carta (5.5 pulgadas) */
+        box-sizing: border-box;
+        font-size: 9pt;
+        line-height: 1.2;
+        border-bottom: 1px dashed #64748B;
+        padding-bottom: 0.25cm;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col justify-between pb-24 lg:pb-6">
 
-    <div class="header">
-        <div class="header-brand">
-            <div class="logo-gafas"><div class="logo-bridge"></div></div>
-            <h1>TrendyOptics</h1>
+  <!-- ========================================================================
+       ENCABEZADO PRINCIPAL (INTERFAZ PANTALLA)
+       ======================================================================== -->
+  <header class="no-print bg-[#0B172A] text-white shadow-lg sticky top-0 z-40 border-b border-slate-800">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Logo & Nombre -->
+      <div class="flex items-center gap-3">
+        <!-- Logo Circular Oficial TrendyOptics (SVG de alta precisión + Cargador de imagen opcional) -->
+        <div class="relative group cursor-pointer" onclick="document.getElementById('logoUploader').click()" title="Haz clic si deseas subir el archivo de imagen de tu logo desde tu galería">
+          <input type="file" id="logoUploader" accept="image/*" class="hidden" onchange="handleCustomLogo(event)">
+          
+          <div id="logoContainer" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white p-0.5 shadow-md flex items-center justify-center overflow-hidden">
+            <svg id="defaultLogoSvg" viewBox="0 0 240 240" class="w-full h-full">
+              <!-- Anillo Exterior Azul Oscuro -->
+              <circle cx="120" cy="120" r="116" fill="#0B1F3F" stroke="#08152C" stroke-width="3"/>
+              <circle cx="120" cy="120" r="108" fill="none" stroke="#CBD5E1" stroke-width="2"/>
+              <!-- Círculo Interior Gris Claro -->
+              <circle cx="120" cy="120" r="78" fill="#D1D5DB" stroke="#060D1A" stroke-width="3"/>
+              
+              <!-- Placa Superior "ÓPTICA" -->
+              <path d="M 75,38 Q 120,24 165,38 L 160,56 Q 120,44 80,56 Z" fill="#CBD5E1"/>
+              <path id="topArc" d="M 75,49 Q 120,35 165,49" fill="none"/>
+              <text font-family="'Courier Prime', monospace" font-size="19" font-weight="bold" fill="#0B1F3F" letter-spacing="2">
+                <textPath href="#topArc" startOffset="50%" text-anchor="middle">ÓPTICA</textPath>
+              </text>
+
+              <!-- Cintas Laterales "Clear" y "Vision" -->
+              <polygon points="8,108 62,108 55,120 62,132 8,132" fill="#CBD5E1" stroke="#FFFFFF" stroke-width="1.5"/>
+              <text x="33" y="124" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0B1F3F" text-anchor="middle">Clear</text>
+
+              <polygon points="232,108 178,108 185,120 178,132 232,132" fill="#CBD5E1" stroke="#FFFFFF" stroke-width="1.5"/>
+              <text x="207" y="124" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0B1F3F" text-anchor="middle">Vision</text>
+
+              <!-- Texto Central "Trendy Optics" -->
+              <text x="120" y="88" font-family="'Playfair Display', serif" font-style="italic" font-size="25" font-weight="600" fill="#000000" text-anchor="middle">Trendy</text>
+              <text x="120" y="116" font-family="'Playfair Display', serif" font-style="italic" font-size="33" font-weight="600" fill="#000000" text-anchor="middle">Optics</text>
+
+              <!-- Gafas Redondas Centrales -->
+              <circle cx="88" cy="148" r="24" fill="none" stroke="#000000" stroke-width="4.5"/>
+              <circle cx="152" cy="148" r="24" fill="none" stroke="#000000" stroke-width="4.5"/>
+              <path d="M 112,146 Q 120,135 128,146" fill="none" stroke="#000000" stroke-width="4.5" stroke-linecap="round"/>
+
+              <!-- Placa Inferior Curva "LENTES EN TENDENCIA" -->
+              <path d="M 34,158 A 94,94 0 0,0 206,158 L 190,180 A 112,112 0 0,1 50,180 Z" fill="#CBD5E1" opacity="0.95"/>
+              <path id="bottomArc" d="M 38,162 A 88,88 0 0,0 202,162" fill="none"/>
+              <text font-family="'Courier Prime', monospace" font-size="13.5" font-weight="bold" fill="#0B1F3F" letter-spacing="1.5">
+                <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">LENTES EN TENDENCIA</textPath>
+              </text>
+            </svg>
+            <img id="customLogoImg" src="" alt="Logo TrendyOptics" class="hidden w-full h-full object-contain rounded-full" />
+          </div>
+          <span class="absolute -bottom-1 -right-1 bg-sky-500 text-[9px] text-white px-1 rounded shadow opacity-0 group-hover:opacity-100 transition">Logo</span>
         </div>
-        <div class="header-info">
-            <p><strong>Dirección:</strong> Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá</p>
-            <p><strong>NIT:</strong> 1073263942-5 | <strong>Celular:</strong> 3003391055</p>
+
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white">TrendyOptics</h1>
+            <span class="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full">
+              Conectado a Drive
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-tight">
+            Dirección: Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá &bull; NIT: 1073263942-5 &bull; Cel: +57 3003391055
+          </p>
         </div>
+      </div>
+
+      <!-- Botones de Utilidad Superior -->
+      <div class="flex items-center gap-2 ml-auto">
+        <button type="button" onclick="openHistoryModal()" class="flex items-center gap-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg border border-slate-700 transition">
+          <i data-lucide="folder-search" class="w-4 h-4 text-sky-400"></i>
+          <span>Pacientes (<span id="savedCountBadge">0</span>)</span>
+        </button>
+
+        <a href="https://docs.google.com/spreadsheets/d/19hbfmMq5Vdq4OsQDuG3kq-mD_lLoC2EuxFXXLNeU8Kw/edit?gid=0#gid=0" target="_blank" class="flex items-center gap-1.5 text-xs font-semibold bg-emerald-900/50 hover:bg-emerald-800/70 text-emerald-200 px-3 py-2 rounded-lg border border-emerald-700/60 transition" title="Abrir Excel de Historias Clínicas en Google Drive">
+          <i data-lucide="table" class="w-4 h-4 text-emerald-400"></i>
+          <span class="hidden md:inline">Abrir Excel Drive</span>
+        </a>
+
+        <button type="button" onclick="openDriveModal()" class="flex items-center gap-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg border border-slate-700 transition">
+          <span id="driveStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+          <i data-lucide="cloud" class="w-4 h-4 text-emerald-400"></i>
+          <span class="hidden sm:inline">Estado Drive</span>
+        </button>
+
+        <button type="button" onclick="limpiarFormulario()" class="flex items-center gap-1 text-xs font-semibold bg-rose-950/60 hover:bg-rose-900/80 text-rose-200 px-2.5 py-2 rounded-lg border border-rose-800/50 transition" title="Nueva Historia Clínica en Blanco">
+          <i data-lucide="file-plus-2" class="w-4 h-4 text-rose-400"></i>
+          <span class="hidden md:inline">Nueva</span>
+        </button>
+      </div>
     </div>
+  </header>
 
-    <div class="main-container">
-        <div class="card">
-            <div class="card-header" onclick="toggleCard('body-datos')"><span>👤 Identificación y Admisión</span><span>▼</span></div>
-            <div class="card-body" id="body-datos">
-                <div class="form-group"><label>Fecha de Consulta</label><input type="date" id="fecha" value="2026-05-19" class="navegable"></div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Tipo Documento</label>
-                        <select id="tipoDoc" class="navegable">
-                            <option>Cédula de Ciudadanía</option><option>Tarjeta de Identidad</option>
-                            <option>Cédula de Extranjería</option><option>Registro Civil</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label>Documento</label><input type="text" id="documento" class="navegable"></div>
-                </div>
-                <div class="form-group"><label>Nombre Completo del Paciente</label><input type="text" id="nombre" class="navegable"></div>
-                <div class="form-row">
-                    <div class="form-group"><label>Fecha de Nacimiento</label><input type="date" id="fechaNac" class="navegable"></div>
-                    <div class="form-group"><label>Teléfono Celular</label><input type="text" id="telefono" placeholder="Ej. 3003391055" class="navegable"></div>
-                </div>
-                <div class="form-group"><label>Dirección de Residencia</label><input type="text" id="direccion" class="navegable"></div>
-                <div class="form-group"><label>Aseguradora / EPS</label><input type="text" id="eps" class="navegable"></div>
-                
-                <div class="ojo-section" style="background-color: #F1F5F9; border-color: #CBD5E1;">
-                    <div class="ojo-title" style="color: #475569;">📊 Agudeza Visual Sin Corrección (Inicial)</div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>AV. Ojo Derecho (OD)</label>
-                            <input type="text" id="avSinOD" placeholder="Ej. 20/50" class="navegable">
-                        </div>
-                        <div class="form-group">
-                            <label>AV. Ojo Izquierdo (OI)</label>
-                            <input type="text" id="avSinOI" placeholder="Ej. 20/40" class="navegable">
-                        </div>
-                    </div>
-                </div>
+  <!-- ========================================================================
+       CONTENIDO PRINCIPAL (3 COLUMNAS ADAPTATIVAS)
+       ======================================================================== -->
+  <main class="no-print max-w-[1600px] w-full mx-auto px-3 sm:px-6 py-4 flex-1">
+    <form id="hcForm" onsubmit="event.preventDefault();" class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+
+      <!-- ====================================================================
+           COLUMNA 1: IDENTIFICACIÓN, ADMISIÓN Y ANAMNESIS LEGAL
+           ==================================================================== -->
+      <section class="bg-white rounded-xl shadow-sm border border-slate-200/90 p-4 sm:p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <i data-lucide="user-check" class="w-4 h-4"></i>
             </div>
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">1. Identificación y Admisión</h2>
+          </div>
+          <span id="hcConsecutivo" class="text-[11px] font-mono font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">HC-ACTIVA</span>
         </div>
 
-        <div class="card">
-            <div class="card-header" onclick="toggleCard('body-formula')"><span>👓 Examen Ocular y Rx Lentes</span><span>▼</span></div>
-            <div class="card-body" id="body-formula">
-                <div class="ojo-section">
-                    <div class="ojo-title">📊 Lensometría (Fórmula Anterior)</div>
-                    <div class="form-row">
-                        <div class="form-group"><label>OD Rx Anterior</label><input type="text" id="lenOD" placeholder="EJ. -1.00 -0.50 x 10" class="navegable"></div>
-                        <div class="form-group"><label>OI Rx Anterior</label><input type="text" id="lenOI" placeholder="EJ. -0.75 MIOPE" class="navegable"></div>
-                    </div>
-                </div>
-
-                <div class="ojo-section">
-                    <div class="ojo-title">👁️ Ojo Derecho (OD)</div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Esfera</label><input type="text" id="odEsfera" placeholder="0.00" class="navegable"></div>
-                        <div class="form-group"><label>Cilindro</label><input type="text" id="odCilindro" placeholder="0.00" onblur="forzarMenosCilindro('odCilindro')" class="navegable"></div>
-                        <div class="form-group"><label>Eje</label><input type="text" id="odEje" placeholder="0" class="navegable"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Adición</label><input type="text" id="odAdicion" placeholder="0.00" class="navegable"></div>
-                        <div class="form-group">
-                            <label>AV Recetada (Final)</label>
-                            <select id="odAv" class="navegable">
-                                <option value=""></option>
-                                <option>20/20</option><option>20/25</option><option>20/30</option><option>20/40</option>
-                                <option>20/50</option><option>20/70</option><option>20/100</option><option>20/200</option>
-                                <option>20/400</option><option>20/800</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="ojo-section">
-                    <div class="ojo-title">👁️ Ojo Izquierdo (OI)</div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Esfera</label><input type="text" id="oiEsfera" placeholder="0.00" class="navegable"></div>
-                        <div class="form-group"><label>Cilindro</label><input type="text" id="oiCilindro" placeholder="0.00" onblur="forzarMenosCilindro('oiCilindro')" class="navegable"></div>
-                        <div class="form-group"><label>Eje</label><input type="text" id="oiEje" placeholder="0" class="navegable"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Adición</label><input type="text" id="oiAdicion" placeholder="0.00" class="navegable"></div>
-                        <div class="form-group">
-                            <label>AV Recetada (Final)</label>
-                            <select id="oiAv" class="navegable">
-                                <option value=""></option>
-                                <option>20/20</option><option>20/25</option><option>20/30</option><option>20/40</option>
-                                <option>20/50</option><option>20/70</option><option>20/100</option><option>20/200</option>
-                                <option>20/400</option><option>20/800</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group"><label>Distancia Pupilar (DP)</label><input type="text" id="dp" class="navegable"></div>
-                <div class="form-group"><label>Tipo de Lente / Filtros Comprados</label><input type="text" id="tipoLente" class="navegable" placeholder="Ej. Poly Blue Defense"></div>
+        <!-- Fecha de Consulta (Automática hoy) y Hora -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label class="clinical-label">Fecha de Consulta (Día Actual)</label>
+            <div class="flex gap-1.5">
+              <input type="date" id="fechaConsulta" class="clinical-input font-semibold text-slate-900" required />
+              <button type="button" onclick="setTodayDate()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold border border-slate-300 transition" title="Poner fecha exacta de hoy">
+                Hoy
+              </button>
             </div>
+          </div>
+          <div>
+            <label class="clinical-label">Hora Atención</label>
+            <input type="time" id="horaConsulta" class="clinical-input font-semibold text-slate-700" />
+          </div>
         </div>
 
-        <div class="card">
-            <div class="card-header" onclick="toggleCard('body-diagnostico')"><span>📋 Diagnóstico y Cierre de Caja</span><span>▼</span></div>
-            <div class="card-body" id="body-diagnostico">
-                <div class="form-group">
-                    <label>Diagnósticos Clínicos CIE-10</label>
-                    <table class="diag-table">
-                        <tbody>
-                            <tr><td class="diag-num">1</td><td><div class="cie-container"><input type="text" class="cie-input navegable" id="cie-1" oninput="filtrarCIE10(1)" onclick="filtrarCIE10(1)"><div class="datalist-custom" id="list-1"></div></div></td></tr>
-                            <tr><td class="diag-num">2</td><td><div class="cie-container"><input type="text" class="cie-input navegable" id="cie-2" oninput="filtrarCIE10(2)" onclick="filtrarCIE10(2)"><div class="datalist-custom" id="list-2"></div></div></td></tr>
-                            <tr><td class="diag-num">3</td><td><div class="cie-container"><input type="text" class="cie-input navegable" id="cie-3" oninput="filtrarCIE10(3)" onclick="filtrarCIE10(3)"><div class="datalist-custom" id="list-3"></div></div></td></tr>
-                            <tr><td class="diag-num">4</td><td><div class="cie-container"><input type="text" class="cie-input navegable" id="cie-4" oninput="filtrarCIE10(4)" onclick="filtrarCIE10(4)"><div class="datalist-custom" id="list-4"></div></div></td></tr>
-                            <tr><td class="diag-num">5</td><td><div class="cie-container"><input type="text" class="cie-input navegable" id="cie-5" oninput="filtrarCIE10(5)" onclick="filtrarCIE10(5)"><div class="datalist-custom" id="list-5"></div></div></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="form-group"><label>Notas Clínicas / Recomendaciones</label><textarea rows="3" style="resize: none;" id="notas" class="navegable"></textarea></div>
-                
-                <div class="form-group">
-                    <label>Optómetra Examinador</label>
-                    <input type="text" id="optometra" value="DR. JONIER RAMOS" class="navegable" placeholder="Escribe el nombre del profesional">
-                </div>
-
-                <div class="ojo-section" style="background-color: #FFFBEB; border-color: #F59E0B;">
-                    <div class="ojo-title" style="color: #B45309;">💰 Finanzas de Caja y Abonos</div>
-                    <div class="form-group">
-                        <label>Precio Total Trabajo ($)</label>
-                        <input type="text" id="precioTotal" placeholder="0" style="border-color: #F59E0B;" class="navegable" oninput="calcularFinanzas(this)">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Valor Abonado ($)</label>
-                            <input type="text" id="precioAbono" placeholder="0" style="border-color: #F59E0B;" class="navegable" oninput="calcularFinanzas(this)">
-                        </div>
-                        <div class="form-group">
-                            <label>Saldo Pendiente ($)</label>
-                            <input type="text" id="precioSaldo" value="0" style="background-color: #FEF3C7; border-color: #F59E0B; font-weight: bold;" readonly>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Método de Pago Utilizado hoy</label>
-                        <select id="metodoPago" style="border-color: #F59E0B;" class="navegable">
-                            <option>Efectivo</option>
-                            <option>Nequi / Daviplata</option>
-                            <option>Tarjeta de Crédito</option>
-                            <option>Tarjeta de Débito</option>
-                            <option>Transferencia Bancaria</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
+        <!-- Tipo de Documento y Número -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="clinical-label">Tipo Documento</label>
+            <select id="tipoDoc" class="clinical-input">
+              <option value="CC - CÉDULA DE CIUDADANÍA">CC - CÉDULA DE CIUDADANÍA</option>
+              <option value="TI - TARJETA DE IDENTIDAD">TI - TARJETA DE IDENTIDAD</option>
+              <option value="RC - REGISTRO CIVIL">RC - REGISTRO CIVIL</option>
+              <option value="CE - CÉDULA DE EXTRANJERÍA">CE - CÉDULA DE EXTRANJERÍA</option>
+              <option value="PPT - PERMISO PROTECCIÓN TEMPORAL">PPT - PERMISO PROTECCIÓN TEMPORAL</option>
+              <option value="PA - PASAPORTE">PA - PASAPORTE</option>
+            </select>
+          </div>
+          <div>
+            <label class="clinical-label">Número de Documento</label>
+            <input type="text" id="documento" placeholder="EJ. 1073263942" class="clinical-input font-semibold" required />
+          </div>
         </div>
-    </div>
 
-    <div class="action-bar">
-        <button class="btn-pdf" onclick="descargarImprimirPDF()">🖨️ Imprimir / Guardar PDF</button>
-        <button class="btn-whatsapp" onclick="enviarHistoriaWhatsApp()">💬 Enviar por WhatsApp</button>
-        <button class="btn-save" id="btnGuardar" onclick="enviarContabilidadDrive()">💾 Registrar Contabilidad en Drive</button>
-    </div>
+        <!-- Nombre Completo del Paciente -->
+        <div>
+          <label class="clinical-label">Nombre Completo del Paciente</label>
+          <input type="text" id="nombre" placeholder="NOMBRES Y APELLIDOS COMPLETOS" class="clinical-input font-semibold uppercase" required />
+        </div>
 
-    <div id="print-area">
-        <div class="print-header">
+        <!-- Fecha de Nacimiento (Calendario), Edad Calculada y Celular (+57) -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div class="sm:col-span-5">
+            <label class="clinical-label">Fecha de Nacimiento</label>
+            <input type="date" id="fechaNacimiento" onchange="calcularEdad()" class="clinical-input" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="clinical-label">Edad</label>
+            <input type="text" id="edad" placeholder="AÑOS" readonly class="clinical-input bg-slate-50 font-bold text-center text-sky-700" />
+          </div>
+          <div class="sm:col-span-5">
+            <label class="clinical-label">Teléfono Celular (Col)</label>
+            <div class="flex">
+              <span class="inline-flex items-center px-2.5 text-xs font-bold text-slate-700 bg-slate-100 border border-r-0 border-slate-300 rounded-l-lg select-none">
+                🇨🇴 +57
+              </span>
+              <input type="tel" id="telefono" placeholder="3003391055" maxlength="15" class="clinical-input rounded-l-none font-semibold" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Dirección, EPS y Ocupación -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="clinical-label">Dirección de Residencia / Barrio</label>
+            <input type="text" id="direccion" placeholder="EJ. PATIO BONITO, KENNEDY" class="clinical-input" />
+          </div>
+          <div>
+            <label class="clinical-label">Aseguradora / EPS</label>
+            <input type="text" id="eps" list="epsList" placeholder="SELECCIONE O ESCRIBA EPS" class="clinical-input" />
+            <datalist id="epsList">
+              <option value="PARTICULAR"></option>
+              <option value="SANITAS EPS"></option>
+              <option value="SURA EPS"></option>
+              <option value="COMPENSAR EPS"></option>
+              <option value="FAMISANAR EPS"></option>
+              <option value="NUEVA EPS"></option>
+              <option value="SALUD TOTAL EPS"></option>
+              <option value="CAPITAL SALUD EPS"></option>
+              <option value="ALIANSALUD EPS"></option>
+              <option value="COOSALUD"></option>
+              <option value="POLICÍA / SANIDAD MILITAR"></option>
+              <option value="MAGISTERIO / FIDUPREVISORA"></option>
+            </datalist>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="clinical-label">Ocupación / Actividad</label>
+            <input type="text" id="ocupacion" placeholder="EJ. ESTUDIANTE, CONDUCTOR, OFICINA" class="clinical-input" />
+          </div>
+          <div>
+            <label class="clinical-label">Acompañante / Responsable</label>
+            <input type="text" id="acompanante" value="NO APLICA (ASISTE SOLO)" class="clinical-input" />
+          </div>
+        </div>
+
+        <!-- Anamnesis y Antecedentes (Requisito Legal HC Resolución 1995/1999) -->
+        <div class="bg-slate-50/90 border border-slate-200 rounded-xl p-3 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase text-slate-700 flex items-center gap-1">
+              <i data-lucide="clipboard-list" class="w-3.5 h-3.5 text-sky-600"></i>
+              Anamnesis y Antecedentes (Requisito Legal HC)
+            </span>
+          </div>
+          <div>
+            <label class="clinical-label">Motivo de Consulta (MC)</label>
+            <input type="text" id="motivoConsulta" placeholder="EJ. VISIÓN BORROSA LEJANA Y CANSANCIO VISUAL EN PANTALLAS" value="CONTROL VISUAL Y CAMBIO DE CORRECCIÓN ÓPTICA" class="clinical-input text-xs" />
+          </div>
+          <div>
+            <label class="clinical-label">Antecedentes Personales, Sistémicos y Oculares</label>
+            <input type="text" id="antecedentes" value="NIEGA PATOLÓGICOS, QUIRÚRGICOS, TRAUMÁTICOS Y ALÉRGICOS" class="clinical-input text-xs" />
+          </div>
+        </div>
+
+        <!-- AGUDEZA VISUAL SIN CORRECCIÓN (INICIAL) - MENÚS DESPLEGABLES SNELLEN Y MÉTRICO -->
+        <div class="bg-sky-50/60 border border-sky-200/80 rounded-xl p-3.5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-extrabold uppercase text-slate-800 flex items-center gap-1.5">
+              <i data-lucide="eye" class="w-4 h-4 text-sky-600"></i>
+              Agudeza Visual Sin Corrección (Inicial)
+            </h3>
+            <span class="text-[10px] font-semibold text-sky-700 bg-sky-100 px-2 py-0.5 rounded">Snellen (ft) / Métrico (M)</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <!-- OD Inicial -->
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-2">
+              <span class="text-[11px] font-bold text-sky-800 block border-b border-slate-100 pb-1">OJO DERECHO (OD)</span>
+              <div>
+                <label class="clinical-label">Visión Lejana (Snellen)</label>
+                <select id="avScOdLejos" class="clinical-input text-xs font-semibold snellen-select"></select>
+              </div>
+              <div>
+                <label class="clinical-label">Visión Cercana (Métrico)</label>
+                <select id="avScOdCerca" class="clinical-input text-xs font-semibold metric-select"></select>
+              </div>
+            </div>
+
+            <!-- OI Inicial -->
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-2">
+              <span class="text-[11px] font-bold text-sky-800 block border-b border-slate-100 pb-1">OJO IZQUIERDO (OI)</span>
+              <div>
+                <label class="clinical-label">Visión Lejana (Snellen)</label>
+                <select id="avScOiLejos" class="clinical-input text-xs font-semibold snellen-select"></select>
+              </div>
+              <div>
+                <label class="clinical-label">Visión Cercana (Métrico)</label>
+                <select id="avScOiCerca" class="clinical-input text-xs font-semibold metric-select"></select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           COLUMNA 2: EXAMEN OCULAR Y RX DE LENTES
+           ==================================================================== -->
+      <section class="bg-white rounded-xl shadow-sm border border-slate-200/90 p-4 sm:p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+              <i data-lucide="glasses" class="w-4 h-4"></i>
+            </div>
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">2. Examen Ocular y Rx Lentes</h2>
+          </div>
+          <span class="text-[11px] font-semibold text-slate-400">Refracción Final</span>
+        </div>
+
+        <!-- LENSOMETRÍA (FÓRMULA ANTERIOR) -->
+        <div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-3.5 space-y-2.5">
+          <h3 class="text-xs font-bold uppercase text-slate-700 flex items-center gap-1.5">
+            <i data-lucide="scan-eye" class="w-4 h-4 text-indigo-600"></i>
+            Lensometría (Fórmula Anterior en Uso)
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-                <div class="print-title" style="color:#091235;">TRENDYOPTICS</div>
-                <p style="font-size:11px;">Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá</p>
-                <p style="font-size:11px;">NIT: 1073263942-5 | Cel: 3003391055</p>
+              <label class="clinical-label">OD Rx Anterior</label>
+              <input type="text" id="lensoOd" placeholder="EJ. -1.00 -0.50 X 10°" class="clinical-input text-xs" />
             </div>
-            <div style="text-align: right;">
-                <h3 style="font-size:16px; font-weight:bold;">HISTORIA CLÍNICA OPTOMÉTRICA</h3>
-                <p id="p-fecha-consulta" style="font-size:12px; font-weight:bold; margin-top:4px;"></p>
+            <div>
+              <label class="clinical-label">OI Rx Anterior</label>
+              <input type="text" id="lensoOi" placeholder="EJ. -0.75 ESF" class="clinical-input text-xs" />
             </div>
+          </div>
         </div>
 
-        <div class="print-section">
-            <div class="print-section-title">Datos Generales del Paciente</div>
-            <div class="print-grid">
-                <div><strong>Paciente:</strong> <span id="p-nombre"></span></div>
-                <div><strong>Documento:</strong> <span id="p-doc"></span></div>
-                <div><strong>Teléfono:</strong> <span id="p-tel"></span></div>
-                <div><strong>Dirección:</strong> <span id="p-dir"></span></div>
-                <div><strong>Convenio/EPS:</strong> <span id="p-eps"></span></div>
-                <div><strong>AV. Inicial Sin Corrección:</strong> OD: <span id="p-avsin-od"></span> | OI: <span id="p-avsin-oi"></span></div>
+        <!-- OJO DERECHO (OD) - RX FINAL -->
+        <div class="bg-slate-50/80 border border-slate-200 rounded-xl p-3.5 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
+            <span class="text-xs font-extrabold text-slate-800 uppercase flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span>
+              Ojo Derecho (OD) - Rx Final
+            </span>
+            <button type="button" onclick="copiarOdAOi()" class="text-[11px] font-semibold text-sky-600 hover:text-sky-800 flex items-center gap-1">
+              <i data-lucide="copy" class="w-3 h-3"></i> Copiar a OI
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2.5">
+            <div>
+              <label class="clinical-label">Esfera (ESF)</label>
+              <input type="text" id="odEsfera" list="dioptriasList" placeholder="0.00 / NEUTRO" value="0.00" class="clinical-input font-mono font-bold text-center" />
             </div>
-        </div>
-
-        <div class="print-section">
-            <div class="print-section-title">Fórmula de Lentes Recetada (Rx)</div>
-            <table class="print-table">
-                <thead>
-                    <tr><th>OJO</th><th>ESFERA</th><th>CILINDRO</th><th>EJE</th><th>ADICIÓN</th><th>AV RECETADA FINAL</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td><strong>OD</strong></td><td id="p-od-esf"></td><td id="p-od-cil"></td><td id="p-od-eje"></td><td id="p-od-adi"></td><td id="p-od-av"></td></tr>
-                    <tr><td><strong>OI</strong></td><td id="p-oi-esf"></td><td id="p-oi-cil"></td><td id="p-oi-eje"></td><td id="p-oi-adi"></td><td id="p-oi-av"></td></tr>
-                </tbody>
-            </table>
-            <p style="margin-top:12px; font-size:12px;"><strong>Distancia Pupilar (DP):</strong> <span id="p-dp"></span> | <strong>Tipo de Lente Solicitado:</strong> <span id="p-tl" style="font-weight:bold;"></span></p>
-        </div>
-
-        <div class="print-section">
-            <div class="print-section-title">Diagnóstico y Recomendaciones Clínicas</div>
-            <p style="font-size:12px; line-height:1.6;"><strong>Diagnósticos (CIE-10):</strong> <span id="p-cie"></span></p>
-            <p style="font-size:12px; margin-top:6px; line-height:1.6;"><strong>Notas / Recomendaciones del Profesional:</strong> <span id="p-obs" style="font-weight:bold; color:#14202E;"></span></p>
-        </div>
-
-        <div class="print-section" style="border-color:#F59E0B;">
-            <div class="print-section-title" style="background:#FEF3C7; border-left-color:#F59E0B;">Resumen Financiero de Caja</div>
-            <div class="print-grid">
-                <div><strong>Valor Total Trabajo:</strong> <span id="p-total" style="font-weight:bold; font-size:13px;"></span></div>
-                <div><strong>Valor Abonado Hoy:</strong> <span id="p-abono" style="color:#16A34A; font-weight:bold; font-size:13px;"></span></div>
-                <div><strong>Saldo Restante:</strong> <span id="p-saldo" style="color:#DC2626; font-weight:bold; font-size:13px;"></span></div>
+            <div>
+              <label class="clinical-label">Cilindro (CIL)</label>
+              <input type="text" id="odCilindro" list="cilindrosList" placeholder="0.00" value="0.00" class="clinical-input font-mono font-bold text-center" />
             </div>
-            <p style="font-size:11px; margin-top:10px; color:#475569;">Método de pago de transacción: <span id="p-metodo"></span></p>
+            <div>
+              <label class="clinical-label">Eje (0° - 180°)</label>
+              <input type="number" id="odEje" min="0" max="180" step="1" placeholder="0" value="0" class="clinical-input font-mono font-bold text-center" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label class="clinical-label">Adición (ADD)</label>
+              <select id="odAdicion" class="clinical-input font-mono font-semibold">
+                <option value="NO APLICA">0.00 (N/A)</option>
+                <option value="+0.75">+0.75 D</option>
+                <option value="+1.00">+1.00 D</option>
+                <option value="+1.25">+1.25 D</option>
+                <option value="+1.50">+1.50 D</option>
+                <option value="+1.75">+1.75 D</option>
+                <option value="+2.00">+2.00 D</option>
+                <option value="+2.25">+2.25 D</option>
+                <option value="+2.50">+2.50 D</option>
+                <option value="+2.75">+2.75 D</option>
+                <option value="+3.00">+3.00 D</option>
+                <option value="+3.25">+3.25 D</option>
+                <option value="+3.50">+3.50 D</option>
+              </select>
+            </div>
+            <div>
+              <label class="clinical-label">AV Lejos (Snellen)</label>
+              <select id="odAvLejos" class="clinical-input font-semibold snellen-select-final"></select>
+            </div>
+            <div>
+              <label class="clinical-label">AV Cerca (Métrico)</label>
+              <select id="odAvCerca" class="clinical-input font-semibold metric-select-final"></select>
+            </div>
+          </div>
         </div>
-        
-        <br><br><br>
-        <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:20px;">
-            <div>_____________________________<br><strong>Firma del Optómetra Examinador</strong><br><span id="p-firm-dr"></span></div>
-            <div>_____________________________<br><strong>Firma del Paciente / Aceptación</strong></div>
+
+        <!-- OJO IZQUIERDO (OI) - RX FINAL -->
+        <div class="bg-slate-50/80 border border-slate-200 rounded-xl p-3.5 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
+            <span class="text-xs font-extrabold text-slate-800 uppercase flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+              Ojo Izquierdo (OI) - Rx Final
+            </span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2.5">
+            <div>
+              <label class="clinical-label">Esfera (ESF)</label>
+              <input type="text" id="oiEsfera" list="dioptriasList" placeholder="0.00 / NEUTRO" value="0.00" class="clinical-input font-mono font-bold text-center" />
+            </div>
+            <div>
+              <label class="clinical-label">Cilindro (CIL)</label>
+              <input type="text" id="oiCilindro" list="cilindrosList" placeholder="0.00" value="0.00" class="clinical-input font-mono font-bold text-center" />
+            </div>
+            <div>
+              <label class="clinical-label">Eje (0° - 180°)</label>
+              <input type="number" id="oiEje" min="0" max="180" step="1" placeholder="0" value="0" class="clinical-input font-mono font-bold text-center" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label class="clinical-label">Adición (ADD)</label>
+              <select id="oiAdicion" class="clinical-input font-mono font-semibold">
+                <option value="NO APLICA">0.00 (N/A)</option>
+                <option value="+0.75">+0.75 D</option>
+                <option value="+1.00">+1.00 D</option>
+                <option value="+1.25">+1.25 D</option>
+                <option value="+1.50">+1.50 D</option>
+                <option value="+1.75">+1.75 D</option>
+                <option value="+2.00">+2.00 D</option>
+                <option value="+2.25">+2.25 D</option>
+                <option value="+2.50">+2.50 D</option>
+                <option value="+2.75">+2.75 D</option>
+                <option value="+3.00">+3.00 D</option>
+                <option value="+3.25">+3.25 D</option>
+                <option value="+3.50">+3.50 D</option>
+              </select>
+            </div>
+            <div>
+              <label class="clinical-label">AV Lejos (Snellen)</label>
+              <select id="oiAvLejos" class="clinical-input font-semibold snellen-select-final"></select>
+            </div>
+            <div>
+              <label class="clinical-label">AV Cerca (Métrico)</label>
+              <select id="oiAvCerca" class="clinical-input font-semibold metric-select-final"></select>
+            </div>
+          </div>
         </div>
+
+        <!-- Distancia Pupilar (DP / DNP) y Tipo de Lente -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="clinical-label">DP Total (mm)</label>
+            <input type="text" id="dp" placeholder="EJ. 62 MM" class="clinical-input font-semibold" />
+          </div>
+          <div>
+            <label class="clinical-label">DNP OD / OI (mm)</label>
+            <div class="grid grid-cols-2 gap-1.5">
+              <input type="text" id="odDnp" placeholder="OD 31" class="clinical-input text-xs text-center" />
+              <input type="text" id="oiDnp" placeholder="OI 31" class="clinical-input text-xs text-center" />
+            </div>
+          </div>
+          <div>
+            <label class="clinical-label">Montura / Referencia</label>
+            <input type="text" id="montura" placeholder="EJ. ACETATO PROPIA / NUEVA" class="clinical-input text-xs" />
+          </div>
+        </div>
+
+        <div>
+          <label class="clinical-label">Tipo de Lente / Material / Filtros Comprados</label>
+          <input type="text" id="tipoLente" list="lentesList" placeholder="EJ. POLY BLUE DEFENSE / PROGRESIVO DIGITAL AR" class="clinical-input font-semibold" />
+          <datalist id="lentesList">
+            <option value="MONOFOCAL CR-39 AR"></option>
+            <option value="MONOFOCAL POLY BLUE DEFENSE (FILTRO AZUL)"></option>
+            <option value="MONOFOCAL FOTOCROMÁTICO + FILTRO AZUL"></option>
+            <option value="MONOFOCAL ALTO ÍNDICE 1.67 AR"></option>
+            <option value="BIFOCAL FLAT-TOP (FT) POLY BLUE"></option>
+            <option value="BIFOCAL INVISIBLE AR"></option>
+            <option value="PROGRESIVO DIGITAL TALLADO FREEFORM POLY BLUE DEFENSE"></option>
+            <option value="PROGRESIVO DIGITAL FOTOCROMÁTICO TRANSITIONS"></option>
+            <option value="LENTE OCUPACIONAL / OFICINA"></option>
+          </datalist>
+        </div>
+
+        <!-- Examen Físico Ocular Legal (Biomicroscopía, Oftalmoscopía, Motilidad) -->
+        <details class="bg-slate-50 border border-slate-200 rounded-xl p-3 group">
+          <summary class="text-xs font-bold uppercase text-slate-700 cursor-pointer flex items-center justify-between select-none">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="microscope" class="w-4 h-4 text-sky-600"></i>
+              Examen Físico Ocular (Biomicroscopía / Fondo de Ojo / Motilidad)
+            </span>
+            <span class="text-[10px] text-sky-600 font-semibold group-open:rotate-180 transition">▼</span>
+          </summary>
+          <div class="mt-3 space-y-2.5 pt-2 border-t border-slate-200">
+            <div>
+              <label class="clinical-label">Biomicroscopía (Segmento Anterior AO)</label>
+              <input type="text" id="biomicroscopia" value="CÓRNEA TRANSPARENTE, CÁMARA ANTERIOR AMPLIA, CRISTALINO CLARO AO" class="clinical-input text-xs" />
+            </div>
+            <div>
+              <label class="clinical-label">Oftalmoscopía (Fondo de Ojo AO)</label>
+              <input type="text" id="oftalmoscopia" value="MEDIOS TRANSPARENTES, PAPILA BORDES DEFINIDOS EXCAVACIÓN 0.3, MÁCULA SANA AO" class="clinical-input text-xs" />
+            </div>
+            <div>
+              <label class="clinical-label">Motilidad Ocular / Cover Test</label>
+              <input type="text" id="motilidad" value="ORTOFORIA VL Y VC, DUCCIONES Y VERSIONES COMPLETAS, PPC 6 CM" class="clinical-input text-xs" />
+            </div>
+          </div>
+        </details>
+
+      </section>
+
+      <!-- ====================================================================
+           COLUMNA 3: DIAGNÓSTICOS CIE-10, OPTÓMETRA Y CIERRE DE CAJA (COP)
+           ==================================================================== -->
+      <section class="bg-white rounded-xl shadow-sm border border-slate-200/90 p-4 sm:p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <i data-lucide="stethoscope" class="w-4 h-4"></i>
+            </div>
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">3. Diagnóstico CIE-10 y Cierre de Caja</h2>
+          </div>
+          <button type="button" onclick="autoSugerirCIE10()" class="text-[11px] font-bold bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-2 py-1 rounded-md transition flex items-center gap-1" title="Sugerir CIE-10 según la fórmula ingresada">
+            <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Auto-Diagnóstico
+          </button>
+        </div>
+
+        <!-- BUSCADOR RÁPIDO CIE-10 (5 CASILLAS CON AUTOCOMPLETADO OFICIAL) -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="clinical-label mb-0">Diagnósticos Clínicos CIE-10 (Buscador por Código o Nombre)</label>
+          </div>
+
+          <!-- Etiquetas rápidas de los diagnósticos más frecuentes -->
+          <div class="flex flex-wrap gap-1 pb-1">
+            <button type="button" onclick="agregarCieRapido('H520 - HIPERMETROPÍA')" class="text-[10px] font-semibold bg-slate-100 hover:bg-sky-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 transition">+ H520 Hipermetropía</button>
+            <button type="button" onclick="agregarCieRapido('H521 - MIOPÍA')" class="text-[10px] font-semibold bg-slate-100 hover:bg-sky-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 transition">+ H521 Miopía</button>
+            <button type="button" onclick="agregarCieRapido('H522 - ASTIGMATISMO')" class="text-[10px] font-semibold bg-slate-100 hover:bg-sky-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 transition">+ H522 Astigmatismo</button>
+            <button type="button" onclick="agregarCieRapido('H524 - PRESBICIA')" class="text-[10px] font-semibold bg-slate-100 hover:bg-sky-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 transition">+ H524 Presbicia</button>
+            <button type="button" onclick="agregarCieRapido('Z010 - EXAMEN DE OJOS Y DE LA VISIÓN')" class="text-[10px] font-semibold bg-slate-100 hover:bg-sky-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 transition">+ Z010 Examen</button>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-8 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">1</span>
+              <input type="text" id="cie1" list="cie10Catalog" placeholder="ESCRIBA CÓDIGO O DIAGNÓSTICO (EJ. H522 ASTIGMATISMO)" class="clinical-input text-xs font-semibold" />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-8 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">2</span>
+              <input type="text" id="cie2" list="cie10Catalog" placeholder="SEGUNDO DIAGNÓSTICO CIE-10 (OPCIONAL)" class="clinical-input text-xs" />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-8 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">3</span>
+              <input type="text" id="cie3" list="cie10Catalog" placeholder="TERCER DIAGNÓSTICO CIE-10 (OPCIONAL)" class="clinical-input text-xs" />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-8 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">4</span>
+              <input type="text" id="cie4" list="cie10Catalog" placeholder="CUARTO DIAGNÓSTICO CIE-10 (OPCIONAL)" class="clinical-input text-xs" />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-8 rounded bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">5</span>
+              <input type="text" id="cie5" list="cie10Catalog" placeholder="QUINTO DIAGNÓSTICO CIE-10 (OPCIONAL)" class="clinical-input text-xs" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Notas Clínicas / Conducta / Recomendaciones -->
+        <div>
+          <label class="clinical-label">Conducta / Notas Clínicas / Recomendaciones</label>
+          <textarea id="notas" rows="2" placeholder="EJ. USO PERMANENTE DE CORRECCIÓN ÓPTICA CON FILTRO AZUL, PAUSAS ACTIVAS VISUALES 20-20-20, CONTROL EN 1 AÑO." class="clinical-input text-xs">USO PERMANENTE DE CORRECCIÓN ÓPTICA, HIGIENE VISUAL, CONTROL EN 1 AÑO.</textarea>
+        </div>
+
+        <!-- Optómetra Examinador (Pre-llenado Dr. Yohnnier Ramos pero 100% Editable) -->
+        <div>
+          <div class="flex items-center justify-between">
+            <label class="clinical-label">Atendido por (Optómetra Examinador)</label>
+            <button type="button" onclick="document.getElementById('optometra').value='DR. YOHNNIER RAMOS'" class="text-[10px] text-sky-600 hover:underline font-semibold">Restaurar Dr. Yohnnier</button>
+          </div>
+          <input type="text" id="optometra" value="DR. YOHNNIER RAMOS" list="doctoresList" placeholder="NOMBRE DEL DOCTOR QUE ATIENDE" class="clinical-input font-bold text-slate-900 bg-slate-50" required />
+          <datalist id="doctoresList">
+            <option value="DR. YOHNNIER RAMOS"></option>
+            <option value="DR. YOHNNIER EDUARDO RAMOS MONTAÑO"></option>
+          </datalist>
+        </div>
+
+        <!-- FINANZAS DE CAJA Y ABONOS (PESOS COLOMBIANOS COP) -->
+        <div class="bg-amber-50/70 border-2 border-dashed border-amber-300 rounded-xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-extrabold uppercase text-amber-900 flex items-center gap-1.5">
+              <i data-lucide="wallet" class="w-4 h-4 text-amber-600"></i>
+              Finanzas de Caja y Abonos (COP $)
+            </h3>
+            <span class="text-[10px] font-bold bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded">Pesos Colombianos</span>
+          </div>
+
+          <div>
+            <label class="clinical-label text-amber-950">Precio Total Trabajo ($ COP)</label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-sm font-bold text-slate-500">$</span>
+              <input type="text" id="precioTotalDisplay" oninput="formatearMonedaInput(this, 'precioTotal')" placeholder="0" value="0" class="clinical-input pl-7 font-bold text-base text-slate-900" inputmode="numeric" />
+              <input type="hidden" id="precioTotal" value="0" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="clinical-label text-amber-950">Valor Abonado ($ COP)</label>
+              <div class="relative">
+                <span class="absolute left-3 top-2 text-sm font-bold text-emerald-600">$</span>
+                <input type="text" id="valorAbonadoDisplay" oninput="formatearMonedaInput(this, 'valorAbonado')" placeholder="0" value="0" class="clinical-input pl-7 font-bold text-base text-emerald-700" inputmode="numeric" />
+                <input type="hidden" id="valorAbonado" value="0" />
+              </div>
+            </div>
+
+            <div>
+              <label class="clinical-label text-amber-950">Saldo Pendiente ($ COP)</label>
+              <div class="relative">
+                <span class="absolute left-3 top-2 text-sm font-bold text-amber-900">$</span>
+                <input type="text" id="saldoPendienteDisplay" readonly value="0" class="clinical-input pl-7 font-extrabold text-base bg-amber-200/60 border-amber-400 text-amber-950" />
+                <input type="hidden" id="saldoPendiente" value="0" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="clinical-label text-amber-950">Método de Pago Utilizado Hoy</label>
+            <select id="metodoPago" class="clinical-input font-semibold">
+              <option value="EFECTIVO">EFECTIVO</option>
+              <option value="NEQUI">NEQUI</option>
+              <option value="DAVIPLATA">DAVIPLATA</option>
+              <option value="TRANSFERENCIA BANCOLOMBIA / BRE-B">TRANSFERENCIA BANCOLOMBIA / BRE-B</option>
+              <option value="TARJETA DÉBITO / CRÉDITO (DATÁFONO)">TARJETA DÉBITO / CRÉDITO (DATÁFONO)</option>
+              <option value="PAGO MIXTO (EFECTIVO + TRANSFERENCIA)">PAGO MIXTO (EFECTIVO + TRANSFERENCIA)</option>
+              <option value="SIN PAGO / SOLO CONSULTA">SIN PAGO / SOLO CONSULTA</option>
+            </select>
+          </div>
+        </div>
+
+      </section>
+
+    </form>
+  </main>
+
+  <!-- ========================================================================
+       BARRA INFERIOR DE ACCIONES PRINCIPALES (IMPRIMIR MEDIA CARTA, WHATSAPP, DRIVE)
+       ======================================================================== -->
+  <footer class="no-print fixed bottom-0 left-0 right-0 lg:static bg-white/95 backdrop-blur border-t border-slate-200 shadow-lg z-30">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
+      <div class="hidden md:flex items-center gap-2 text-xs text-slate-500">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+        <span>Historia Clínica conforme a Resolución 1995 de 1999 (Minsalud Colombia) &bull; Impresión optimizada en <strong>Media Carta</strong>.</span>
+      </div>
+
+      <div class="grid grid-cols-3 sm:flex items-center gap-2 w-full sm:w-auto justify-end">
+        <!-- Botón Imprimir en Media Carta -->
+        <button type="button" onclick="imprimirMediaCarta()" class="flex items-center justify-center gap-2 bg-[#0284C7] hover:bg-[#0369A1] active:scale-[0.99] text-white font-bold text-xs sm:text-sm px-3 sm:px-5 py-2.5 rounded-xl shadow-sm transition">
+          <i data-lucide="printer" class="w-4 h-4 shrink-0"></i>
+          <span>Imprimir Media Carta</span>
+        </button>
+
+        <!-- Botón Enviar por WhatsApp (+57) -->
+        <button type="button" onclick="enviarWhatsApp()" class="flex items-center justify-center gap-2 bg-[#16A34A] hover:bg-[#15803D] active:scale-[0.99] text-white font-bold text-xs sm:text-sm px-3 sm:px-5 py-2.5 rounded-xl shadow-sm transition">
+          <i data-lucide="message-circle" class="w-4 h-4 shrink-0"></i>
+          <span>Enviar WhatsApp (+57)</span>
+        </button>
+
+        <!-- Botón Registrar en Google Drive -->
+        <button type="button" id="btnGuardarDrive" onclick="registrarEnDrive()" class="flex items-center justify-center gap-2 bg-[#0B172A] hover:bg-[#1E293B] active:scale-[0.99] text-white font-bold text-xs sm:text-sm px-3 sm:px-5 py-2.5 rounded-xl shadow-sm transition">
+          <i data-lucide="save" class="w-4 h-4 shrink-0 text-sky-400"></i>
+          <span id="btnGuardarTexto">Registrar en Drive</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================
+       PLANTILLA DE IMPRESIÓN EN MEDIA CARTA (5.5 PULGADAS DE ALTO)
+       ======================================================================== -->
+  <section id="print-area" class="hidden bg-white text-black p-2">
+    <!-- Encabezado Compacto Media Carta -->
+    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-1.5 mb-1.5">
+      <div class="flex items-center gap-2.5">
+        <div id="printLogoHolder" class="w-12 h-12 rounded-full overflow-hidden shrink-0"></div>
+        <div>
+          <h1 class="text-base font-extrabold uppercase tracking-tight leading-none">ÓPTICA TRENDYOPTICS - LENTES EN TENDENCIA</h1>
+          <p class="text-[9px] font-semibold text-slate-700">Dirección: Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá D.C. &bull; NIT: 1073263942-5 &bull; Cel/WhatsApp: +57 3003391055</p>
+          <p class="text-[8.5px] text-slate-600">HISTORIA CLÍNICA OPTOMÉTRICA Y FÓRMULA DE LENTES (Resolución 1995 de 1999)</p>
+        </div>
+      </div>
+      <div class="text-right text-[9.5px] leading-tight">
+        <div class="font-bold" id="p_consecutivo">HC</div>
+        <div><strong>FECHA:</strong> <span id="p_fecha"></span></div>
+        <div><strong>HORA:</strong> <span id="p_hora"></span></div>
+      </div>
     </div>
 
-    <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyMMTom4NrWVij2Qw_nsByALmC-WhmnLuNYOXxCq3PLB8pyi0aY7sXND0sONkhxRDd9/exec";
+    <!-- Datos del Paciente -->
+    <div class="grid grid-cols-4 gap-x-2 gap-y-0.5 text-[9px] border border-slate-400 rounded p-1.5 mb-1.5 bg-slate-50">
+      <div class="col-span-2"><strong>PACIENTE:</strong> <span id="p_nombre" class="uppercase"></span></div>
+      <div><strong>DOC:</strong> <span id="p_doc"></span></div>
+      <div><strong>NAC / EDAD:</strong> <span id="p_edad"></span></div>
+      <div><strong>CELULAR:</strong> <span id="p_telefono"></span></div>
+      <div><strong>DIRECCIÓN:</strong> <span id="p_direccion"></span></div>
+      <div><strong>EPS:</strong> <span id="p_eps"></span></div>
+      <div><strong>OCUPACIÓN:</strong> <span id="p_ocupacion"></span></div>
+      <div class="col-span-2"><strong>MOTIVO CONSULTA:</strong> <span id="p_motivo"></span></div>
+      <div class="col-span-2"><strong>ANTECEDENTES:</strong> <span id="p_antecedentes"></span></div>
+    </div>
 
-        const baseCIE10 = [
-            {c: "H520", d: "HIPERMETROPIA"}, {c: "H521", d: "MIOPIA"}, {c: "H522", d: "ASTIGMATISMO"}, 
-            {c: "H523", d: "ASTIGMATISMO MIXTO"}, {c: "H524", d: "PRESBICIA"}, {c: "H041", d: "OJO SECO"}
-        ];
+    <!-- Tabla de Refracción y Agudeza Visual -->
+    <table class="w-full border-collapse border border-slate-800 text-[9px] text-center mb-1.5">
+      <thead>
+        <tr class="bg-slate-200 font-bold">
+          <th class="border border-slate-700 py-0.5 px-1">OJO</th>
+          <th class="border border-slate-700 py-0.5 px-1">AV SIN CORR. (VL / VC)</th>
+          <th class="border border-slate-700 py-0.5 px-1">LENSOMETRÍA</th>
+          <th class="border border-slate-700 py-0.5 px-1">ESFERA</th>
+          <th class="border border-slate-700 py-0.5 px-1">CILINDRO</th>
+          <th class="border border-slate-700 py-0.5 px-1">EJE</th>
+          <th class="border border-slate-700 py-0.5 px-1">ADICIÓN</th>
+          <th class="border border-slate-700 py-0.5 px-1">AV FINAL LEJOS</th>
+          <th class="border border-slate-700 py-0.5 px-1">AV FINAL CERCA</th>
+          <th class="border border-slate-700 py-0.5 px-1">DNP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="border border-slate-700 font-bold py-0.5">OD</td>
+          <td class="border border-slate-700 py-0.5" id="p_avsc_od"></td>
+          <td class="border border-slate-700 py-0.5" id="p_lenso_od"></td>
+          <td class="border border-slate-700 font-mono font-bold py-0.5" id="p_od_esf"></td>
+          <td class="border border-slate-700 font-mono font-bold py-0.5" id="p_od_cil"></td>
+          <td class="border border-slate-700 font-mono font-bold py-0.5" id="p_od_eje"></td>
+          <td class="border border-slate-700 font-mono py-0.5" id="p_od_add"></td>
+          <td class="border border-slate-700 font-bold py-0.5" id="p_od_av_vl"></td>
+          <td class="border border-slate-700 py-0.5" id="p_od_av_vc"></td>
+          <td class="border border-slate-700 py-0.5" id="p_od_dnp"></td>
+        </tr>
+        <tr>
+          <td class="border border-slate-700 font-bold py-0.5">OI</td>
+          <td class="border border-slate-700 py-0.5" id="p_avsc_oi"></td>
+          <td class="border border-slate-700 py-0.5" id="p_lenso_oi"></td>
+          <td class="border border-slate-700 font-mono font-bold py-0.5" id="p_oi_esf"></td>
+          <td class="border border-slate-700 font-mono font-bold py-0.5" id="p_oi_cil"></td>
+          <td class="border border-slate-700 font-mono font-bold py-0.5" id="p_oi_eje"></td>
+          <td class="border border-slate-700 font-mono py-0.5" id="p_oi_add"></td>
+          <td class="border border-slate-700 font-bold py-0.5" id="p_oi_av_vl"></td>
+          <td class="border border-slate-700 py-0.5" id="p_oi_av_vc"></td>
+          <td class="border border-slate-700 py-0.5" id="p_oi_dnp"></td>
+        </tr>
+      </tbody>
+    </table>
 
-        function calcularFinanzas(input) {
-            if (input) {
-                let limpio = input.value.replace(/\./g, "").replace(/\D/g, "");
-                if (limpio === "") limpio = "0";
-                input.value = parseInt(limpio, 10).toLocaleString('es-CO').replace(/,/g, '.');
-            }
-            let totalStr = document.getElementById("precioTotal").value.replace(/\./g, "") || "0";
-            let abonoStr = document.getElementById("precioAbono").value.replace(/\./g, "") || "0";
-            let totalNum = parseInt(totalStr, 10);
-            let abonoNum = parseInt(abonoStr, 10);
-            let saldoNum = totalNum - abonoNum;
-            document.getElementById("precioSaldo").value = saldoNum.toLocaleString('es-CO').replace(/,/g, '.');
+    <!-- Lente, DP, Examen Físico y Diagnósticos CIE-10 -->
+    <div class="grid grid-cols-12 gap-2 text-[8.5px] mb-1.5">
+      <div class="col-span-8 border border-slate-400 rounded p-1.5 space-y-0.5">
+        <div><strong>DP GENERAL:</strong> <span id="p_dp"></span> &bull; <strong>LENTE / FILTROS:</strong> <span id="p_lente" class="font-semibold"></span> &bull; <strong>MONTURA:</strong> <span id="p_montura"></span></div>
+        <div><strong>EXAMEN OCULAR:</strong> <span id="p_examen_fisico"></span></div>
+        <div><strong>DIAGNÓSTICOS CIE-10:</strong> <span id="p_cie10" class="font-semibold"></span></div>
+        <div><strong>CONDUCTA / RECOMENDACIONES:</strong> <span id="p_notas"></span></div>
+      </div>
+
+      <!-- Resumen Financiero COP -->
+      <div class="col-span-4 border border-slate-800 rounded p-1.5 bg-slate-50 flex flex-col justify-between">
+        <div class="font-bold uppercase text-[8.5px] border-b border-slate-400 pb-0.5 mb-0.5">Estado de Cuenta (COP)</div>
+        <div class="flex justify-between"><span>VALOR TOTAL:</span> <strong id="p_total"></strong></div>
+        <div class="flex justify-between"><span>ABONO HOY:</span> <strong id="p_abono"></strong></div>
+        <div class="flex justify-between text-[9.5px] border-t border-slate-300 pt-0.5"><span>SALDO PENDIENTE:</span> <strong id="p_saldo"></strong></div>
+        <div class="text-[8px] text-right">MÉTODO PAGO: <span id="p_metodo" class="font-semibold"></span></div>
+      </div>
+    </div>
+
+    <!-- Firmas Legales -->
+    <div class="grid grid-cols-2 gap-6 pt-3 mt-1 text-[8.5px] text-center">
+      <div class="border-t border-slate-700 pt-0.5">
+        <strong id="p_optometra" class="uppercase">DR. YOHNNIER RAMOS</strong><br/>
+        <span>OPTÓMETRA EXAMINADOR - REGISTRO PROFESIONAL</span>
+      </div>
+      <div class="border-t border-slate-700 pt-0.5">
+        <strong>FIRMA DEL PACIENTE / ACOMPAÑANTE (ACEPTACIÓN Y CONSENTIMIENTO)</strong><br/>
+        <span>Certifico que comprendo y acepto la fórmula óptica, diagnósticos y condiciones del trabajo.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       MODAL: ESTADO DE CONEXIÓN CON GOOGLE DRIVE
+       ======================================================================== -->
+  <div id="driveModal" class="no-print fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+            <i data-lucide="cloud-cog" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Conexión Oficial con Google Drive (Activa de Fábrica)</h3>
+            <p class="text-xs text-slate-500">Conectado permanentemente a la cuenta <strong>trendyoptics1@gmail.com</strong>.</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeDriveModal()" class="text-slate-400 hover:text-slate-700 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-xs text-emerald-950 space-y-2">
+        <p class="font-bold flex items-center gap-1.5 text-emerald-800">
+          <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+          ¡Tu sistema ya tiene grabada de fábrica la conexión con tu Hoja de Cálculo!
+        </p>
+        <p>Cada vez que tú o cualquier doctor de la óptica presionen <strong>"Registrar en Drive"</strong> desde cualquier celular, iPhone, tablet o PC, los datos se enviarán directamente al archivo de Google Sheets en <strong>trendyoptics1@gmail.com</strong>.</p>
+        <div class="pt-1">
+          <a href="https://docs.google.com/spreadsheets/d/19hbfmMq5Vdq4OsQDuG3kq-mD_lLoC2EuxFXXLNeU8Kw/edit?gid=0#gid=0" target="_blank" class="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-3 py-1.5 rounded-lg transition">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            Abrir Hoja de Cálculo en Google Drive
+          </a>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label class="clinical-label">URL Oficial de tu Servidor Google Apps Script (Grabada por defecto)</label>
+        <input type="url" id="driveWebhookInput" style="text-transform:none;" class="clinical-input font-mono text-xs bg-slate-50" />
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button type="button" onclick="saveDriveWebhook()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition">
+            Guardar URL
+          </button>
+          <button type="button" onclick="restaurarUrlFabrica()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs px-3 py-2 rounded-lg border border-slate-300 transition">
+            Restaurar URL Oficial de Fábrica
+          </button>
+          <button type="button" onclick="probarConexionDrive()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3 py-2 rounded-lg transition">
+            Enviar Fila de Prueba a mi Drive
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: HISTORIAL LOCAL DE PACIENTES Y EXPORTACIÓN EXCEL (CSV)
+       ======================================================================== -->
+  <div id="historyModal" class="no-print fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Pacientes Registrados en este Dispositivo</h3>
+          <p class="text-xs text-slate-500">Respaldo automático en el navegador. Puedes volver a cargar cualquier historia clínica o descargar todo en Excel.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="exportarExcelCSV()" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            Descargar Excel (.CSV)
+          </button>
+          <button type="button" onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-700 p-1.5">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-50 border-b border-slate-200">
+        <input type="text" id="buscarPacienteInput" oninput="renderizarHistorial()" placeholder="BUSCAR POR NOMBRE, CÉDULA O FECHA..." class="clinical-input" />
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-500 uppercase">
+              <th class="py-2 px-2">Fecha</th>
+              <th class="py-2 px-2">Paciente</th>
+              <th class="py-2 px-2">Documento</th>
+              <th class="py-2 px-2">Celular</th>
+              <th class="py-2 px-2">Rx OD / OI</th>
+              <th class="py-2 px-2">Total / Saldo</th>
+              <th class="py-2 px-2 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaHistorialBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       CATÁLOGO DE DATOS: DIOPTRÍAS Y CIE-10 COMPLETO DE OPTOMETRÍA / OFTALMOLOGÍA
+       ======================================================================== -->
+  <datalist id="dioptriasList"></datalist>
+  <datalist id="cilindrosList"></datalist>
+  <datalist id="cie10Catalog"></datalist>
+
+  <!-- Notificación Toast Flotante -->
+  <div id="toast" class="no-print fixed top-16 right-4 z-50 hidden bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl border border-slate-700 items-center gap-2">
+    <span id="toastText"></span>
+  </div>
+
+  <!-- ========================================================================
+       LÓGICA JAVASCRIPT DE LA APLICACIÓN CLÍNICA
+       ======================================================================== -->
+  <script>
+    // ========================================================================
+    // CONEXIÓN OFICIAL POR DEFECTO AL GOOGLE DRIVE DE TRENDYOPTICS1@GMAIL.COM
+    // ========================================================================
+    const DEFAULT_DRIVE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxLA5k83NlCzhYUMHvoTpI3piBpFQxzZODUT2CoB2-gqjYDufvgH2sV1SB56qvJA4_6/exec";
+
+    // 1. Escalas de Agudeza Visual solicitadas:
+    // Snellen en pies (20/15, 20/20 hasta 20/800 + valores clínicos extremos)
+    const SNELLEN_FEET_OPTIONS = [
+      "NO APLICA",
+      "20/15", "20/20", "20/25", "20/30", "20/40", "20/50", "20/60", "20/70",
+      "20/80", "20/100", "20/125", "20/150", "20/200", "20/250", "20/300",
+      "20/400", "20/500", "20/600", "20/700", "20/800",
+      "CUENTA DEDOS (CD)", "MOVIMIENTO DE MANOS (MM)", "PERCEPCIÓN DE LUZ (PL)", "NO PERCEPCIÓN DE LUZ (NPL)"
+    ];
+
+    // Visión Cercana en Sistema Métrico (0.50 M hasta 2.00 M + adiciones intermedias)
+    const METRIC_NEAR_OPTIONS = [
+      "NO APLICA",
+      "0.50 M", "0.75 M", "1.00 M", "1.25 M", "1.50 M", "1.75 M", "2.00 M",
+      "2.50 M", "3.00 M"
+    ];
+
+    // Catálogo amplio CIE-10 vigente en Colombia (RIPS Optometría y Oftalmología)
+    const CIE10_LIST = [
+      "H520 - HIPERMETROPÍA",
+      "H521 - MIOPÍA",
+      "H522 - ASTIGMATISMO",
+      "H523 - ANISOMETROPÍA Y ANISEICONÍA",
+      "H524 - PRESBICIA",
+      "H525 - TRASTORNOS DE LA ACOMODACIÓN",
+      "H526 - OTROS TRASTORNOS DE LA REFRACCIÓN",
+      "H527 - TRASTORNO DE LA REFRACCIÓN, NO ESPECIFICADO",
+      "Z010 - EXAMEN DE OJOS Y DE LA VISIÓN",
+      "Z460 - PROVISIÓN Y AJUSTE DE ANTEOJOS Y LENTES DE CONTACTO",
+      "Z973 - PRESENCIA DE ANTEOJOS Y LENTES DE CONTACTO",
+      "H531 - ALTERACIONES VISUALES SUBJETIVAS (ASTENOPÍA / FATIGA VISUAL)",
+      "H530 - AMBLIOPÍA EX ANOPSIA",
+      "H532 - DIPLOPÍA",
+      "H533 - OTROS TRASTORNOS DE LA VISIÓN BINOCULAR",
+      "H538 - OTRAS ALTERACIONES VISUALES",
+      "H539 - ALTERACIÓN VISUAL, NO ESPECIFICADA",
+      "H041 - OTROS TRASTORNOS DE LA GLÁNDULA LAGRIMAL (SÍNDROME DE OJO SECO)",
+      "H100 - CONJUNTIVITIS MUCOPURULENTA",
+      "H101 - CONJUNTIVITIS ATÓPICA AGUDA (ALÉRGICA)",
+      "H102 - OTRAS CONJUNTIVITIS AGUDAS",
+      "H103 - CONJUNTIVITIS AGUDA, NO ESPECIFICADA",
+      "H104 - CONJUNTIVITIS CRÓNICA",
+      "H105 - BLEFAROCONJUNTIVITIS",
+      "H010 - BLEFARITIS",
+      "H000 - ORZUELO Y OTRAS INFLAMACIONES PROFUNDAS DEL PÁRPADO",
+      "H001 - CALACIO (CHALAZIÓN)",
+      "H110 - PTERIGIÓN",
+      "H111 - DEGENERACIONES Y DEPÓSITOS CONJUNTIVALES (PINGUÉCULA)",
+      "H113 - HEMORRAGIA CONJUNTIVAL (HIPOSFAGMA)",
+      "H160 - ÚLCERA DE LA CÓRNEA",
+      "H161 - OTRAS QUERATITIS SUPERFICIALES SIN CONJUNTIVITIS",
+      "H162 - QUERATOCONJUNTIVITIS",
+      "H186 - QUERATOCONO",
+      "H250 - CATARATA SENIL INCIPIENTE",
+      "H251 - CATARATA SENIL NUCLEAR",
+      "H259 - CATARATA SENIL, NO ESPECIFICADA",
+      "H269 - CATARATA, NO ESPECIFICADA",
+      "Z961 - PRESENCIA DE LENTE INTRAOCULAR (PSEUDOFAQUIA)",
+      "H400 - SOSPECHA DE GLAUCOMA (HIPERTENSIÓN OCULAR)",
+      "H401 - GLAUCOMA PRIMARIO DE ÁNGULO ABIERTO",
+      "H409 - GLAUCOMA, NO ESPECIFICADO",
+      "H353 - DEGENERACIÓN DE LA MÁCULA Y DEL POLO POSTERIOR (DMAE)",
+      "H350 - RETINOPATÍA DE FONDO Y CAMBIOS VASCULARES RETINIANOS",
+      "H360 - RETINOPATÍA DIABÉTICA",
+      "H500 - ESTRABISMO CONCOMITANTE CONVERGENTE (ENDOTROPÍA)",
+      "H501 - ESTRABISMO CONCOMITANTE DIVERGENTE (EXOTROPÍA)",
+      "H502 - ESTRABISMO VERTICAL",
+      "H505 - HETEROFORIA (EXOFORIA / ENDOFORIA)",
+      "H509 - ESTRABISMO, NO ESPECIFICADO",
+      "H540 - CEGUERA DE AMBOS OJOS",
+      "H542 - DISMINUCIÓN DE LA AGUDEZA VISUAL DE AMBOS OJOS",
+      "H544 - CEGUERA DE UN OJO",
+      "H545 - DISMINUCIÓN DE LA AGUDEZA VISUAL DE UN OJO",
+      "H571 - DOLOR OCULAR",
+      "R51X - CEFALEA"
+    ];
+
+    // Inicialización al cargar la página
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      setTodayDate();
+      poblarMenusAgudezaVisual();
+      poblarCatalogoDioptrias();
+      poblarCatalogoCIE10();
+      generarConsecutivo();
+      cargarConfiguracionGuardada();
+      actualizarContadorPacientes();
+      activarMayusculasForzadas();
+    });
+
+    // Garantiza que cualquier texto digitado en campos editables pase a MAYÚSCULAS automáticamente
+    function activarMayusculasForzadas() {
+      const campos = document.querySelectorAll('input[type="text"], input[type="search"], textarea');
+      campos.forEach(campo => {
+        if (campo.id === 'driveWebhookInput') return; // No alterar la URL técnica del webhook
+        campo.value = (campo.value || '').toUpperCase();
+        campo.addEventListener('input', function() {
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+          this.value = this.value.toUpperCase();
+          if (start !== null && end !== null) {
+            try { this.setSelectionRange(start, end); } catch (e) {}
+          }
+        });
+      });
+    }
+
+    // 2. Establecer siempre la fecha exacta del día actual del sistema
+    function setTodayDate() {
+      const ahora = new Date();
+      const year = ahora.getFullYear();
+      const month = String(ahora.getMonth() + 1).padStart(2, '0');
+      const day = String(ahora.getDate()).padStart(2, '0');
+      const hours = String(ahora.getHours()).padStart(2, '0');
+      const minutes = String(ahora.getMinutes()).padStart(2, '0');
+
+      document.getElementById('fechaConsulta').value = `${year}-${month}-${day}`;
+      document.getElementById('horaConsulta').value = `${hours}:${minutes}`;
+    }
+
+    // 3. Calcular Edad automáticamente según Fecha de Nacimiento
+    function calcularEdad() {
+      const inputNac = document.getElementById('fechaNacimiento').value;
+      const inputEdad = document.getElementById('edad');
+      if (!inputNac) {
+        inputEdad.value = "";
+        return;
+      }
+      const hoy = new Date();
+      const cumple = new Date(inputNac + "T00:00:00");
+      let edad = hoy.getFullYear() - cumple.getFullYear();
+      const m = hoy.getMonth() - cumple.getMonth();
+      if (m < 0 || (m === 0 && hoy.getDate() < cumple.getDate())) {
+        edad--;
+      }
+      inputEdad.value = edad >= 0 ? `${edad} AÑOS` : "";
+    }
+
+    // 4. Poblar menús desplegables Snellen (20/20 a 20/800) y Métrico (0.50 M a 2.00 M)
+    function poblarMenusAgudezaVisual() {
+      // Snellen Inicial (por defecto 20/40 o 20/20)
+      document.querySelectorAll('.snellen-select').forEach(select => {
+        select.innerHTML = SNELLEN_FEET_OPTIONS.map(opt =>
+          `<option value="${opt}" ${opt === '20/20' ? 'selected' : ''}>${opt}</option>`
+        ).join('');
+      });
+
+      // Snellen Final Recetada (por defecto 20/20)
+      document.querySelectorAll('.snellen-select-final').forEach(select => {
+        select.innerHTML = SNELLEN_FEET_OPTIONS.map(opt =>
+          `<option value="${opt}" ${opt === '20/20' ? 'selected' : ''}>${opt}</option>`
+        ).join('');
+      });
+
+      // Métrico Cercana Inicial (0.50 M hasta 2.00 M)
+      document.querySelectorAll('.metric-select').forEach(select => {
+        select.innerHTML = METRIC_NEAR_OPTIONS.map(opt =>
+          `<option value="${opt}" ${opt === '0.50 M' ? 'selected' : ''}>${opt}</option>`
+        ).join('');
+      });
+
+      // Métrico Cercana Final (0.50 M por defecto)
+      document.querySelectorAll('.metric-select-final').forEach(select => {
+        select.innerHTML = METRIC_NEAR_OPTIONS.map(opt =>
+          `<option value="${opt}" ${opt === '0.50 M' ? 'selected' : ''}>${opt}</option>`
+        ).join('');
+      });
+    }
+
+    // 5. Poblar sugerencias de Esfera y Cilindro en pasos de 0.25 D
+    function poblarCatalogoDioptrias() {
+      const esfList = document.getElementById('dioptriasList');
+      const cilList = document.getElementById('cilindrosList');
+      let esfHtml = '<option value="0.00"></option><option value="NEUTRO"></option>';
+      let cilHtml = '<option value="0.00"></option>';
+
+      for (let v = -20.00; v <= 20.00; v += 0.25) {
+        if (v === 0) continue;
+        const formatted = (v > 0 ? "+" : "") + v.toFixed(2);
+        esfHtml += `<option value="${formatted}"></option>`;
+        if (v < 0 && v >= -10.00) {
+          cilHtml += `<option value="${formatted}"></option>`;
         }
+      }
+      esfList.innerHTML = esfHtml;
+      cilList.innerHTML = cilHtml;
+    }
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.target.classList.contains('navegable')) {
-                e.preventDefault();
-                const campos = Array.from(document.querySelectorAll('.navegable'));
-                const index = campos.indexOf(e.target);
-                if (index > -1 && index + 1 < campos.length) { campos[index + 1].focus(); }
-            }
+    // 6. Poblar catálogo CIE-10
+    function poblarCatalogoCIE10() {
+      const datalist = document.getElementById('cie10Catalog');
+      datalist.innerHTML = CIE10_LIST.map(item => `<option value="${item}"></option>`).join('');
+    }
+
+    // Agregar CIE-10 con clic en botón rápido en la primera casilla disponible
+    function agregarCieRapido(diagnostico) {
+      for (let i = 1; i <= 5; i++) {
+        const input = document.getElementById(`cie${i}`);
+        if (input.value.trim() === diagnostico) return;
+        if (input.value.trim() === "") {
+          input.value = diagnostico;
+          mostrarToast(`Agregado: ${diagnostico}`);
+          return;
+        }
+      }
+      document.getElementById('cie5').value = diagnostico;
+    }
+
+    // Auto-Diagnóstico CIE-10 basado en Esfera, Cilindro y Adición
+    function autoSugerirCIE10() {
+      const odEsf = parseFloat(document.getElementById('odEsfera').value) || 0;
+      const oiEsf = parseFloat(document.getElementById('oiEsfera').value) || 0;
+      const odCil = parseFloat(document.getElementById('odCilindro').value) || 0;
+      const oiCil = parseFloat(document.getElementById('oiCilindro').value) || 0;
+      const odAdd = document.getElementById('odAdicion').value;
+      const oiAdd = document.getElementById('oiAdicion').value;
+
+      const sugeridos = [];
+      if (odEsf < 0 || oiEsf < 0) sugeridos.push("H521 - MIOPÍA");
+      if (odEsf > 0 || oiEsf > 0) sugeridos.push("H520 - HIPERMETROPÍA");
+      if (odCil !== 0 || oiCil !== 0) sugeridos.push("H522 - ASTIGMATISMO");
+      if ((odAdd && odAdd !== "NO APLICA") || (oiAdd && oiAdd !== "NO APLICA")) {
+        sugeridos.push("H524 - PRESBICIA");
+      }
+      if (Math.abs(odEsf - oiEsf) >= 2.00) {
+        sugeridos.push("H523 - ANISOMETROPÍA Y ANISEICONÍA");
+      }
+      sugeridos.push("Z010 - EXAMEN DE OJOS Y DE LA VISIÓN");
+
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`cie${i}`).value = sugeridos[i - 1] || "";
+      }
+      mostrarToast("Diagnósticos CIE-10 sugeridos según Rx");
+    }
+
+    // Copiar valores de OD a OI
+    function copiarOdAOi() {
+      document.getElementById('oiEsfera').value = document.getElementById('odEsfera').value;
+      document.getElementById('oiCilindro').value = document.getElementById('odCilindro').value;
+      document.getElementById('oiEje').value = document.getElementById('odEje').value;
+      document.getElementById('oiAdicion').value = document.getElementById('odAdicion').value;
+      document.getElementById('oiAvLejos').value = document.getElementById('odAvLejos').value;
+      document.getElementById('oiAvCerca').value = document.getElementById('odAvCerca').value;
+      mostrarToast("Fórmula de OD copiada a OI");
+    }
+
+    // 7. Formateo de Pesos Colombianos ($ COP) y Cálculo de Saldo Pendiente
+    function formatearMonedaInput(inputVisible, idOculto) {
+      const limpio = inputVisible.value.replace(/\D/g, "");
+      const numero = parseInt(limpio || "0", 10);
+      document.getElementById(idOculto).value = numero;
+      inputVisible.value = numero.toLocaleString('es-CO');
+      calcularSaldoPendiente();
+    }
+
+    function calcularSaldoPendiente() {
+      const total = parseInt(document.getElementById('precioTotal').value || "0", 10);
+      const abono = parseInt(document.getElementById('valorAbonado').value || "0", 10);
+      const saldo = Math.max(0, total - abono);
+      document.getElementById('saldoPendiente').value = saldo;
+      document.getElementById('saldoPendienteDisplay').value = saldo.toLocaleString('es-CO');
+    }
+
+    function formatoCOP(valor) {
+      const num = parseInt(valor || "0", 10);
+      return "$ " + num.toLocaleString('es-CO') + " COP";
+    }
+
+    // 8. Recolectar todos los datos del formulario
+    function obtenerDatosFormulario() {
+      const rawData = {
+        id: document.getElementById('hcConsecutivo').textContent,
+        timestamp: new Date().toLocaleString('es-CO'),
+        fechaConsulta: document.getElementById('fechaConsulta').value,
+        horaConsulta: document.getElementById('horaConsulta').value,
+        tipoDoc: document.getElementById('tipoDoc').value,
+        documento: document.getElementById('documento').value.trim(),
+        nombre: document.getElementById('nombre').value.trim().toUpperCase(),
+        fechaNacimiento: document.getElementById('fechaNacimiento').value,
+        edad: document.getElementById('edad').value,
+        telefono: "+57 " + document.getElementById('telefono').value.replace(/^\+?57\s*/, '').trim(),
+        direccion: document.getElementById('direccion').value.trim(),
+        eps: document.getElementById('eps').value.trim(),
+        ocupacion: document.getElementById('ocupacion').value.trim(),
+        acompanante: document.getElementById('acompanante').value.trim(),
+        motivoConsulta: document.getElementById('motivoConsulta').value.trim(),
+        antecedentes: document.getElementById('antecedentes').value.trim(),
+        avScOdLejos: document.getElementById('avScOdLejos').value,
+        avScOiLejos: document.getElementById('avScOiLejos').value,
+        avScOdCerca: document.getElementById('avScOdCerca').value,
+        avScOiCerca: document.getElementById('avScOiCerca').value,
+        lensoOd: document.getElementById('lensoOd').value.trim(),
+        lensoOi: document.getElementById('lensoOi').value.trim(),
+        odEsfera: document.getElementById('odEsfera').value.trim(),
+        odCilindro: document.getElementById('odCilindro').value.trim(),
+        odEje: document.getElementById('odEje').value.trim(),
+        odAdicion: document.getElementById('odAdicion').value,
+        odAvLejos: document.getElementById('odAvLejos').value,
+        odAvCerca: document.getElementById('odAvCerca').value,
+        odDnp: document.getElementById('odDnp').value.trim(),
+        oiEsfera: document.getElementById('oiEsfera').value.trim(),
+        oiCilindro: document.getElementById('oiCilindro').value.trim(),
+        oiEje: document.getElementById('oiEje').value.trim(),
+        oiAdicion: document.getElementById('oiAdicion').value,
+        oiAvLejos: document.getElementById('oiAvLejos').value,
+        oiAvCerca: document.getElementById('oiAvCerca').value,
+        oiDnp: document.getElementById('oiDnp').value.trim(),
+        dp: document.getElementById('dp').value.trim(),
+        tipoLente: document.getElementById('tipoLente').value.trim(),
+        montura: document.getElementById('montura').value.trim(),
+        biomicroscopia: document.getElementById('biomicroscopia').value.trim(),
+        oftalmoscopia: document.getElementById('oftalmoscopia').value.trim(),
+        motilidad: document.getElementById('motilidad').value.trim(),
+        cie1: document.getElementById('cie1').value.trim(),
+        cie2: document.getElementById('cie2').value.trim(),
+        cie3: document.getElementById('cie3').value.trim(),
+        cie4: document.getElementById('cie4').value.trim(),
+        cie5: document.getElementById('cie5').value.trim(),
+        notas: document.getElementById('notas').value.trim(),
+        optometra: document.getElementById('optometra').value.trim() || "DR. YOHNNIER RAMOS",
+        precioTotal: parseInt(document.getElementById('precioTotal').value || "0", 10),
+        valorAbonado: parseInt(document.getElementById('valorAbonado').value || "0", 10),
+        saldoPendiente: parseInt(document.getElementById('saldoPendiente').value || "0", 10),
+        metodoPago: document.getElementById('metodoPago').value
+      };
+
+      // Convertir absolutamente todos los valores de texto a MAYÚSCULAS
+      Object.keys(rawData).forEach(k => {
+        if (typeof rawData[k] === 'string') {
+          rawData[k] = rawData[k].toUpperCase();
+        }
+      });
+      return rawData;
+    }
+
+    // 9. IMPRIMIR EN MEDIA CARTA (AHORRO DE PAPEL)
+    function imprimirMediaCarta() {
+      const d = obtenerDatosFormulario();
+      if (!d.nombre) {
+        mostrarToast("⚠️ Por favor ingresa el nombre del paciente antes de imprimir");
+        document.getElementById('nombre').focus();
+        return;
+      }
+
+      // Clonar logo actual al encabezado de impresión
+      const logoOrigen = document.getElementById('logoContainer').innerHTML;
+      document.getElementById('printLogoHolder').innerHTML = logoOrigen;
+
+      document.getElementById('p_consecutivo').textContent = d.id;
+      document.getElementById('p_fecha').textContent = d.fechaConsulta;
+      document.getElementById('p_hora').textContent = d.horaConsulta;
+      document.getElementById('p_nombre').textContent = d.nombre;
+      document.getElementById('p_doc').textContent = `${d.tipoDoc.split(' ')[0]} ${d.documento}`;
+      document.getElementById('p_edad').textContent = `${d.fechaNacimiento || '-'} (${d.edad || '-'})`;
+      document.getElementById('p_telefono').textContent = d.telefono;
+      document.getElementById('p_direccion').textContent = d.direccion || 'BOGOTÁ';
+      document.getElementById('p_eps').textContent = d.eps || 'PARTICULAR';
+      document.getElementById('p_ocupacion').textContent = d.ocupacion || '-';
+      document.getElementById('p_motivo').textContent = d.motivoConsulta || '-';
+      document.getElementById('p_antecedentes').textContent = d.antecedentes || '-';
+
+      document.getElementById('p_avsc_od').textContent = `${d.avScOdLejos} / ${d.avScOdCerca}`;
+      document.getElementById('p_avsc_oi').textContent = `${d.avScOiLejos} / ${d.avScOiCerca}`;
+      document.getElementById('p_lenso_od').textContent = d.lensoOd || 'N/A';
+      document.getElementById('p_lenso_oi').textContent = d.lensoOi || 'N/A';
+
+      document.getElementById('p_od_esf').textContent = d.odEsfera;
+      document.getElementById('p_od_cil').textContent = d.odCilindro;
+      document.getElementById('p_od_eje').textContent = d.odEje + "°";
+      document.getElementById('p_od_add').textContent = d.odAdicion;
+      document.getElementById('p_od_av_vl').textContent = d.odAvLejos;
+      document.getElementById('p_od_av_vc').textContent = d.odAvCerca;
+      document.getElementById('p_od_dnp').textContent = d.odDnp || '-';
+
+      document.getElementById('p_oi_esf').textContent = d.oiEsfera;
+      document.getElementById('p_oi_cil').textContent = d.oiCilindro;
+      document.getElementById('p_oi_eje').textContent = d.oiEje + "°";
+      document.getElementById('p_oi_add').textContent = d.oiAdicion;
+      document.getElementById('p_oi_av_vl').textContent = d.oiAvLejos;
+      document.getElementById('p_oi_av_vc').textContent = d.oiAvCerca;
+      document.getElementById('p_oi_dnp').textContent = d.oiDnp || '-';
+
+      document.getElementById('p_dp').textContent = d.dp || '-';
+      document.getElementById('p_lente').textContent = d.tipoLente || 'SEGÚN FÓRMULA';
+      document.getElementById('p_montura').textContent = d.montura || '-';
+      document.getElementById('p_examen_fisico').textContent = `${d.biomicroscopia} | ${d.oftalmoscopia} | ${d.motilidad}`;
+
+      const cies = [d.cie1, d.cie2, d.cie3, d.cie4, d.cie5].filter(Boolean).join(" ; ");
+      document.getElementById('p_cie10').textContent = cies || 'Z010 - EXAMEN DE OJOS Y DE LA VISIÓN';
+      document.getElementById('p_notas').textContent = d.notas || '-';
+
+      document.getElementById('p_total').textContent = formatoCOP(d.precioTotal);
+      document.getElementById('p_abono').textContent = formatoCOP(d.valorAbonado);
+      document.getElementById('p_saldo').textContent = formatoCOP(d.saldoPendiente);
+      document.getElementById('p_metodo').textContent = d.metodoPago;
+      document.getElementById('p_optometra').textContent = d.optometra;
+
+      window.print();
+    }
+
+    // 10. ENVIAR POR WHATSAPP CON INDICATIVO COLOMBIANO (+57)
+    function enviarWhatsApp() {
+      const d = obtenerDatosFormulario();
+      let numLimpio = document.getElementById('telefono').value.replace(/\D/g, '');
+      if (!numLimpio) {
+        mostrarToast("⚠️ Ingresa el número de celular del paciente para enviar por WhatsApp");
+        document.getElementById('telefono').focus();
+        return;
+      }
+      if (!numLimpio.startsWith('57')) {
+        numLimpio = '57' + numLimpio;
+      }
+
+      const cies = [d.cie1, d.cie2, d.cie3, d.cie4, d.cie5].filter(Boolean).join(", ");
+      const mensaje =
+`👓 *ÓPTICA TRENDYOPTICS - HISTORIA CLÍNICA Y ORDEN*
+📍 Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá
+📅 *Fecha Consulta:* ${d.fechaConsulta}
+👤 *Paciente:* ${d.nombre || 'PACIENTE'}
+🪪 *Documento:* ${d.documento || '-'}
+
+🔬 *FÓRMULA ÓPTICA RECETADA:*
+• *OD:* ESF ${d.odEsfera} | CIL ${d.odCilindro} | EJE ${d.odEje}° | ADD ${d.odAdicion} (AV: ${d.odAvLejos} / ${d.odAvCerca})
+• *OI:* ESF ${d.oiEsfera} | CIL ${d.oiCilindro} | EJE ${d.oiEje}° | ADD ${d.oiAdicion} (AV: ${d.oiAvLejos} / ${d.oiAvCerca})
+• *DP:* ${d.dp || '-'} | *Lente:* ${d.tipoLente || '-'}
+
+🩺 *Diagnóstico CIE-10:* ${cies || 'Z010'}
+📋 *Recomendaciones:* ${d.notas || '-'}
+👨‍⚕️ *Atendido por:* ${d.optometra}
+
+💳 *ESTADO DE CUENTA (COP):*
+• *Valor Total:* ${formatoCOP(d.precioTotal)}
+• *Abono:* ${formatoCOP(d.valorAbonado)} (${d.metodoPago})
+• *Saldo Pendiente:* ${formatoCOP(d.saldoPendiente)}
+
+¡Gracias por confiar tu salud visual a *TrendyOptics*!`;
+
+      const url = `https://wa.me/${numLimpio}?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, '_blank');
+    }
+
+    // 11. REGISTRAR EN GOOGLE DRIVE + RESPALDO LOCAL AUTOMÁTICO
+    async function registrarEnDrive() {
+      const d = obtenerDatosFormulario();
+      if (!d.nombre || !d.documento) {
+        mostrarToast("⚠️ Por favor completa al menos Nombre y Documento del paciente");
+        document.getElementById('nombre').focus();
+        return;
+      }
+
+      // 1. Guardar siempre en el respaldo local del dispositivo primero
+      guardarEnHistorialLocal(d);
+
+      // 2. Obtener URL de Google Apps Script (Usa por defecto la URL oficial de trendyoptics1@gmail.com)
+      const webhookUrl = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL;
+      const btn = document.getElementById('btnGuardarDrive');
+      const txt = document.getElementById('btnGuardarTexto');
+
+      btn.disabled = true;
+      txt.textContent = "Enviando a Drive...";
+
+      try {
+        // Se usa text/plain y mode: 'no-cors' para evitar que Google bloquee la petición por CORS
+        await fetch(webhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(d)
         });
 
-        function forzarMenosCilindro(idCampo) {
-            const campo = document.getElementById(idCampo);
-            let valor = campo.value.trim();
-            if(valor.length > 0 && !valor.startsWith('-')) { campo.value = '-' + valor; }
-        }
+        mostrarToast("✅ Historia clínica registrada en el Drive de trendyoptics1@gmail.com");
+        generarConsecutivo();
+      } catch (err) {
+        console.error(err);
+        mostrarToast("⚠️ Sin internet: Guardado en la memoria local del dispositivo.");
+      } finally {
+        btn.disabled = false;
+        txt.textContent = "Registrar en Drive";
+      }
+    }
 
-        function toggleCard(id) {
-            const el = document.getElementById(id);
-            el.style.display = (el.style.display === 'none') ? 'block' : 'none';
-        }
+    // 12. Gestión de Historial Local y Exportación Excel CSV
+    function guardarEnHistorialLocal(registro) {
+      const lista = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
+      const idx = lista.findIndex(item => item.id === registro.id);
+      if (idx >= 0) {
+        lista[idx] = registro;
+      } else {
+        lista.unshift(registro);
+      }
+      localStorage.setItem('trendy_hc_records', JSON.stringify(lista));
+      actualizarContadorPacientes();
+    }
 
-        function filtrarCIE10(idx) {
-            const input = document.getElementById(`cie-${idx}`);
-            const list = document.getElementById(`list-${idx}`);
-            const filtro = input.value.toUpperCase();
-            list.innerHTML = "";
-            const filtrados = baseCIE10.filter(item => item.c.includes(filtro) || item.d.includes(filtro));
-            
-            if(filtrados.length > 0 && filtro !== "") {
-                list.style.display = 'block';
-                filtrados.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'datalist-item';
-                    div.innerText = `${item.c} - ${item.d}`;
-                    div.onclick = () => { input.value = item.c; list.style.display = 'none'; };
-                    list.appendChild(div);
-                });
-            } else { list.style.display = 'none'; }
-        }
+    function actualizarContadorPacientes() {
+      const lista = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
+      document.getElementById('savedCountBadge').textContent = lista.length;
+    }
 
-        function descargarImprimirPDF() {
-            if(!document.getElementById("nombre").value || !document.getElementById("documento").value) {
-                alert("❌ Primero diligencia el Nombre y Documento del paciente.");
-                return;
-            }
-            document.getElementById("p-fecha-consulta").innerText = "Fecha: " + document.getElementById("fecha").value;
-            document.getElementById("p-nombre").innerText = document.getElementById("nombre").value.toUpperCase();
-            document.getElementById("p-doc").innerText = document.getElementById("documento").value;
-            document.getElementById("p-tel").innerText = document.getElementById("telefono").value;
-            document.getElementById("p-dir").innerText = document.getElementById("direccion").value.toUpperCase();
-            document.getElementById("p-eps").innerText = document.getElementById("eps").value.toUpperCase();
-            document.getElementById("p-avsin-od").innerText = document.getElementById("avSinOD").value || "N/A";
-            document.getElementById("p-avsin-oi").innerText = document.getElementById("avSinOI").value || "N/A";
-            document.getElementById("p-od-esf").innerText = document.getElementById("odEsfera").value || "0.00";
-            document.getElementById("p-od-cil").innerText = document.getElementById("odCilindro").value || "0.00";
-            document.getElementById("p-od-eje").innerText = document.getElementById("odEje").value || "0";
-            document.getElementById("p-od-adi").innerText = document.getElementById("odAdicion").value || "0.00";
-            document.getElementById("p-od-av").innerText = document.getElementById("odAv").value || "20/20";
-            document.getElementById("p-oi-esf").innerText = document.getElementById("oiEsfera").value || "0.00";
-            document.getElementById("p-oi-cil").innerText = document.getElementById("oiCilindro").value || "0.00";
-            document.getElementById("p-oi-eje").innerText = document.getElementById("oiEje").value || "0";
-            document.getElementById("p-oi-adi").innerText = document.getElementById("oiAdicion").value || "0.00";
-            document.getElementById("p-oi-av").innerText = document.getElementById("oiAv").value || "20/20";
-            document.getElementById("p-dp").innerText = document.getElementById("dp").value;
-            document.getElementById("p-tl").innerText = document.getElementById("tipoLente").value.toUpperCase();
-            let activos = [];
-            for(let i=1; i<=5; i++) { let v = document.getElementById(`cie-${i}`).value; if(v) activos.push(v.toUpperCase()); }
-            document.getElementById("p-cie").innerText = activos.join(" | ") || "SIN DIAGNÓSTICO";
-            document.getElementById("p-obs").innerText = document.getElementById("notas").value.toUpperCase() || "SIN RECOMENDACIONES.";
-            document.getElementById("p-total").innerText = "$" + (document.getElementById("precioTotal").value || "0");
-            document.getElementById("p-abono").innerText = "$" + (document.getElementById("precioAbono").value || "0");
-            document.getElementById("p-saldo").innerText = "$" + (document.getElementById("precioSaldo").value || "0");
-            document.getElementById("p-metodo").innerText = document.getElementById("metodoPago").value.toUpperCase();
-            document.getElementById("p-firm-dr").innerText = document.getElementById("optometra").value.toUpperCase();
-            window.print();
-        }
+    function openHistoryModal() {
+      renderizarHistorial();
+      const modal = document.getElementById('historyModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
 
-        function enviarHistoriaWhatsApp() {
-            let tel = document.getElementById("telefono").value.trim();
-            const paciente = document.getElementById("nombre").value.toUpperCase();
-            if(!tel || !paciente) { alert("❌ Necesitas ingresar el nombre y el celular."); return; }
-            if (!tel.startsWith("57") && tel.length === 10) { tel = "57" + tel; }
-            const rxOD = `OD: Esf: ${document.getElementById("odEsfera").value || '0.00'} Cil: ${document.getElementById("odCilindro").value || '0.00'} Eje: ${document.getElementById("odEje").value || '0'} Ad: ${document.getElementById("odAdicion").value || '0.00'}`;
-            const rxOI = `OI: Esf: ${document.getElementById("oiEsfera").value || '0.00'} Cil: ${document.getElementById("oiCilindro").value || '0.00'} Eje: ${document.getElementById("oiEje").value || '0'} Ad: ${document.getElementById("oiAdicion").value || '0.00'}`;
-            const avOD = document.getElementById("odAv").value || "20/20";
-            const avOI = document.getElementById("oiAv").value || "20/20";
-            const lente = document.getElementById("tipoLente").value.toUpperCase() || "POR DEFINIR";
-            const doctor = document.getElementById("optometra").value.toUpperCase();
-            const recomendaciones = document.getElementById("notas").value.toUpperCase() || "SEGUIR RECOMENDACIONES.";
-            const totalJob = document.getElementById("precioTotal").value || "0";
-            const abonoJob = document.getElementById("precioAbono").value || "0";
-            const saldoJob = document.getElementById("precioSaldo").value || "0";
-            const mensaje = `Hola *${paciente}*, te saludamos de *TrendyOptics* 👓.\n\n*Rx Recetada:*\n• ${rxOD} (AV: ${avOD})\n• ${rxOI} (AV: ${avOI})\n\n*Lente:* ${lente}\n*Recomendaciones:* ${recomendaciones}\n\n*Finanzas:*\nTotal: $${totalJob} | Abono: $${abonoJob} | Saldo: $${saldoJob}\n\nGracias por confiar en el ${doctor}.`;
-            window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`, '_blank');
-        }
+    function closeHistoryModal() {
+      const modal = document.getElementById('historyModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
 
-        function enviarContabilidadDrive() {
-            const btn = document.getElementById("btnGuardar");
-            btn.disabled = true;
-            btn.innerText = "Enviando...";
-            const datos = {
-                fecha: document.getElementById("fecha").value,
-                paciente: document.getElementById("nombre").value,
-                total: document.getElementById("precioTotal").value,
-                abono: document.getElementById("precioAbono").value,
-                saldo: document.getElementById("precioSaldo").value,
-                metodo: document.getElementById("metodoPago").value
-            };
-            fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify(datos) })
-            .then(r => { alert("✅ Guardado en Google Sheets correctamente."); btn.disabled = false; btn.innerText = "💾 Registrar Contabilidad en Drive"; })
-            .catch(e => { alert("❌ Error: " + e); btn.disabled = false; });
-        }
-    </script>
+    function renderizarHistorial() {
+      const lista = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
+      const filtro = (document.getElementById('buscarPacienteInput').value || '').toLowerCase();
+      const tbody = document.getElementById('tablaHistorialBody');
+
+      const filtrados = lista.filter(r =>
+        (r.nombre || '').toLowerCase().includes(filtro) ||
+        (r.documento || '').toLowerCase().includes(filtro) ||
+        (r.fechaConsulta || '').toLowerCase().includes(filtro)
+      );
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">No hay historias clínicas guardadas aún en este navegador.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtrados.map((r) => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-2 font-semibold whitespace-nowrap">${r.fechaConsulta || ''}</td>
+          <td class="py-2.5 px-2 font-bold text-slate-900">${r.nombre || ''}</td>
+          <td class="py-2.5 px-2">${r.documento || ''}</td>
+          <td class="py-2.5 px-2">${r.telefono || ''}</td>
+          <td class="py-2.5 px-2 font-mono text-[11px]">
+            OD: ${r.odEsfera} ${r.odCilindro} x ${r.odEje}°<br/>
+            OI: ${r.oiEsfera} ${r.oiCilindro} x ${r.oiEje}°
+          </td>
+          <td class="py-2.5 px-2">
+            <div class="font-bold text-slate-800">${formatoCOP(r.precioTotal)}</div>
+            <div class="text-[11px] text-amber-700 font-semibold">Saldo: ${formatoCOP(r.saldoPendiente)}</div>
+          </td>
+          <td class="py-2.5 px-2 text-right space-x-1 whitespace-nowrap">
+            <button onclick="cargarPacienteEnFormulario('${r.id}')" class="bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold px-2.5 py-1 rounded text-[11px]">Cargar</button>
+            <button onclick="reenviarPacienteADrive('${r.id}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold px-2.5 py-1 rounded text-[11px]">Subir a Drive</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function cargarPacienteEnFormulario(id) {
+      const lista = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
+      const r = lista.find(item => item.id === id);
+      if (!r) return;
+
+      document.getElementById('hcConsecutivo').textContent = r.id;
+      document.getElementById('fechaConsulta').value = r.fechaConsulta || '';
+      document.getElementById('horaConsulta').value = r.horaConsulta || '';
+      document.getElementById('tipoDoc').value = r.tipoDoc || 'CC - CÉDULA DE CIUDADANÍA';
+      document.getElementById('documento').value = r.documento || '';
+      document.getElementById('nombre').value = r.nombre || '';
+      document.getElementById('fechaNacimiento').value = r.fechaNacimiento || '';
+      document.getElementById('edad').value = r.edad || '';
+      document.getElementById('telefono').value = (r.telefono || '').replace('+57 ', '');
+      document.getElementById('direccion').value = r.direccion || '';
+      document.getElementById('eps').value = r.eps || '';
+      document.getElementById('ocupacion').value = r.ocupacion || '';
+      document.getElementById('acompanante').value = r.acompanante || '';
+      document.getElementById('motivoConsulta').value = r.motivoConsulta || '';
+      document.getElementById('antecedentes').value = r.antecedentes || '';
+      document.getElementById('avScOdLejos').value = r.avScOdLejos || '20/20';
+      document.getElementById('avScOiLejos').value = r.avScOiLejos || '20/20';
+      document.getElementById('avScOdCerca').value = r.avScOdCerca || '0.50 M';
+      document.getElementById('avScOiCerca').value = r.avScOiCerca || '0.50 M';
+      document.getElementById('lensoOd').value = r.lensoOd || '';
+      document.getElementById('lensoOi').value = r.lensoOi || '';
+      document.getElementById('odEsfera').value = r.odEsfera || '0.00';
+      document.getElementById('odCilindro').value = r.odCilindro || '0.00';
+      document.getElementById('odEje').value = r.odEje || '0';
+      document.getElementById('odAdicion').value = r.odAdicion || 'NO APLICA';
+      document.getElementById('odAvLejos').value = r.odAvLejos || '20/20';
+      document.getElementById('odAvCerca').value = r.odAvCerca || '0.50 M';
+      document.getElementById('odDnp').value = r.odDnp || '';
+      document.getElementById('oiEsfera').value = r.oiEsfera || '0.00';
+      document.getElementById('oiCilindro').value = r.oiCilindro || '0.00';
+      document.getElementById('oiEje').value = r.oiEje || '0';
+      document.getElementById('oiAdicion').value = r.oiAdicion || 'NO APLICA';
+      document.getElementById('oiAvLejos').value = r.oiAvLejos || '20/20';
+      document.getElementById('oiAvCerca').value = r.oiAvCerca || '0.50 M';
+      document.getElementById('oiDnp').value = r.oiDnp || '';
+      document.getElementById('dp').value = r.dp || '';
+      document.getElementById('tipoLente').value = r.tipoLente || '';
+      document.getElementById('montura').value = r.montura || '';
+      document.getElementById('biomicroscopia').value = r.biomicroscopia || '';
+      document.getElementById('oftalmoscopia').value = r.oftalmoscopia || '';
+      document.getElementById('motilidad').value = r.motilidad || '';
+      document.getElementById('cie1').value = r.cie1 || '';
+      document.getElementById('cie2').value = r.cie2 || '';
+      document.getElementById('cie3').value = r.cie3 || '';
+      document.getElementById('cie4').value = r.cie4 || '';
+      document.getElementById('cie5').value = r.cie5 || '';
+      document.getElementById('notas').value = r.notas || '';
+      document.getElementById('optometra').value = r.optometra || 'DR. YOHNNIER RAMOS';
+
+      document.getElementById('precioTotal').value = r.precioTotal || 0;
+      document.getElementById('precioTotalDisplay').value = (r.precioTotal || 0).toLocaleString('es-CO');
+      document.getElementById('valorAbonado').value = r.valorAbonado || 0;
+      document.getElementById('valorAbonadoDisplay').value = (r.valorAbonado || 0).toLocaleString('es-CO');
+      calcularSaldoPendiente();
+      document.getElementById('metodoPago').value = r.metodoPago || 'EFECTIVO';
+
+      closeHistoryModal();
+      mostrarToast(`Cargada HC de ${r.nombre}`);
+    }
+
+    async function reenviarPacienteADrive(id) {
+      const lista = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
+      const r = lista.find(item => item.id === id);
+      const webhookUrl = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL;
+      if (!r) return;
+
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(r)
+      });
+      mostrarToast(`✅ Reenviado a Google Drive: ${r.nombre}`);
+    }
+
+    function exportarExcelCSV() {
+      const lista = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
+      if (lista.length === 0) {
+        mostrarToast("No hay registros para exportar");
+        return;
+      }
+      const headers = Object.keys(lista[0]);
+      const csvRows = [
+        headers.join(';'),
+        ...lista.map(row => headers.map(fieldName => `"${String(row[fieldName] ?? '').replace(/"/g, '""')}"`).join(';'))
+      ];
+      const csvString = "\uFEFF" + csvRows.join('\r\n');
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TrendyOptics_Historias_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    // 13. Configuración de Google Drive Modal
+    function openDriveModal() {
+      const modal = document.getElementById('driveModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeDriveModal() {
+      const modal = document.getElementById('driveModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveDriveWebhook() {
+      const url = document.getElementById('driveWebhookInput').value.trim() || DEFAULT_DRIVE_WEBHOOK_URL;
+      localStorage.setItem('trendy_drive_webhook', url);
+      mostrarToast("✅ URL de Google Drive guardada");
+      closeDriveModal();
+    }
+
+    function restaurarUrlFabrica() {
+      localStorage.setItem('trendy_drive_webhook', DEFAULT_DRIVE_WEBHOOK_URL);
+      document.getElementById('driveWebhookInput').value = DEFAULT_DRIVE_WEBHOOK_URL;
+      mostrarToast("✅ Restaurada la URL oficial de fábrica");
+    }
+
+    async function probarConexionDrive() {
+      const url = document.getElementById('driveWebhookInput').value.trim() || DEFAULT_DRIVE_WEBHOOK_URL;
+      const d = obtenerDatosFormulario();
+      d.nombre = d.nombre || "PACIENTE PRUEBA CONEXIÓN DRIVE";
+      d.documento = d.documento || "1073263942";
+      await fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(d)
+      });
+      mostrarToast("✅ Fila de prueba enviada a tu Google Sheet en trendyoptics1@gmail.com");
+    }
+
+    function cargarConfiguracionGuardada() {
+      const url = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL;
+      document.getElementById('driveWebhookInput').value = url;
+
+      const customLogo = localStorage.getItem('trendy_custom_logo');
+      if (customLogo) {
+        aplicarLogoPersonalizado(customLogo);
+      }
+    }
+
+    // 14. Subir el archivo de logo desde la galería (opcional, queda guardado en el navegador)
+    function handleCustomLogo(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result;
+        localStorage.setItem('trendy_custom_logo', base64);
+        aplicarLogoPersonalizado(base64);
+        mostrarToast("✅ Logo de TrendyOptics actualizado");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function aplicarLogoPersonalizado(base64) {
+      const svg = document.getElementById('defaultLogoSvg');
+      const img = document.getElementById('customLogoImg');
+      if (svg && img) {
+        svg.classList.add('hidden');
+        img.src = base64;
+        img.classList.remove('hidden');
+      }
+    }
+
+    function generarConsecutivo() {
+      const random = Math.floor(1000 + Math.random() * 9000);
+      const hoy = new Date();
+      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoy.getDate()).padStart(2, '0');
+      document.getElementById('hcConsecutivo').textContent = `HC-${mes}${dia}-${random}`;
+    }
+
+    function limpiarFormulario() {
+      document.getElementById('hcForm').reset();
+      setTodayDate();
+      poblarMenusAgudezaVisual();
+      document.getElementById('optometra').value = "DR. YOHNNIER RAMOS";
+      document.getElementById('acompanante').value = "NO APLICA (ASISTE SOLO)";
+      document.getElementById('motivoConsulta').value = "CONTROL VISUAL Y CAMBIO DE CORRECCIÓN ÓPTICA";
+      document.getElementById('antecedentes').value = "NIEGA PATOLÓGICOS, QUIRÚRGICOS, TRAUMÁTICOS Y ALÉRGICOS";
+      document.getElementById('biomicroscopia').value = "CÓRNEA TRANSPARENTE, CÁMARA ANTERIOR AMPLIA, CRISTALINO CLARO AO";
+      document.getElementById('oftalmoscopia').value = "MEDIOS TRANSPARENTES, PAPILA BORDES DEFINIDOS EXCAVACIÓN 0.3, MÁCULA SANA AO";
+      document.getElementById('motilidad').value = "ORTOFORIA VL Y VC, DUCCIONES Y VERSIONES COMPLETAS, PPC 6 CM";
+      document.getElementById('notas').value = "USO PERMANENTE DE CORRECCIÓN ÓPTICA, HIGIENE VISUAL, CONTROL EN 1 AÑO.";
+      document.getElementById('precioTotal').value = 0;
+      document.getElementById('valorAbonado').value = 0;
+      document.getElementById('saldoPendiente').value = 0;
+      document.getElementById('precioTotalDisplay').value = "0";
+      document.getElementById('valorAbonadoDisplay').value = "0";
+      document.getElementById('saldoPendienteDisplay').value = "0";
+      generarConsecutivo();
+      mostrarToast("Formulario limpio para nuevo paciente");
+    }
+
+    function mostrarToast(mensaje) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastText').textContent = mensaje;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+      }, 3800);
+    }
+  </script>
 </body>
 </html>
