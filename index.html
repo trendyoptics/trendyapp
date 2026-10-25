@@ -77,7 +77,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between pb-24 lg:pb-6">
+<body class="min-h-screen flex flex-col justify-between pb-28 lg:pb-10">
 
   <header class="no-print bg-[#0B172A] text-white shadow-lg sticky top-0 z-40 border-b border-slate-800">
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
@@ -386,4 +386,192 @@
             <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <i data-lucide="stethoscope" class="w-4 h-4"></i>
             </div>
-            <h2 class="text-sm font-bold text-slate-800 uppercase">3. Diagnóstico
+            <h2 class="text-sm font-bold text-slate-800 uppercase">3. Diagnóstico CIE-10 y Caja</h2>
+          </div>
+          <button type="button" onclick="autoSugerirCIE10()" class="text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200 px-2 py-1 rounded-md flex items-center gap-1">
+            <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Auto-Diagnóstico
+          </button>
+        </div>
+
+        <div class="space-y-2">
+          <label class="clinical-label">Diagnósticos CIE-10</label>
+          <div class="flex flex-wrap gap-1 pb-1">
+            <button type="button" onclick="agregarCieRapido('H520 - HIPERMETROPÍA')" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded border">+ H520 Hipermetropía</button>
+            <button type="button" onclick="agregarCieRapido('H521 - MIOPÍA')" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded border">+ H521 Miopía</button>
+            <button type="button" onclick="agregarCieRapido('H522 - ASTIGMATISMO')" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded border">+ H522 Astigmatismo</button>
+            <button type="button" onclick="agregarCieRapido('H524 - PRESBICIA')" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded border">+ H524 Presbicia</button>
+            <button type="button" onclick="agregarCieRapido('Z010 - EXAMEN DE OJOS Y DE LA VISIÓN')" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded border">+ Z010 Examen</button>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2"><span class="w-6 h-8 rounded bg-slate-100 text-xs font-bold flex items-center justify-center">1</span><input type="text" id="cie1" list="cie10Catalog" placeholder="CIE-10 1" class="clinical-input text-xs" /></div>
+            <div class="flex items-center gap-2"><span class="w-6 h-8 rounded bg-slate-100 text-xs font-bold flex items-center justify-center">2</span><input type="text" id="cie2" list="cie10Catalog" placeholder="CIE-10 2" class="clinical-input text-xs" /></div>
+            <div class="flex items-center gap-2"><span class="w-6 h-8 rounded bg-slate-100 text-xs font-bold flex items-center justify-center">3</span><input type="text" id="cie3" list="cie10Catalog" placeholder="CIE-10 3" class="clinical-input text-xs" /></div>
+            <div class="flex items-center gap-2"><span class="w-6 h-8 rounded bg-slate-100 text-xs font-bold flex items-center justify-center">4</span><input type="text" id="cie4" list="cie10Catalog" placeholder="CIE-10 4" class="clinical-input text-xs" /></div>
+            <div class="flex items-center gap-2"><span class="w-6 h-8 rounded bg-slate-100 text-xs font-bold flex items-center justify-center">5</span><input type="text" id="cie5" list="cie10Catalog" placeholder="CIE-10 5" class="clinical-input text-xs" /></div>
+          </div>
+        </div>
+
+        <div>
+          <label class="clinical-label">Conducta / Recomendaciones</label>
+          <textarea id="notas" rows="2" class="clinical-input text-xs">USO PERMANENTE DE CORRECCIÓN ÓPTICA, CONTROL EN 1 AÑO.</textarea>
+        </div>
+
+        <div>
+          <label class="clinical-label">Optómetra Examinador</label>
+          <input type="text" id="optometra" value="DR. YOHNNIER RAMOS" list="doctoresList" class="clinical-input font-bold text-slate-900 bg-slate-50" required />
+          <datalist id="doctoresList"><option value="DR. YOHNNIER RAMOS"></option></datalist>
+        </div>
+
+        <!-- CAJA -->
+        <div class="bg-amber-50/70 border-2 border-dashed border-amber-300 rounded-xl p-4 space-y-3">
+          <h3 class="text-xs font-extrabold uppercase text-amber-900">Finanzas de Caja y Abonos (COP $)</h3>
+          <div>
+            <label class="clinical-label text-amber-950">Precio Total Trabajo ($)</label>
+            <div class="relative"><span class="absolute left-3 top-2 text-sm font-bold text-slate-500">$</span><input type="text" id="precioTotalDisplay" oninput="formatearMonedaInput(this, 'precioTotal')" value="0" class="clinical-input pl-7 font-bold text-base" /><input type="hidden" id="precioTotal" value="0" /></div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="clinical-label text-amber-950">Valor Abonado ($)</label>
+              <div class="relative"><span class="absolute left-3 top-2 text-sm font-bold text-emerald-600">$</span><input type="text" id="valorAbonadoDisplay" oninput="formatearMonedaInput(this, 'valorAbonado')" value="0" class="clinical-input pl-7 font-bold text-emerald-700" /><input type="hidden" id="valorAbonado" value="0" /></div>
+            </div>
+            <div>
+              <label class="clinical-label text-amber-950">Saldo Pendiente ($)</label>
+              <div class="relative"><span class="absolute left-3 top-2 text-sm font-bold text-amber-900">$</span><input type="text" id="saldoPendienteDisplay" readonly value="0" class="clinical-input pl-7 font-extrabold bg-amber-200/60 text-amber-950" /><input type="hidden" id="saldoPendiente" value="0" /></div>
+            </div>
+          </div>
+          <div>
+            <label class="clinical-label text-amber-950">Método de Pago</label>
+            <select id="metodoPago" class="clinical-input font-semibold">
+              <option value="EFECTIVO">EFECTIVO</option>
+              <option value="NEQUI">NEQUI</option>
+              <option value="DAVIPLATA">DAVIPLATA</option>
+              <option value="TRANSFERENCIA BANCOLOMBIA">TRANSFERENCIA BANCOLOMBIA</option>
+              <option value="TARJETA DATÁFONO">TARJETA DATÁFONO</option>
+            </select>
+          </div>
+        </div>
+      </section>
+    </form>
+  </main>
+
+  <!-- BARRA INFERIOR CON BOTONES DE ACCIÓN -->
+  <footer class="no-print fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 shadow-xl z-30">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
+      <div class="hidden md:flex items-center gap-2 text-xs text-slate-500">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+        <span>Resolución 1995 de 1999 &bull; Impresión en Media Carta.</span>
+      </div>
+
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <button type="button" onclick="imprimirMediaCarta()" class="flex items-center gap-1.5 bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow transition">
+          <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Media Carta
+        </button>
+
+        <button type="button" onclick="enviarWhatsApp()" class="flex items-center gap-1.5 bg-[#16A34A] hover:bg-[#15803D] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow transition">
+          <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp (+57)
+        </button>
+
+        <button type="button" id="btnGuardarDrive" onclick="registrarEnDrive()" class="flex items-center gap-1.5 bg-[#0B172A] hover:bg-[#1E293B] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow transition">
+          <i data-lucide="save" class="w-4 h-4 text-sky-400"></i>
+          <span id="btnGuardarTexto">Registrar en Drive</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ÁREA DE IMPRESIÓN MEDIA CARTA -->
+  <section id="print-area" class="hidden bg-white text-black p-2">
+    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-1.5 mb-1.5">
+      <div class="flex items-center gap-2.5">
+        <div id="printLogoHolder" class="w-12 h-12 rounded-full overflow-hidden shrink-0"></div>
+        <div>
+          <h1 class="text-base font-extrabold uppercase">ÓPTICA TRENDYOPTICS</h1>
+          <p class="text-[9px] text-slate-700">Calle 39a Sur N 87d - 58, Bogotá &bull; NIT: 1073263942-5 &bull; Cel: +57 3003391055</p>
+        </div>
+      </div>
+      <div class="text-right text-[9.5px]">
+        <div class="font-bold" id="p_consecutivo">HC</div>
+        <div><strong>FECHA:</strong> <span id="p_fecha"></span></div>
+      </div>
+    </div>
+    <div class="grid grid-cols-4 gap-1 text-[9px] border border-slate-400 rounded p-1 mb-1 bg-slate-50">
+      <div class="col-span-2"><strong>PACIENTE:</strong> <span id="p_nombre"></span></div>
+      <div><strong>DOC:</strong> <span id="p_doc"></span></div>
+      <div><strong>TEL:</strong> <span id="p_telefono"></span></div>
+      <div class="col-span-2"><strong>DIRECCIÓN:</strong> <span id="p_direccion"></span></div>
+      <div class="col-span-2"><strong>EPS:</strong> <span id="p_eps"></span></div>
+    </div>
+    <table class="w-full border-collapse border border-slate-800 text-[9px] text-center mb-1">
+      <thead>
+        <tr class="bg-slate-200 font-bold">
+          <th class="border border-slate-700">OJO</th>
+          <th class="border border-slate-700">AV SC</th>
+          <th class="border border-slate-700">LENSOMETRÍA</th>
+          <th class="border border-slate-700">ESFERA</th>
+          <th class="border border-slate-700">CILINDRO</th>
+          <th class="border border-slate-700">EJE</th>
+          <th class="border border-slate-700">ADD</th>
+          <th class="border border-slate-700">AV LEJOS</th>
+          <th class="border border-slate-700">AV CERCA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="border border-slate-700 font-bold">OD</td>
+          <td class="border border-slate-700" id="p_avsc_od"></td>
+          <td class="border border-slate-700" id="p_lenso_od"></td>
+          <td class="border border-slate-700 font-mono font-bold" id="p_od_esf"></td>
+          <td class="border border-slate-700 font-mono font-bold" id="p_od_cil"></td>
+          <td class="border border-slate-700 font-mono" id="p_od_eje"></td>
+          <td class="border border-slate-700" id="p_od_add"></td>
+          <td class="border border-slate-700" id="p_od_av_vl"></td>
+          <td class="border border-slate-700" id="p_od_av_vc"></td>
+        </tr>
+        <tr>
+          <td class="border border-slate-700 font-bold">OI</td>
+          <td class="border border-slate-700" id="p_avsc_oi"></td>
+          <td class="border border-slate-700" id="p_lenso_oi"></td>
+          <td class="border border-slate-700 font-mono font-bold" id="p_oi_esf"></td>
+          <td class="border border-slate-700 font-mono font-bold" id="p_oi_cil"></td>
+          <td class="border border-slate-700 font-mono" id="p_oi_eje"></td>
+          <td class="border border-slate-700" id="p_oi_add"></td>
+          <td class="border border-slate-700" id="p_oi_av_vl"></td>
+          <td class="border border-slate-700" id="p_oi_av_vc"></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="grid grid-cols-12 gap-1 text-[8.5px]">
+      <div class="col-span-8 border border-slate-400 rounded p-1 space-y-0.5">
+        <div><strong>DP:</strong> <span id="p_dp"></span> &bull; <strong>LENTE:</strong> <span id="p_lente"></span></div>
+        <div><strong>CIE-10:</strong> <span id="p_cie10"></span></div>
+        <div><strong>RECOMENDACIONES:</strong> <span id="p_notas"></span></div>
+      </div>
+      <div class="col-span-4 border border-slate-800 rounded p-1 bg-slate-50">
+        <div>TOTAL: <strong id="p_total"></strong></div>
+        <div>ABONO: <strong id="p_abono"></strong></div>
+        <div>SALDO: <strong id="p_saldo"></strong></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="driveModal" class="no-print fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-3">
+      <h3 class="text-base font-bold">Estado de Google Drive</h3>
+      <p class="text-xs text-slate-600">Conectado permanentemente a <strong>trendyoptics1@gmail.com</strong>.</p>
+      <input type="text" id="driveWebhookInput" class="clinical-input font-mono text-xs bg-slate-50" />
+      <div class="flex gap-2">
+        <button type="button" onclick="saveDriveWebhook()" class="bg-sky-600 text-white text-xs font-bold px-3 py-2 rounded">Guardar</button>
+        <button type="button" onclick="closeDriveModal()" class="bg-slate-200 text-xs font-bold px-3 py-2 rounded">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="historyModal" class="no-print fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[80vh] flex flex-col p-5">
+      <div class="flex justify-between pb-3 border-b"><h3 class="font-bold">Pacientes Guardados</h3><button onclick="closeHistoryModal()">✕</button></div>
+      <div class="flex-1 overflow-y-auto py-2"><table class="w-full text-xs"><thead><tr><th>Fecha</th><th>Paciente</th><th>Doc</th><th>Total</th></tr></thead><tbody id="tablaHistorialBody"></tbody></table></div>
+    </div>
+  </div>
+
+  <div id="toast" class="no-print fixed top-16 right-4 z-50 hidden bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl">
+    <span id
