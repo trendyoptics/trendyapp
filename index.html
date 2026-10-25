@@ -574,4 +574,237 @@
   </div>
 
   <div id="toast" class="no-print fixed top-16 right-4 z-50 hidden bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl">
-    <span id
+    <span id="toastText"></span>
+  </div>
+
+  <datalist id="dioptriasList"></datalist>
+  <datalist id="cilindrosList"></datalist>
+  <datalist id="cie10Catalog"></datalist>
+
+  <script>
+    const DEFAULT_DRIVE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyRt6KGqkN_agtBbN_JPeFHQfU_dslYqAtBsBDjQjFtf3mNNuzGZKjm1ZbFm-gzpu3e/exec";
+
+    const SNELLEN_FEET_OPTIONS = ["NO APLICA", "20/15", "20/20", "20/25", "20/30", "20/40", "20/50", "20/60", "20/70", "20/80", "20/100", "20/200", "20/400", "CUENTA DEDOS (CD)", "MOVIMIENTO DE MANOS (MM)"];
+    const METRIC_NEAR_OPTIONS = ["NO APLICA", "0.50 M", "0.75 M", "1.00 M", "1.25 M", "1.50 M", "1.75 M", "2.00 M"];
+    const CIE10_LIST = ["H520 - HIPERMETROPÍA", "H521 - MIOPÍA", "H522 - ASTIGMATISMO", "H524 - PRESBICIA", "Z010 - EXAMEN DE OJOS Y DE LA VISIÓN"];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      setTodayDate();
+      poblarMenus();
+      poblarDioptrias();
+      poblarCIE10();
+      generarConsecutivo();
+      cargarConfig();
+      actualizarContadorPacientes();
+    });
+
+    function setTodayDate() {
+      const d = new Date();
+      document.getElementById('fechaConsulta').value = d.toISOString().slice(0, 10);
+      document.getElementById('horaConsulta').value = d.toTimeString().slice(0, 5);
+    }
+
+    function calcularEdad() {
+      const nac = document.getElementById('fechaNacimiento').value;
+      if (!nac) return;
+      const anos = new Date().getFullYear() - new Date(nac).getFullYear();
+      document.getElementById('edad').value = anos + " AÑOS";
+    }
+
+    function poblarMenus() {
+      document.querySelectorAll('.snellen-select, .snellen-select-final').forEach(s => s.innerHTML = SNELLEN_FEET_OPTIONS.map(o => `<option value="${o}" ${o==='20/20'?'selected':''}>${o}</option>`).join(''));
+      document.querySelectorAll('.metric-select, .metric-select-final').forEach(s => s.innerHTML = METRIC_NEAR_OPTIONS.map(o => `<option value="${o}" ${o==='0.50 M'?'selected':''}>${o}</option>`).join(''));
+    }
+
+    function poblarDioptrias() {
+      let esf = '<option value="0.00"></option>', cil = '<option value="0.00"></option>';
+      for (let v = -20; v <= 20; v += 0.25) {
+        if (v === 0) continue;
+        let f = (v > 0 ? "+" : "") + v.toFixed(2);
+        esf += `<option value="${f}"></option>`;
+        if (v < 0) cil += `<option value="${f}"></option>`;
+      }
+      document.getElementById('dioptriasList').innerHTML = esf;
+      document.getElementById('cilindrosList').innerHTML = cil;
+    }
+
+    function poblarCIE10() {
+      document.getElementById('cie10Catalog').innerHTML = CIE10_LIST.map(i => `<option value="${i}"></option>`).join('');
+    }
+
+    function agregarCieRapido(diag) {
+      for (let i = 1; i <= 5; i++) {
+        let el = document.getElementById(`cie${i}`);
+        if (!el.value) { el.value = diag; break; }
+      }
+    }
+
+    function autoSugerirCIE10() {
+      document.getElementById('cie1').value = "H522 - ASTIGMATISMO";
+      document.getElementById('cie2').value = "Z010 - EXAMEN DE OJOS Y DE LA VISIÓN";
+    }
+
+    function copiarOdAOi() {
+      ['Esfera', 'Cilindro', 'Eje', 'Adicion', 'AvLejos', 'AvCerca'].forEach(k => {
+        document.getElementById(`oi${k}`).value = document.getElementById(`od${k}`).value;
+      });
+    }
+
+    function formatearMonedaInput(input, hid) {
+      let num = parseInt(input.value.replace(/\D/g, "") || "0", 10);
+      document.getElementById(hid).value = num;
+      input.value = num.toLocaleString('es-CO');
+      let t = parseInt(document.getElementById('precioTotal').value || 0, 10);
+      let a = parseInt(document.getElementById('valorAbonado').value || 0, 10);
+      document.getElementById('saldoPendiente').value = Math.max(0, t - a);
+      document.getElementById('saldoPendienteDisplay').value = Math.max(0, t - a).toLocaleString('es-CO');
+    }
+
+    function formatoCOP(v) { return "$ " + parseInt(v || 0, 10).toLocaleString('es-CO') + " COP"; }
+
+    function obtenerDatos() {
+      let d = {
+        id: document.getElementById('hcConsecutivo').textContent,
+        timestamp: new Date().toLocaleString('es-CO'),
+        fechaConsulta: document.getElementById('fechaConsulta').value,
+        horaConsulta: document.getElementById('horaConsulta').value,
+        tipoDoc: document.getElementById('tipoDoc').value,
+        documento: document.getElementById('documento').value.trim(),
+        nombre: document.getElementById('nombre').value.trim().toUpperCase(),
+        fechaNacimiento: document.getElementById('fechaNacimiento').value,
+        edad: document.getElementById('edad').value,
+        telefono: "+57 " + document.getElementById('telefono').value.replace(/^\+?57\s*/, '').trim(),
+        direccion: document.getElementById('direccion').value.trim(),
+        eps: document.getElementById('eps').value.trim(),
+        ocupacion: document.getElementById('ocupacion').value.trim(),
+        acompanante: document.getElementById('acompanante').value.trim(),
+        motivoConsulta: document.getElementById('motivoConsulta').value.trim(),
+        antecedentes: document.getElementById('antecedentes').value.trim(),
+        avScOdLejos: document.getElementById('avScOdLejos').value,
+        avScOiLejos: document.getElementById('avScOiLejos').value,
+        avScOdCerca: document.getElementById('avScOdCerca').value,
+        avScOiCerca: document.getElementById('avScOiCerca').value,
+        lensoOd: document.getElementById('lensoOd').value.trim(),
+        lensoOi: document.getElementById('lensoOi').value.trim(),
+        odEsfera: document.getElementById('odEsfera').value.trim(),
+        odCilindro: document.getElementById('odCilindro').value.trim(),
+        odEje: document.getElementById('odEje').value.trim(),
+        odAdicion: document.getElementById('odAdicion').value,
+        odAvLejos: document.getElementById('odAvLejos').value,
+        odAvCerca: document.getElementById('odAvCerca').value,
+        odDnp: document.getElementById('odDnp').value.trim(),
+        oiEsfera: document.getElementById('oiEsfera').value.trim(),
+        oiCilindro: document.getElementById('oiCilindro').value.trim(),
+        oiEje: document.getElementById('oiEje').value.trim(),
+        oiAdicion: document.getElementById('oiAdicion').value,
+        oiAvLejos: document.getElementById('oiAvLejos').value,
+        oiAvCerca: document.getElementById('oiAvCerca').value,
+        oiDnp: document.getElementById('oiDnp').value.trim(),
+        dp: document.getElementById('dp').value.trim(),
+        tipoLente: document.getElementById('tipoLente').value.trim(),
+        montura: document.getElementById('montura').value.trim(),
+        biomicroscopia: document.getElementById('biomicroscopia').value.trim(),
+        oftalmoscopia: document.getElementById('oftalmoscopia').value.trim(),
+        motilidad: document.getElementById('motilidad').value.trim(),
+        cie1: document.getElementById('cie1').value.trim(),
+        cie2: document.getElementById('cie2').value.trim(),
+        cie3: document.getElementById('cie3').value.trim(),
+        cie4: document.getElementById('cie4').value.trim(),
+        cie5: document.getElementById('cie5').value.trim(),
+        notas: document.getElementById('notas').value.trim(),
+        optometra: document.getElementById('optometra').value.trim() || "DR. YOHNNIER RAMOS",
+        precioTotal: parseInt(document.getElementById('precioTotal').value || 0, 10),
+        valorAbonado: parseInt(document.getElementById('valorAbonado').value || 0, 10),
+        saldoPendiente: parseInt(document.getElementById('saldoPendiente').value || 0, 10),
+        metodoPago: document.getElementById('metodoPago').value
+      };
+      Object.keys(d).forEach(k => { if (typeof d[k] === 'string') d[k] = d[k].toUpperCase(); });
+      return d;
+    }
+
+    async function registrarEnDrive() {
+      let d = obtenerDatos();
+      if (!d.nombre || !d.documento) {
+        mostrarToast("⚠️ Ingresa Nombre y Documento del paciente");
+        return;
+      }
+      guardarLocal(d);
+      let url = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL;
+      
+      let btn = document.getElementById('btnGuardarDrive'), txt = document.getElementById('btnGuardarTexto');
+      btn.disabled = true; txt.textContent = "Registrando...";
+
+      try {
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(d)
+        });
+        mostrarToast("✅ ¡Registrado con éxito en Google Drive!");
+        generarConsecutivo();
+      } catch (err) {
+        mostrarToast("⚠️ Guardado en memoria local (Sin conexión)");
+      } finally {
+        btn.disabled = false; txt.textContent = "Registrar en Drive";
+      }
+    }
+
+    function guardarLocal(r) {
+      let l = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
+      l.unshift(r);
+      localStorage.setItem('trendy_hc_records', JSON.stringify(l));
+      actualizarContadorPacientes();
+    }
+
+    function actualizarContadorPacientes() {
+      document.getElementById('savedCountBadge').textContent = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]').length;
+    }
+
+    function imprimirMediaCarta() {
+      let d = obtenerDatos();
+      if (!d.nombre) { mostrarToast("⚠️ Ingresa el nombre"); return; }
+      document.getElementById('printLogoHolder').innerHTML = document.getElementById('logoContainer').innerHTML;
+      ['consecutivo', 'fecha', 'nombre', 'doc', 'telefono', 'direccion', 'eps', 'avsc_od', 'avsc_oi', 'lenso_od', 'lenso_oi', 'od_esf', 'od_cil', 'od_eje', 'od_add', 'od_av_vl', 'od_av_vc', 'oi_esf', 'oi_cil', 'oi_eje', 'oi_add', 'oi_av_vl', 'oi_av_vc', 'dp', 'lente', 'cie10', 'notas'].forEach(id => {
+        let el = document.getElementById('p_' + id);
+        if (el) el.textContent = d[id] || '';
+      });
+      document.getElementById('p_total').textContent = formatoCOP(d.precioTotal);
+      document.getElementById('p_abono').textContent = formatoCOP(d.valorAbonado);
+      document.getElementById('p_saldo').textContent = formatoCOP(d.saldoPendiente);
+      window.print();
+    }
+
+    function enviarWhatsApp() {
+      let d = obtenerDatos();
+      let num = document.getElementById('telefono').value.replace(/\D/g, '');
+      if (!num) { mostrarToast("⚠️ Ingresa el celular"); return; }
+      if (!num.startsWith('57')) num = '57' + num;
+      let txt = `👓 *TRENDYOPTICS*\nPaciente: ${d.nombre}\nOD: ${d.odEsfera} ${d.odCilindro} X ${d.odEje}°\nOI: ${d.oiEsfera} ${d.oiCilindro} X ${d.oiEje}°\nTotal: ${formatoCOP(d.precioTotal)}`;
+      window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, '_blank');
+    }
+
+    function openDriveModal() { document.getElementById('driveWebhookInput').value = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL; document.getElementById('driveModal').classList.remove('hidden'); document.getElementById('driveModal').classList.add('flex'); }
+    function closeDriveModal() { document.getElementById('driveModal').classList.add('hidden'); }
+    function saveDriveWebhook() { localStorage.setItem('trendy_drive_webhook', document.getElementById('driveWebhookInput').value.trim()); mostrarToast("Guardado"); closeDriveModal(); }
+    function openHistoryModal() {
+      let l = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
+      document.getElementById('tablaHistorialBody').innerHTML = l.map(r => `<tr><td>${r.fechaConsulta}</td><td><b>${r.nombre}</b></td><td>${r.documento}</td><td>${formatoCOP(r.precioTotal)}</td></tr>`).join('');
+      document.getElementById('historyModal').classList.remove('hidden'); document.getElementById('historyModal').classList.add('flex');
+    }
+    function closeHistoryModal() { document.getElementById('historyModal').classList.add('hidden'); }
+    function generarConsecutivo() { document.getElementById('hcConsecutivo').textContent = `HC-${Math.floor(1000 + Math.random() * 9000)}`; }
+    function limpiarFormulario() { document.getElementById('hcForm').reset(); setTodayDate(); generarConsecutivo(); }
+    function cargarConfig() { document.getElementById('driveWebhookInput').value = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL; }
+    function mostrarToast(m) { let t = document.getElementById('toast'); document.getElementById('toastText').textContent = m; t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000); }
+    function handleCustomLogo(e) {
+      let r = new FileReader(); r.onload = function(evt) {
+        localStorage.setItem('trendy_logo', evt.target.result);
+        document.getElementById('defaultLogoSvg').classList.add('hidden');
+        let img = document.getElementById('customLogoImg'); img.src = evt.target.result; img.classList.remove('hidden');
+      }; r.readAsDataURL(e.target.files[0]);
+    }
+  </script>
+</body>
+</html>
