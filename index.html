@@ -59,17 +59,28 @@
       text-transform: uppercase;
     }
 
+    /* CONFIGURACIÓN IMPRESIÓN MEDIA CARTA */
     @media print {
-      @page { size: letter portrait; margin: 0.4cm 0.6cm; }
-      body { background: #FFFFFF !important; color: #000000 !important; margin: 0 !important; padding: 0 !important; }
-      .no-print { display: none !important; }
+      @page {
+        size: letter portrait;
+        margin: 0.4cm 0.6cm;
+      }
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
       #print-area {
         display: block !important;
         width: 100% !important;
         max-height: 13.4cm !important;
         box-sizing: border-box;
         font-size: 9pt;
-        line-height: 1.2;
+        line-height: 1.22;
         border-bottom: 1px dashed #64748B;
         padding-bottom: 0.25cm;
         page-break-inside: avoid;
@@ -77,12 +88,13 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between pb-28 lg:pb-10">
+<body class="min-h-screen flex flex-col justify-between pb-28 lg:pb-12">
 
+  <!-- ENCABEZADO SUPERIOR -->
   <header class="no-print bg-[#0B172A] text-white shadow-lg sticky top-0 z-40 border-b border-slate-800">
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="relative group cursor-pointer" onclick="document.getElementById('logoUploader').click()" title="Subir imagen de logo">
+        <div class="relative group cursor-pointer" onclick="document.getElementById('logoUploader').click()" title="Haz clic si deseas subir el archivo de imagen de tu logo">
           <input type="file" id="logoUploader" accept="image/*" class="hidden" onchange="handleCustomLogo(event)">
           <div id="logoContainer" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white p-0.5 shadow-md flex items-center justify-center overflow-hidden">
             <svg id="defaultLogoSvg" viewBox="0 0 240 240" class="w-full h-full">
@@ -117,7 +129,7 @@
             <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white">TrendyOptics</h1>
             <span class="text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full">Drive Activo</span>
           </div>
-          <p class="text-[11px] text-slate-300 leading-tight">Calle 39a Sur N 87d - 58, Bogotá &bull; NIT: 1073263942-5 &bull; Cel: +57 3003391055</p>
+          <p class="text-[11px] text-slate-300 leading-tight">Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá &bull; NIT: 1073263942-5 &bull; Cel: +57 3003391055</p>
         </div>
       </div>
 
@@ -126,16 +138,16 @@
           <i data-lucide="folder-search" class="w-4 h-4 text-sky-400"></i>
           <span>Pacientes (<span id="savedCountBadge">0</span>)</span>
         </button>
-        <a href="https://docs.google.com/spreadsheets/d/19hbfmMq5Vdq4OsQDuG3kq-mD_lLoC2EuxFXXLNeU8Kw/edit?gid=0#gid=0" target="_blank" class="flex items-center gap-1.5 text-xs font-semibold bg-emerald-900/50 text-emerald-200 px-3 py-2 rounded-lg border border-emerald-700/60">
+        <a href="https://docs.google.com/spreadsheets/d/19hbfmMq5Vdq4OsQDuG3kq-mD_lLoC2EuxFXXLNeU8Kw/edit?gid=0#gid=0" target="_blank" class="flex items-center gap-1.5 text-xs font-semibold bg-emerald-900/50 hover:bg-emerald-800/70 text-emerald-200 px-3 py-2 rounded-lg border border-emerald-700/60">
           <i data-lucide="table" class="w-4 h-4 text-emerald-400"></i>
           <span class="hidden md:inline">Abrir Excel Drive</span>
         </a>
-        <button type="button" onclick="openDriveModal()" class="flex items-center gap-1.5 text-xs font-semibold bg-slate-800 text-slate-200 px-3 py-2 rounded-lg border border-slate-700">
+        <button type="button" onclick="openDriveModal()" class="flex items-center gap-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg border border-slate-700">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
           <i data-lucide="cloud" class="w-4 h-4 text-emerald-400"></i>
           <span class="hidden sm:inline">Drive</span>
         </button>
-        <button type="button" onclick="limpiarFormulario()" class="flex items-center gap-1 text-xs font-semibold bg-rose-950/60 text-rose-200 px-2.5 py-2 rounded-lg border border-rose-800/50">
+        <button type="button" onclick="limpiarFormulario()" class="flex items-center gap-1 text-xs font-semibold bg-rose-950/60 hover:bg-rose-900/80 text-rose-200 px-2.5 py-2 rounded-lg border border-rose-800/50">
           <i data-lucide="file-plus-2" class="w-4 h-4 text-rose-400"></i>
           <span class="hidden md:inline">Nueva</span>
         </button>
@@ -143,668 +155,10 @@
     </div>
   </header>
 
+  <!-- FORMULARIO PRINCIPAL (3 COLUMNAS) -->
   <main class="no-print max-w-[1600px] w-full mx-auto px-3 sm:px-6 py-4 flex-1">
     <form id="hcForm" onsubmit="event.preventDefault();" class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
 
-      <!-- COLUMNA 1 -->
+      <!-- COLUMNA 1: IDENTIFICACIÓN Y ADMISIÓN -->
       <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <i data-lucide="user-check" class="w-4 h-4"></i>
-            </div>
-            <h2 class="text-sm font-bold text-slate-800 uppercase">1. Identificación y Admisión</h2>
-          </div>
-          <span id="hcConsecutivo" class="text-[11px] font-mono font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">HC-ACTIVA</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div class="sm:col-span-2">
-            <label class="clinical-label">Fecha de Consulta</label>
-            <div class="flex gap-1.5">
-              <input type="date" id="fechaConsulta" class="clinical-input font-semibold" required />
-              <button type="button" onclick="setTodayDate()" class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold border border-slate-300">Hoy</button>
-            </div>
-          </div>
-          <div>
-            <label class="clinical-label">Hora</label>
-            <input type="time" id="horaConsulta" class="clinical-input font-semibold" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="clinical-label">Tipo Documento</label>
-            <select id="tipoDoc" class="clinical-input">
-              <option value="CC - CÉDULA DE CIUDADANÍA">CC - CÉDULA DE CIUDADANÍA</option>
-              <option value="TI - TARJETA DE IDENTIDAD">TI - TARJETA DE IDENTIDAD</option>
-              <option value="RC - REGISTRO CIVIL">RC - REGISTRO CIVIL</option>
-              <option value="CE - CÉDULA DE EXTRANJERÍA">CE - CÉDULA DE EXTRANJERÍA</option>
-              <option value="PPT - PERMISO PROTECCIÓN TEMPORAL">PPT - PERMISO PROTECCIÓN TEMPORAL</option>
-              <option value="PA - PASAPORTE">PA - PASAPORTE</option>
-            </select>
-          </div>
-          <div>
-            <label class="clinical-label">Número de Documento</label>
-            <input type="text" id="documento" placeholder="EJ. 1073263942" class="clinical-input font-semibold" required />
-          </div>
-        </div>
-
-        <div>
-          <label class="clinical-label">Nombre Completo del Paciente</label>
-          <input type="text" id="nombre" placeholder="NOMBRES Y APELLIDOS" class="clinical-input font-semibold uppercase" required />
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-          <div class="sm:col-span-5">
-            <label class="clinical-label">Nacimiento</label>
-            <input type="date" id="fechaNacimiento" onchange="calcularEdad()" class="clinical-input" />
-          </div>
-          <div class="sm:col-span-2">
-            <label class="clinical-label">Edad</label>
-            <input type="text" id="edad" placeholder="AÑOS" readonly class="clinical-input bg-slate-50 font-bold text-center text-sky-700" />
-          </div>
-          <div class="sm:col-span-5">
-            <label class="clinical-label">Teléfono Celular (Col)</label>
-            <div class="flex">
-              <span class="inline-flex items-center px-2 text-xs font-bold bg-slate-100 border border-r-0 border-slate-300 rounded-l-lg">🇨🇴 +57</span>
-              <input type="tel" id="telefono" placeholder="3003391055" maxlength="15" class="clinical-input rounded-l-none font-semibold" />
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="clinical-label">Dirección</label>
-            <input type="text" id="direccion" placeholder="DIRECCIÓN / BARRIO" class="clinical-input" />
-          </div>
-          <div>
-            <label class="clinical-label">Aseguradora / EPS</label>
-            <input type="text" id="eps" list="epsList" placeholder="EPS" class="clinical-input" />
-            <datalist id="epsList">
-              <option value="PARTICULAR"></option>
-              <option value="SANITAS EPS"></option>
-              <option value="SURA EPS"></option>
-              <option value="COMPENSAR EPS"></option>
-              <option value="FAMISANAR EPS"></option>
-              <option value="NUEVA EPS"></option>
-              <option value="SALUD TOTAL EPS"></option>
-            </datalist>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="clinical-label">Ocupación</label>
-            <input type="text" id="ocupacion" placeholder="OCUPACIÓN" class="clinical-input" />
-          </div>
-          <div>
-            <label class="clinical-label">Acompañante</label>
-            <input type="text" id="acompanante" value="NO APLICA (ASISTE SOLO)" class="clinical-input" />
-          </div>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
-          <div>
-            <label class="clinical-label">Motivo de Consulta (MC)</label>
-            <input type="text" id="motivoConsulta" value="CONTROL VISUAL Y CAMBIO DE CORRECCIÓN ÓPTICA" class="clinical-input text-xs" />
-          </div>
-          <div>
-            <label class="clinical-label">Antecedentes</label>
-            <input type="text" id="antecedentes" value="NIEGA PATOLÓGICOS, QUIRÚRGICOS, TRAUMÁTICOS Y ALÉRGICOS" class="clinical-input text-xs" />
-          </div>
-        </div>
-
-        <!-- AV INICIAL -->
-        <div class="bg-sky-50/60 border border-sky-200 rounded-xl p-3 space-y-3">
-          <h3 class="text-xs font-extrabold uppercase text-slate-800">Agudeza Visual Sin Corrección (Inicial)</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-2">
-              <span class="text-[11px] font-bold text-sky-800 block">OD</span>
-              <div><label class="clinical-label">Lejana (Snellen)</label><select id="avScOdLejos" class="clinical-input text-xs snellen-select"></select></div>
-              <div><label class="clinical-label">Cercana (Métrico)</label><select id="avScOdCerca" class="clinical-input text-xs metric-select"></select></div>
-            </div>
-            <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-2">
-              <span class="text-[11px] font-bold text-sky-800 block">OI</span>
-              <div><label class="clinical-label">Lejana (Snellen)</label><select id="avScOiLejos" class="clinical-input text-xs snellen-select"></select></div>
-              <div><label class="clinical-label">Cercana (Métrico)</label><select id="avScOiCerca" class="clinical-input text-xs metric-select"></select></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- COLUMNA 2 -->
-      <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
-              <i data-lucide="glasses" class="w-4 h-4"></i>
-            </div>
-            <h2 class="text-sm font-bold text-slate-800 uppercase">2. Examen Ocular y Rx Lentes</h2>
-          </div>
-        </div>
-
-        <div class="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-3 space-y-2">
-          <h3 class="text-xs font-bold uppercase text-slate-700">Lensometría (Fórmula Anterior)</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="clinical-label">OD Rx Anterior</label><input type="text" id="lensoOd" placeholder="EJ. -1.00 -0.50 X 10" class="clinical-input text-xs" /></div>
-            <div><label class="clinical-label">OI Rx Anterior</label><input type="text" id="lensoOi" placeholder="EJ. -0.75 ESF" class="clinical-input text-xs" /></div>
-          </div>
-        </div>
-
-        <!-- OD RX FINAL -->
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
-          <div class="flex justify-between border-b border-slate-200 pb-1.5">
-            <span class="text-xs font-extrabold text-slate-800 uppercase">Ojo Derecho (OD) - Rx Final</span>
-            <button type="button" onclick="copiarOdAOi()" class="text-[11px] font-semibold text-sky-600">Copiar a OI</button>
-          </div>
-          <div class="grid grid-cols-3 gap-2.5">
-            <div><label class="clinical-label">Esfera</label><input type="text" id="odEsfera" list="dioptriasList" value="0.00" class="clinical-input font-mono font-bold text-center" /></div>
-            <div><label class="clinical-label">Cilindro</label><input type="text" id="odCilindro" list="cilindrosList" value="0.00" class="clinical-input font-mono font-bold text-center" /></div>
-            <div><label class="clinical-label">Eje</label><input type="number" id="odEje" min="0" max="180" value="0" class="clinical-input font-mono font-bold text-center" /></div>
-          </div>
-          <div class="grid grid-cols-3 gap-2.5">
-            <div>
-              <label class="clinical-label">Adición</label>
-              <select id="odAdicion" class="clinical-input font-mono text-xs">
-                <option value="NO APLICA">0.00</option>
-                <option value="+1.00">+1.00</option>
-                <option value="+1.25">+1.25</option>
-                <option value="+1.50">+1.50</option>
-                <option value="+1.75">+1.75</option>
-                <option value="+2.00">+2.00</option>
-                <option value="+2.25">+2.25</option>
-                <option value="+2.50">+2.50</option>
-                <option value="+2.75">+2.75</option>
-                <option value="+3.00">+3.00</option>
-              </select>
-            </div>
-            <div><label class="clinical-label">AV Lejos</label><select id="odAvLejos" class="clinical-input snellen-select-final"></select></div>
-            <div><label class="clinical-label">AV Cerca</label><select id="odAvCerca" class="clinical-input metric-select-final"></select></div>
-          </div>
-        </div>
-
-        <!-- OI RX FINAL -->
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
-          <span class="text-xs font-extrabold text-slate-800 uppercase block border-b border-slate-200 pb-1.5">Ojo Izquierdo (OI) - Rx Final</span>
-          <div class="grid grid-cols-3 gap-2.5">
-            <div><label class="clinical-label">Esfera</label><input type="text" id="oiEsfera" list="dioptriasList" value="0.00" class="clinical-input font-mono font-bold text-center" /></div>
-            <div><label class="clinical-label">Cilindro</label><input type="text" id="oiCilindro" list="cilindrosList" value="0.00" class="clinical-input font-mono font-bold text-center" /></div>
-            <div><label class="clinical-label">Eje</label><input type="number" id="oiEje" min="0" max="180" value="0" class="clinical-input font-mono font-bold text-center" /></div>
-          </div>
-          <div class="grid grid-cols-3 gap-2.5">
-            <div>
-              <label class="clinical-label">Adición</label>
-              <select id="oiAdicion" class="clinical-input font-mono text-xs">
-                <option value="NO APLICA">0.00</option>
-                <option value="+1.00">+1.00</option>
-                <option value="+1.25">+1.25</option>
-                <option value="+1.50">+1.50</option>
-                <option value="+1.75">+1.75</option>
-                <option value="+2.00">+2.00</option>
-                <option value="+2.25">+2.25</option>
-                <option value="+2.50">+2.50</option>
-                <option value="+2.75">+2.75</option>
-                <option value="+3.00">+3.00</option>
-              </select>
-            </div>
-            <div><label class="clinical-label">AV Lejos</label><select id="oiAvLejos" class="clinical-input snellen-select-final"></select></div>
-            <div><label class="clinical-label">AV Cerca</label><select id="oiAvCerca" class="clinical-input metric-select-final"></select></div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3">
-          <div><label class="clinical-label">DP Total</label><input type="text" id="dp" placeholder="62" class="clinical-input" /></div>
-          <div><label class="clinical-label">DNP OD/OI</label><div class="grid grid-cols-2 gap-1"><input type="text" id="odDnp" placeholder="31" class="clinical-input text-xs text-center" /><input type="text" id="oiDnp" placeholder="31" class="clinical-input text-xs text-center" /></div></div>
-          <div><label class="clinical-label">Montura</label><input type="text" id="montura" placeholder="MONTURA" class="clinical-input text-xs" /></div>
-        </div>
-
-        <div>
-          <label class="clinical-label">Tipo de Lente / Filtros</label>
-          <input type="text" id="tipoLente" list="lentesList" placeholder="TIPO DE LENTE" class="clinical-input font-semibold" />
-          <datalist id="lentesList">
-            <option value="MONOFOCAL CR-39 AR"></option>
-            <option value="MONOFOCAL POLY BLUE DEFENSE"></option>
-            <option value="PROGRESIVO DIGITAL POLY BLUE"></option>
-          </datalist>
-        </div>
-
-        <details class="bg-slate-50 border border-slate-200 rounded-xl p-3">
-          <summary class="text-xs font-bold uppercase text-slate-700 cursor-pointer">Examen Físico Ocular (Biomicroscopía / Fondo)</summary>
-          <div class="mt-3 space-y-2 pt-2 border-t border-slate-200">
-            <div><label class="clinical-label">Biomicroscopía</label><input type="text" id="biomicroscopia" value="CÓRNEA TRANSPARENTE, CRISTALINO CLARO AO" class="clinical-input text-xs" /></div>
-            <div><label class="clinical-label">Oftalmoscopía</label><input type="text" id="oftalmoscopia" value="MEDIOS TRANSPARENTES, PAPILA NORMAL AO" class="clinical-input text-xs" /></div>
-            <div><label class="clinical-label">Motilidad</label><input type="text" id="motilidad" value="ORTOFORIA, MOVIMIENTOS CONSERVADOS" class="clinical-input text-xs" /></div>
-          </div>
-        </details>
-      </section>
-
-      <!-- COLUMNA 3 -->
-      <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <i data-lucide="stethoscope" class="w-4 h-4"></i>
-            </div>
-            <h2 class="text-sm font-bold text-slate-800 uppercase">3. Diagnóstico CIE-10 y Caja</h2>
-          </div>
-          <button type="button" onclick="autoSugerirCIE10()" class="text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200 px-2 py-1 rounded-md flex items-center gap-1">
-            <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Auto-Diagnóstico
-          </button>
-        </div>
-
-        <div class="space-y-2">
-          <label class="clinical-label">Diagnósticos CIE-10</label>
-          <div class="flex flex-wrap gap-1 pb-1">
-            <button type="button" onclick="agregarCieRapido('H520 - HIPERMETROPÍA')" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded border">+ H520 Hipermetropía</button>
-            <button type="button" onclick="agregarCieRapido('H521 - MIOPÍA')" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded border">+ H521 Miopía</button>
-            <button type="button" onclick="agregarCieRapido('H522 - ASTIGMATISMO')" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded border">+ H522 Astigmatismo</button>
-            <button type="button" onclick="agregarCieRapido('H524 - PRESBICIA')" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded border">+ H524 Presbicia</button>
-            <button type="button" onclick="agregarCieRapido('Z010 - EXAMEN DE OJOS Y DE LA VISIÓN')" class="text-[10px] bg-slate-100 px-2 py-0.5 rounded border">+ Z010 Examen</button>
-          </div>
-          <div class="space-y-2">
-            <div class="flex items-center gap-2"><span class="w-6 h-8 rounded bg-slate-100 text-xs font-bold flex items-center justify-center">1</span><input type="text" id="cie1" list="cie10Catalog" placeholder="CIE-10 1" class="clinical-input text-xs" /></div>
-            <div class="flex items-center gap-2"><span class="w-6 h-8 rounded bg-slate-100 text-xs font-bold flex items-center justify-center">2</span><input type="text" id="cie2" list="cie10Catalog" placeholder="CIE-10 2" class="clinical-input text-xs" /></div>
-            <div class="flex items-center gap-2"><span class="w-6 h-8 rounded bg-slate-100 text-xs font-bold flex items-center justify-center">3</span><input type="text" id="cie3" list="cie10Catalog" placeholder="CIE-10 3" class="clinical-input text-xs" /></div>
-            <div class="flex items-center gap-2"><span class="w-6 h-8 rounded bg-slate-100 text-xs font-bold flex items-center justify-center">4</span><input type="text" id="cie4" list="cie10Catalog" placeholder="CIE-10 4" class="clinical-input text-xs" /></div>
-            <div class="flex items-center gap-2"><span class="w-6 h-8 rounded bg-slate-100 text-xs font-bold flex items-center justify-center">5</span><input type="text" id="cie5" list="cie10Catalog" placeholder="CIE-10 5" class="clinical-input text-xs" /></div>
-          </div>
-        </div>
-
-        <div>
-          <label class="clinical-label">Conducta / Recomendaciones</label>
-          <textarea id="notas" rows="2" class="clinical-input text-xs">USO PERMANENTE DE CORRECCIÓN ÓPTICA, CONTROL EN 1 AÑO.</textarea>
-        </div>
-
-        <div>
-          <label class="clinical-label">Optómetra Examinador</label>
-          <input type="text" id="optometra" value="DR. YOHNNIER RAMOS" list="doctoresList" class="clinical-input font-bold text-slate-900 bg-slate-50" required />
-          <datalist id="doctoresList"><option value="DR. YOHNNIER RAMOS"></option></datalist>
-        </div>
-
-        <!-- CAJA -->
-        <div class="bg-amber-50/70 border-2 border-dashed border-amber-300 rounded-xl p-4 space-y-3">
-          <h3 class="text-xs font-extrabold uppercase text-amber-900">Finanzas de Caja y Abonos (COP $)</h3>
-          <div>
-            <label class="clinical-label text-amber-950">Precio Total Trabajo ($)</label>
-            <div class="relative"><span class="absolute left-3 top-2 text-sm font-bold text-slate-500">$</span><input type="text" id="precioTotalDisplay" oninput="formatearMonedaInput(this, 'precioTotal')" value="0" class="clinical-input pl-7 font-bold text-base" /><input type="hidden" id="precioTotal" value="0" /></div>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="clinical-label text-amber-950">Valor Abonado ($)</label>
-              <div class="relative"><span class="absolute left-3 top-2 text-sm font-bold text-emerald-600">$</span><input type="text" id="valorAbonadoDisplay" oninput="formatearMonedaInput(this, 'valorAbonado')" value="0" class="clinical-input pl-7 font-bold text-emerald-700" /><input type="hidden" id="valorAbonado" value="0" /></div>
-            </div>
-            <div>
-              <label class="clinical-label text-amber-950">Saldo Pendiente ($)</label>
-              <div class="relative"><span class="absolute left-3 top-2 text-sm font-bold text-amber-900">$</span><input type="text" id="saldoPendienteDisplay" readonly value="0" class="clinical-input pl-7 font-extrabold bg-amber-200/60 text-amber-950" /><input type="hidden" id="saldoPendiente" value="0" /></div>
-            </div>
-          </div>
-          <div>
-            <label class="clinical-label text-amber-950">Método de Pago</label>
-            <select id="metodoPago" class="clinical-input font-semibold">
-              <option value="EFECTIVO">EFECTIVO</option>
-              <option value="NEQUI">NEQUI</option>
-              <option value="DAVIPLATA">DAVIPLATA</option>
-              <option value="TRANSFERENCIA BANCOLOMBIA">TRANSFERENCIA BANCOLOMBIA</option>
-              <option value="TARJETA DATÁFONO">TARJETA DATÁFONO</option>
-            </select>
-          </div>
-        </div>
-      </section>
-    </form>
-  </main>
-
-  <!-- BARRA INFERIOR CON BOTONES DE ACCIÓN -->
-  <footer class="no-print fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 shadow-xl z-30">
-    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
-      <div class="hidden md:flex items-center gap-2 text-xs text-slate-500">
-        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
-        <span>Resolución 1995 de 1999 &bull; Impresión en Media Carta.</span>
-      </div>
-
-      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-        <button type="button" onclick="imprimirMediaCarta()" class="flex items-center gap-1.5 bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow transition">
-          <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Media Carta
-        </button>
-
-        <button type="button" onclick="enviarWhatsApp()" class="flex items-center gap-1.5 bg-[#16A34A] hover:bg-[#15803D] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow transition">
-          <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp (+57)
-        </button>
-
-        <button type="button" id="btnGuardarDrive" onclick="registrarEnDrive()" class="flex items-center gap-1.5 bg-[#0B172A] hover:bg-[#1E293B] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow transition">
-          <i data-lucide="save" class="w-4 h-4 text-sky-400"></i>
-          <span id="btnGuardarTexto">Registrar en Drive</span>
-        </button>
-      </div>
-    </div>
-  </footer>
-
-  <!-- ÁREA DE IMPRESIÓN MEDIA CARTA -->
-  <section id="print-area" class="hidden bg-white text-black p-2">
-    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-1.5 mb-1.5">
-      <div class="flex items-center gap-2.5">
-        <div id="printLogoHolder" class="w-12 h-12 rounded-full overflow-hidden shrink-0"></div>
-        <div>
-          <h1 class="text-base font-extrabold uppercase">ÓPTICA TRENDYOPTICS</h1>
-          <p class="text-[9px] text-slate-700">Calle 39a Sur N 87d - 58, Bogotá &bull; NIT: 1073263942-5 &bull; Cel: +57 3003391055</p>
-        </div>
-      </div>
-      <div class="text-right text-[9.5px]">
-        <div class="font-bold" id="p_consecutivo">HC</div>
-        <div><strong>FECHA:</strong> <span id="p_fecha"></span></div>
-      </div>
-    </div>
-    <div class="grid grid-cols-4 gap-1 text-[9px] border border-slate-400 rounded p-1 mb-1 bg-slate-50">
-      <div class="col-span-2"><strong>PACIENTE:</strong> <span id="p_nombre"></span></div>
-      <div><strong>DOC:</strong> <span id="p_doc"></span></div>
-      <div><strong>TEL:</strong> <span id="p_telefono"></span></div>
-      <div class="col-span-2"><strong>DIRECCIÓN:</strong> <span id="p_direccion"></span></div>
-      <div class="col-span-2"><strong>EPS:</strong> <span id="p_eps"></span></div>
-    </div>
-    <table class="w-full border-collapse border border-slate-800 text-[9px] text-center mb-1">
-      <thead>
-        <tr class="bg-slate-200 font-bold">
-          <th class="border border-slate-700">OJO</th>
-          <th class="border border-slate-700">AV SC</th>
-          <th class="border border-slate-700">LENSOMETRÍA</th>
-          <th class="border border-slate-700">ESFERA</th>
-          <th class="border border-slate-700">CILINDRO</th>
-          <th class="border border-slate-700">EJE</th>
-          <th class="border border-slate-700">ADD</th>
-          <th class="border border-slate-700">AV LEJOS</th>
-          <th class="border border-slate-700">AV CERCA</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="border border-slate-700 font-bold">OD</td>
-          <td class="border border-slate-700" id="p_avsc_od"></td>
-          <td class="border border-slate-700" id="p_lenso_od"></td>
-          <td class="border border-slate-700 font-mono font-bold" id="p_od_esf"></td>
-          <td class="border border-slate-700 font-mono font-bold" id="p_od_cil"></td>
-          <td class="border border-slate-700 font-mono" id="p_od_eje"></td>
-          <td class="border border-slate-700" id="p_od_add"></td>
-          <td class="border border-slate-700" id="p_od_av_vl"></td>
-          <td class="border border-slate-700" id="p_od_av_vc"></td>
-        </tr>
-        <tr>
-          <td class="border border-slate-700 font-bold">OI</td>
-          <td class="border border-slate-700" id="p_avsc_oi"></td>
-          <td class="border border-slate-700" id="p_lenso_oi"></td>
-          <td class="border border-slate-700 font-mono font-bold" id="p_oi_esf"></td>
-          <td class="border border-slate-700 font-mono font-bold" id="p_oi_cil"></td>
-          <td class="border border-slate-700 font-mono" id="p_oi_eje"></td>
-          <td class="border border-slate-700" id="p_oi_add"></td>
-          <td class="border border-slate-700" id="p_oi_av_vl"></td>
-          <td class="border border-slate-700" id="p_oi_av_vc"></td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="grid grid-cols-12 gap-1 text-[8.5px]">
-      <div class="col-span-8 border border-slate-400 rounded p-1 space-y-0.5">
-        <div><strong>DP:</strong> <span id="p_dp"></span> &bull; <strong>LENTE:</strong> <span id="p_lente"></span></div>
-        <div><strong>CIE-10:</strong> <span id="p_cie10"></span></div>
-        <div><strong>RECOMENDACIONES:</strong> <span id="p_notas"></span></div>
-      </div>
-      <div class="col-span-4 border border-slate-800 rounded p-1 bg-slate-50">
-        <div>TOTAL: <strong id="p_total"></strong></div>
-        <div>ABONO: <strong id="p_abono"></strong></div>
-        <div>SALDO: <strong id="p_saldo"></strong></div>
-      </div>
-    </div>
-  </section>
-
-  <div id="driveModal" class="no-print fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-3">
-      <h3 class="text-base font-bold">Estado de Google Drive</h3>
-      <p class="text-xs text-slate-600">Conectado permanentemente a <strong>trendyoptics1@gmail.com</strong>.</p>
-      <input type="text" id="driveWebhookInput" class="clinical-input font-mono text-xs bg-slate-50" />
-      <div class="flex gap-2">
-        <button type="button" onclick="saveDriveWebhook()" class="bg-sky-600 text-white text-xs font-bold px-3 py-2 rounded">Guardar</button>
-        <button type="button" onclick="closeDriveModal()" class="bg-slate-200 text-xs font-bold px-3 py-2 rounded">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="historyModal" class="no-print fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[80vh] flex flex-col p-5">
-      <div class="flex justify-between pb-3 border-b"><h3 class="font-bold">Pacientes Guardados</h3><button onclick="closeHistoryModal()">✕</button></div>
-      <div class="flex-1 overflow-y-auto py-2"><table class="w-full text-xs"><thead><tr><th>Fecha</th><th>Paciente</th><th>Doc</th><th>Total</th></tr></thead><tbody id="tablaHistorialBody"></tbody></table></div>
-    </div>
-  </div>
-
-  <div id="toast" class="no-print fixed top-16 right-4 z-50 hidden bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl">
-    <span id="toastText"></span>
-  </div>
-
-  <datalist id="dioptriasList"></datalist>
-  <datalist id="cilindrosList"></datalist>
-  <datalist id="cie10Catalog"></datalist>
-
-  <script>
-    const DEFAULT_DRIVE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyRt6KGqkN_agtBbN_JPeFHQfU_dslYqAtBsBDjQjFtf3mNNuzGZKjm1ZbFm-gzpu3e/exec";
-
-    const SNELLEN_FEET_OPTIONS = ["NO APLICA", "20/15", "20/20", "20/25", "20/30", "20/40", "20/50", "20/60", "20/70", "20/80", "20/100", "20/200", "20/400", "CUENTA DEDOS (CD)", "MOVIMIENTO DE MANOS (MM)"];
-    const METRIC_NEAR_OPTIONS = ["NO APLICA", "0.50 M", "0.75 M", "1.00 M", "1.25 M", "1.50 M", "1.75 M", "2.00 M"];
-    const CIE10_LIST = ["H520 - HIPERMETROPÍA", "H521 - MIOPÍA", "H522 - ASTIGMATISMO", "H524 - PRESBICIA", "Z010 - EXAMEN DE OJOS Y DE LA VISIÓN"];
-
-    document.addEventListener("DOMContentLoaded", () => {
-      lucide.createIcons();
-      setTodayDate();
-      poblarMenus();
-      poblarDioptrias();
-      poblarCIE10();
-      generarConsecutivo();
-      cargarConfig();
-      actualizarContadorPacientes();
-    });
-
-    function setTodayDate() {
-      const d = new Date();
-      document.getElementById('fechaConsulta').value = d.toISOString().slice(0, 10);
-      document.getElementById('horaConsulta').value = d.toTimeString().slice(0, 5);
-    }
-
-    function calcularEdad() {
-      const nac = document.getElementById('fechaNacimiento').value;
-      if (!nac) return;
-      const anos = new Date().getFullYear() - new Date(nac).getFullYear();
-      document.getElementById('edad').value = anos + " AÑOS";
-    }
-
-    function poblarMenus() {
-      document.querySelectorAll('.snellen-select, .snellen-select-final').forEach(s => s.innerHTML = SNELLEN_FEET_OPTIONS.map(o => `<option value="${o}" ${o==='20/20'?'selected':''}>${o}</option>`).join(''));
-      document.querySelectorAll('.metric-select, .metric-select-final').forEach(s => s.innerHTML = METRIC_NEAR_OPTIONS.map(o => `<option value="${o}" ${o==='0.50 M'?'selected':''}>${o}</option>`).join(''));
-    }
-
-    function poblarDioptrias() {
-      let esf = '<option value="0.00"></option>', cil = '<option value="0.00"></option>';
-      for (let v = -20; v <= 20; v += 0.25) {
-        if (v === 0) continue;
-        let f = (v > 0 ? "+" : "") + v.toFixed(2);
-        esf += `<option value="${f}"></option>`;
-        if (v < 0) cil += `<option value="${f}"></option>`;
-      }
-      document.getElementById('dioptriasList').innerHTML = esf;
-      document.getElementById('cilindrosList').innerHTML = cil;
-    }
-
-    function poblarCIE10() {
-      document.getElementById('cie10Catalog').innerHTML = CIE10_LIST.map(i => `<option value="${i}"></option>`).join('');
-    }
-
-    function agregarCieRapido(diag) {
-      for (let i = 1; i <= 5; i++) {
-        let el = document.getElementById(`cie${i}`);
-        if (!el.value) { el.value = diag; break; }
-      }
-    }
-
-    function autoSugerirCIE10() {
-      document.getElementById('cie1').value = "H522 - ASTIGMATISMO";
-      document.getElementById('cie2').value = "Z010 - EXAMEN DE OJOS Y DE LA VISIÓN";
-    }
-
-    function copiarOdAOi() {
-      ['Esfera', 'Cilindro', 'Eje', 'Adicion', 'AvLejos', 'AvCerca'].forEach(k => {
-        document.getElementById(`oi${k}`).value = document.getElementById(`od${k}`).value;
-      });
-    }
-
-    function formatearMonedaInput(input, hid) {
-      let num = parseInt(input.value.replace(/\D/g, "") || "0", 10);
-      document.getElementById(hid).value = num;
-      input.value = num.toLocaleString('es-CO');
-      let t = parseInt(document.getElementById('precioTotal').value || 0, 10);
-      let a = parseInt(document.getElementById('valorAbonado').value || 0, 10);
-      document.getElementById('saldoPendiente').value = Math.max(0, t - a);
-      document.getElementById('saldoPendienteDisplay').value = Math.max(0, t - a).toLocaleString('es-CO');
-    }
-
-    function formatoCOP(v) { return "$ " + parseInt(v || 0, 10).toLocaleString('es-CO') + " COP"; }
-
-    function obtenerDatos() {
-      let d = {
-        id: document.getElementById('hcConsecutivo').textContent,
-        timestamp: new Date().toLocaleString('es-CO'),
-        fechaConsulta: document.getElementById('fechaConsulta').value,
-        horaConsulta: document.getElementById('horaConsulta').value,
-        tipoDoc: document.getElementById('tipoDoc').value,
-        documento: document.getElementById('documento').value.trim(),
-        nombre: document.getElementById('nombre').value.trim().toUpperCase(),
-        fechaNacimiento: document.getElementById('fechaNacimiento').value,
-        edad: document.getElementById('edad').value,
-        telefono: "+57 " + document.getElementById('telefono').value.replace(/^\+?57\s*/, '').trim(),
-        direccion: document.getElementById('direccion').value.trim(),
-        eps: document.getElementById('eps').value.trim(),
-        ocupacion: document.getElementById('ocupacion').value.trim(),
-        acompanante: document.getElementById('acompanante').value.trim(),
-        motivoConsulta: document.getElementById('motivoConsulta').value.trim(),
-        antecedentes: document.getElementById('antecedentes').value.trim(),
-        avScOdLejos: document.getElementById('avScOdLejos').value,
-        avScOiLejos: document.getElementById('avScOiLejos').value,
-        avScOdCerca: document.getElementById('avScOdCerca').value,
-        avScOiCerca: document.getElementById('avScOiCerca').value,
-        lensoOd: document.getElementById('lensoOd').value.trim(),
-        lensoOi: document.getElementById('lensoOi').value.trim(),
-        odEsfera: document.getElementById('odEsfera').value.trim(),
-        odCilindro: document.getElementById('odCilindro').value.trim(),
-        odEje: document.getElementById('odEje').value.trim(),
-        odAdicion: document.getElementById('odAdicion').value,
-        odAvLejos: document.getElementById('odAvLejos').value,
-        odAvCerca: document.getElementById('odAvCerca').value,
-        odDnp: document.getElementById('odDnp').value.trim(),
-        oiEsfera: document.getElementById('oiEsfera').value.trim(),
-        oiCilindro: document.getElementById('oiCilindro').value.trim(),
-        oiEje: document.getElementById('oiEje').value.trim(),
-        oiAdicion: document.getElementById('oiAdicion').value,
-        oiAvLejos: document.getElementById('oiAvLejos').value,
-        oiAvCerca: document.getElementById('oiAvCerca').value,
-        oiDnp: document.getElementById('oiDnp').value.trim(),
-        dp: document.getElementById('dp').value.trim(),
-        tipoLente: document.getElementById('tipoLente').value.trim(),
-        montura: document.getElementById('montura').value.trim(),
-        biomicroscopia: document.getElementById('biomicroscopia').value.trim(),
-        oftalmoscopia: document.getElementById('oftalmoscopia').value.trim(),
-        motilidad: document.getElementById('motilidad').value.trim(),
-        cie1: document.getElementById('cie1').value.trim(),
-        cie2: document.getElementById('cie2').value.trim(),
-        cie3: document.getElementById('cie3').value.trim(),
-        cie4: document.getElementById('cie4').value.trim(),
-        cie5: document.getElementById('cie5').value.trim(),
-        notas: document.getElementById('notas').value.trim(),
-        optometra: document.getElementById('optometra').value.trim() || "DR. YOHNNIER RAMOS",
-        precioTotal: parseInt(document.getElementById('precioTotal').value || 0, 10),
-        valorAbonado: parseInt(document.getElementById('valorAbonado').value || 0, 10),
-        saldoPendiente: parseInt(document.getElementById('saldoPendiente').value || 0, 10),
-        metodoPago: document.getElementById('metodoPago').value
-      };
-      Object.keys(d).forEach(k => { if (typeof d[k] === 'string') d[k] = d[k].toUpperCase(); });
-      return d;
-    }
-
-    async function registrarEnDrive() {
-      let d = obtenerDatos();
-      if (!d.nombre || !d.documento) {
-        mostrarToast("⚠️ Ingresa Nombre y Documento del paciente");
-        return;
-      }
-      guardarLocal(d);
-      let url = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL;
-      
-      let btn = document.getElementById('btnGuardarDrive'), txt = document.getElementById('btnGuardarTexto');
-      btn.disabled = true; txt.textContent = "Registrando...";
-
-      try {
-        await fetch(url, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(d)
-        });
-        mostrarToast("✅ ¡Registrado con éxito en Google Drive!");
-        generarConsecutivo();
-      } catch (err) {
-        mostrarToast("⚠️ Guardado en memoria local (Sin conexión)");
-      } finally {
-        btn.disabled = false; txt.textContent = "Registrar en Drive";
-      }
-    }
-
-    function guardarLocal(r) {
-      let l = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
-      l.unshift(r);
-      localStorage.setItem('trendy_hc_records', JSON.stringify(l));
-      actualizarContadorPacientes();
-    }
-
-    function actualizarContadorPacientes() {
-      document.getElementById('savedCountBadge').textContent = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]').length;
-    }
-
-    function imprimirMediaCarta() {
-      let d = obtenerDatos();
-      if (!d.nombre) { mostrarToast("⚠️ Ingresa el nombre"); return; }
-      document.getElementById('printLogoHolder').innerHTML = document.getElementById('logoContainer').innerHTML;
-      ['consecutivo', 'fecha', 'nombre', 'doc', 'telefono', 'direccion', 'eps', 'avsc_od', 'avsc_oi', 'lenso_od', 'lenso_oi', 'od_esf', 'od_cil', 'od_eje', 'od_add', 'od_av_vl', 'od_av_vc', 'oi_esf', 'oi_cil', 'oi_eje', 'oi_add', 'oi_av_vl', 'oi_av_vc', 'dp', 'lente', 'cie10', 'notas'].forEach(id => {
-        let el = document.getElementById('p_' + id);
-        if (el) el.textContent = d[id] || '';
-      });
-      document.getElementById('p_total').textContent = formatoCOP(d.precioTotal);
-      document.getElementById('p_abono').textContent = formatoCOP(d.valorAbonado);
-      document.getElementById('p_saldo').textContent = formatoCOP(d.saldoPendiente);
-      window.print();
-    }
-
-    function enviarWhatsApp() {
-      let d = obtenerDatos();
-      let num = document.getElementById('telefono').value.replace(/\D/g, '');
-      if (!num) { mostrarToast("⚠️ Ingresa el celular"); return; }
-      if (!num.startsWith('57')) num = '57' + num;
-      let txt = `👓 *TRENDYOPTICS*\nPaciente: ${d.nombre}\nOD: ${d.odEsfera} ${d.odCilindro} X ${d.odEje}°\nOI: ${d.oiEsfera} ${d.oiCilindro} X ${d.oiEje}°\nTotal: ${formatoCOP(d.precioTotal)}`;
-      window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, '_blank');
-    }
-
-    function openDriveModal() { document.getElementById('driveWebhookInput').value = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL; document.getElementById('driveModal').classList.remove('hidden'); document.getElementById('driveModal').classList.add('flex'); }
-    function closeDriveModal() { document.getElementById('driveModal').classList.add('hidden'); }
-    function saveDriveWebhook() { localStorage.setItem('trendy_drive_webhook', document.getElementById('driveWebhookInput').value.trim()); mostrarToast("Guardado"); closeDriveModal(); }
-    function openHistoryModal() {
-      let l = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
-      document.getElementById('tablaHistorialBody').innerHTML = l.map(r => `<tr><td>${r.fechaConsulta}</td><td><b>${r.nombre}</b></td><td>${r.documento}</td><td>${formatoCOP(r.precioTotal)}</td></tr>`).join('');
-      document.getElementById('historyModal').classList.remove('hidden'); document.getElementById('historyModal').classList.add('flex');
-    }
-    function closeHistoryModal() { document.getElementById('historyModal').classList.add('hidden'); }
-    function generarConsecutivo() { document.getElementById('hcConsecutivo').textContent = `HC-${Math.floor(1000 + Math.random() * 9000)}`; }
-    function limpiarFormulario() { document.getElementById('hcForm').reset(); setTodayDate(); generarConsecutivo(); }
-    function cargarConfig() { document.getElementById('driveWebhookInput').value = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL; }
-    function mostrarToast(m) { let t = document.getElementById('toast'); document.getElementById('toastText').textContent = m; t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000); }
-    function handleCustomLogo(e) {
-      let r = new FileReader(); r.onload = function(evt) {
-        localStorage.setItem('trendy_logo', evt.target.result);
-        document.getElementById('defaultLogoSvg').classList.add('hidden');
-        let img = document.getElementById('customLogoImg'); img.src = evt.target.result; img.classList.remove('hidden');
-      }; r.readAsDataURL(e.target.files[0]);
-    }
-  </script>
-</body>
-</html>
+        <div class="flex items-center justify-between border-b border-slate
