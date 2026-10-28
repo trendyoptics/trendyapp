@@ -1,0 +1,326 @@
+{
+  "version": "1.0",
+  "sistema": "TsysOptics",
+  "descripcion": "Contrato de columnas histórico TrendyOptics v1. Derivado del Apps Script entregado por propietario. No contiene datos clínicos reales.",
+  "sheetIndex": 0,
+  "campos": [
+    {
+      "columna": 1,
+      "encabezado": "ID REGISTRO",
+      "origen": "id",
+      "tipo": "texto"
+    },
+    {
+      "columna": 2,
+      "encabezado": "FECHA Y HORA GUARDADO",
+      "origen": "servidor_fecha_guardado",
+      "tipo": "texto"
+    },
+    {
+      "columna": 3,
+      "encabezado": "FECHA CONSULTA",
+      "origen": "fechaConsulta",
+      "tipo": "texto"
+    },
+    {
+      "columna": 4,
+      "encabezado": "HORA CONSULTA",
+      "origen": "horaConsulta",
+      "tipo": "texto"
+    },
+    {
+      "columna": 5,
+      "encabezado": "TIPO DOC",
+      "origen": "tipoDoc",
+      "tipo": "texto"
+    },
+    {
+      "columna": 6,
+      "encabezado": "DOCUMENTO",
+      "origen": "documento",
+      "tipo": "texto"
+    },
+    {
+      "columna": 7,
+      "encabezado": "NOMBRE PACIENTE",
+      "origen": "nombre",
+      "tipo": "texto"
+    },
+    {
+      "columna": 8,
+      "encabezado": "FECHA NACIMIENTO",
+      "origen": "fechaNacimiento",
+      "tipo": "texto"
+    },
+    {
+      "columna": 9,
+      "encabezado": "EDAD",
+      "origen": "edad",
+      "tipo": "texto"
+    },
+    {
+      "columna": 10,
+      "encabezado": "TELÉFONO (+57)",
+      "origen": "telefono",
+      "tipo": "texto"
+    },
+    {
+      "columna": 11,
+      "encabezado": "DIRECCIÓN",
+      "origen": "direccion",
+      "tipo": "texto"
+    },
+    {
+      "columna": 12,
+      "encabezado": "EPS / ASEGURADORA",
+      "origen": "eps",
+      "tipo": "texto"
+    },
+    {
+      "columna": 13,
+      "encabezado": "OCUPACIÓN",
+      "origen": "ocupacion",
+      "tipo": "texto"
+    },
+    {
+      "columna": 14,
+      "encabezado": "ACOMPAÑANTE",
+      "origen": "acompanante",
+      "tipo": "texto"
+    },
+    {
+      "columna": 15,
+      "encabezado": "MOTIVO CONSULTA",
+      "origen": "motivoConsulta",
+      "tipo": "texto"
+    },
+    {
+      "columna": 16,
+      "encabezado": "ANTECEDENTES",
+      "origen": "antecedentes",
+      "tipo": "texto"
+    },
+    {
+      "columna": 17,
+      "encabezado": "AV SC OD (LEJOS)",
+      "origen": "avScOdLejos",
+      "tipo": "texto"
+    },
+    {
+      "columna": 18,
+      "encabezado": "AV SC OI (LEJOS)",
+      "origen": "avScOiLejos",
+      "tipo": "texto"
+    },
+    {
+      "columna": 19,
+      "encabezado": "AV SC OD (CERCA)",
+      "origen": "avScOdCerca",
+      "tipo": "texto"
+    },
+    {
+      "columna": 20,
+      "encabezado": "AV SC OI (CERCA)",
+      "origen": "avScOiCerca",
+      "tipo": "texto"
+    },
+    {
+      "columna": 21,
+      "encabezado": "LENSOMETRÍA OD",
+      "origen": "lensoOd",
+      "tipo": "texto"
+    },
+    {
+      "columna": 22,
+      "encabezado": "LENSOMETRÍA OI",
+      "origen": "lensoOi",
+      "tipo": "texto"
+    },
+    {
+      "columna": 23,
+      "encabezado": "OD ESFERA",
+      "origen": "odEsfera",
+      "tipo": "texto"
+    },
+    {
+      "columna": 24,
+      "encabezado": "OD CILINDRO",
+      "origen": "odCilindro",
+      "tipo": "texto"
+    },
+    {
+      "columna": 25,
+      "encabezado": "OD EJE",
+      "origen": "odEje",
+      "tipo": "texto"
+    },
+    {
+      "columna": 26,
+      "encabezado": "OD ADICIÓN",
+      "origen": "odAdicion",
+      "tipo": "texto"
+    },
+    {
+      "columna": 27,
+      "encabezado": "OD AV LEJOS",
+      "origen": "odAvLejos",
+      "tipo": "texto"
+    },
+    {
+      "columna": 28,
+      "encabezado": "OD AV CERCA",
+      "origen": "odAvCerca",
+      "tipo": "texto"
+    },
+    {
+      "columna": 29,
+      "encabezado": "OD DNP",
+      "origen": "odDnp",
+      "tipo": "texto"
+    },
+    {
+      "columna": 30,
+      "encabezado": "OI ESFERA",
+      "origen": "oiEsfera",
+      "tipo": "texto"
+    },
+    {
+      "columna": 31,
+      "encabezado": "OI CILINDRO",
+      "origen": "oiCilindro",
+      "tipo": "texto"
+    },
+    {
+      "columna": 32,
+      "encabezado": "OI EJE",
+      "origen": "oiEje",
+      "tipo": "texto"
+    },
+    {
+      "columna": 33,
+      "encabezado": "OI ADICIÓN",
+      "origen": "oiAdicion",
+      "tipo": "texto"
+    },
+    {
+      "columna": 34,
+      "encabezado": "OI AV LEJOS",
+      "origen": "oiAvLejos",
+      "tipo": "texto"
+    },
+    {
+      "columna": 35,
+      "encabezado": "OI AV CERCA",
+      "origen": "oiAvCerca",
+      "tipo": "texto"
+    },
+    {
+      "columna": 36,
+      "encabezado": "OI DNP",
+      "origen": "oiDnp",
+      "tipo": "texto"
+    },
+    {
+      "columna": 37,
+      "encabezado": "DP GENERAL",
+      "origen": "dp",
+      "tipo": "texto"
+    },
+    {
+      "columna": 38,
+      "encabezado": "TIPO DE LENTE / FILTROS",
+      "origen": "tipoLente",
+      "tipo": "texto"
+    },
+    {
+      "columna": 39,
+      "encabezado": "MONTURA",
+      "origen": "montura",
+      "tipo": "texto"
+    },
+    {
+      "columna": 40,
+      "encabezado": "BIOMICROSCOPÍA",
+      "origen": "biomicroscopia",
+      "tipo": "texto"
+    },
+    {
+      "columna": 41,
+      "encabezado": "OFTALMOSCOPÍA",
+      "origen": "oftalmoscopia",
+      "tipo": "texto"
+    },
+    {
+      "columna": 42,
+      "encabezado": "MOTILIDAD OCULAR",
+      "origen": "motilidad",
+      "tipo": "texto"
+    },
+    {
+      "columna": 43,
+      "encabezado": "DIAGNÓSTICO 1 (CIE-10)",
+      "origen": "cie1",
+      "tipo": "texto"
+    },
+    {
+      "columna": 44,
+      "encabezado": "DIAGNÓSTICO 2 (CIE-10)",
+      "origen": "cie2",
+      "tipo": "texto"
+    },
+    {
+      "columna": 45,
+      "encabezado": "DIAGNÓSTICO 3 (CIE-10)",
+      "origen": "cie3",
+      "tipo": "texto"
+    },
+    {
+      "columna": 46,
+      "encabezado": "DIAGNÓSTICO 4 (CIE-10)",
+      "origen": "cie4",
+      "tipo": "texto"
+    },
+    {
+      "columna": 47,
+      "encabezado": "DIAGNÓSTICO 5 (CIE-10)",
+      "origen": "cie5",
+      "tipo": "texto"
+    },
+    {
+      "columna": 48,
+      "encabezado": "CONDUCTA / RECOMENDACIONES",
+      "origen": "notas",
+      "tipo": "texto"
+    },
+    {
+      "columna": 49,
+      "encabezado": "OPTÓMETRA EXAMINADOR",
+      "origen": "optometra",
+      "tipo": "texto"
+    },
+    {
+      "columna": 50,
+      "encabezado": "PRECIO TOTAL (COP)",
+      "origen": "precioTotal",
+      "tipo": "numero"
+    },
+    {
+      "columna": 51,
+      "encabezado": "VALOR ABONADO (COP)",
+      "origen": "valorAbonado",
+      "tipo": "numero"
+    },
+    {
+      "columna": 52,
+      "encabezado": "SALDO PENDIENTE (COP)",
+      "origen": "saldoPendiente",
+      "tipo": "numero"
+    },
+    {
+      "columna": 53,
+      "encabezado": "MÉTODO DE PAGO",
+      "origen": "metodoPago",
+      "tipo": "texto"
+    }
+  ]
+}
