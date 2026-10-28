@@ -48,8 +48,9 @@ function applyRole(role) {
   // e independiente de TsysOptics). El doctor usa el piloto clínico DEMO.
   for (const link of app.querySelectorAll("[data-access-target]")) {
     const target = link.dataset.accessTarget;
-    link.href = restricted ? "./doctor.html" :
-      (target === "pacientes" ? "./pacientes.html" : "../index.html");
+    link.href = restricted
+      ? (target === "pacientes" ? "./doctor.html" : "./clinica-completa-demo.html")
+      : (target === "pacientes" ? "./pacientes.html" : "../index.html");
   }
 
   window.dispatchEvent(new CustomEvent("tsys:role", { detail: { role } }));
