@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer">
 <title>Recuperar acceso · TsysOptics</title>
 <style>
 :root{font-family:system-ui,-apple-system,Arial,sans-serif;color:#081226;background:#081226}
@@ -19,16 +19,16 @@ button:disabled{opacity:.6;cursor:not-allowed}a{display:block;text-align:center;
 <main>
 <img src="./logo.svg" alt="Trendy Optics">
 <h1>Recuperar acceso</h1>
-<p>Solicita el correo de recuperación. En Gmail, haz clic derecho sobre «Reset password» y elige «Copiar dirección de enlace». Pega el enlace aquí, sin abrirlo.</p>
+<p>Solicita un correo de recuperación y abre su enlace desde este mismo navegador. Si prefieres no abrirlo, puedes copiar la dirección del enlace y verificarla aquí.</p>
 <form id="form">
 <label id="email-label">Correo administrativo<input id="email" type="email" autocomplete="email" required placeholder="Tu correo"></label>
 <label id="link-label" hidden>Enlace copiado del correo<input id="link" type="url" placeholder="https://...supabase.co/auth/v1/verify?..." autocomplete="off" spellcheck="false" referrerpolicy="no-referrer"></label>
 <label id="pass-label" hidden>Contraseña nueva<input id="pass" type="password" autocomplete="new-password" minlength="12"></label>
 <label id="confirm-label" hidden>Confirmar contraseña<input id="confirm" type="password" autocomplete="new-password" minlength="12"></label>
-<button id="submit" type="submit">Enviar código</button>
+<button id="submit" type="submit">Enviar correo de recuperación</button>
 </form>
-<p role="status" aria-live="polite" id="status">No abras el enlace de recuperación en Gmail. Cópialo y pégalo únicamente aquí.</p>
-<button id="back" type="button" hidden>Solicitar otro código</button>
+<p role="status" aria-live="polite" id="status">Utilizaremos la dirección correcta de TsysOptics al recuperar tu contraseña.</p>
+<button id="back" type="button" hidden>Solicitar otro correo</button>
 <a href="./">Volver a TsysOptics</a>
 <p style="font-size:11px">No compartas el enlace de recuperación ni tu contraseña con nadie. Proyecto piloto.</p>
 </main>
@@ -36,7 +36,7 @@ button:disabled{opacity:.6;cursor:not-allowed}a{display:block;text-align:center;
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
 const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
-  auth:{flowType:"pkce",autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}
+  auth:{flowType:"pkce",autoRefreshToken:true,persistSession:true,detectSessionInUrl:false}
 });
 const get=id=>document.getElementById(id);
 let step="send";
@@ -54,7 +54,7 @@ function stepTo(s){
   get("submit").textContent=s==="send"?"Enviar correo de recuperación":s==="verify"?"Verificar enlace copiado":"Guardar nueva contraseña";
   get("back").hidden=s==="send"||s==="reset";
 }
-get("back").addEventListener("click",()=>{stepTo("send");status("Puedes solicitar un código nuevo si el anterior no funciona. Evita intentos repetidos.")});
+get("back").addEventListener("click",()=>{stepTo("send");status("Puedes solicitar un correo nuevo si el anterior ya no funciona. Evita solicitudes repetidas.")});
 get("form").addEventListener("submit",async e=>{
   e.preventDefault();
   const btn=get("submit");
@@ -62,11 +62,11 @@ get("form").addEventListener("submit",async e=>{
   status("Comprobando…");
   try{
     if(step==="send"){
-      const {error}=await client.auth.resetPasswordForEmail(get("email").value.trim());
+      const {error}=await client.auth.resetPasswordForEmail(get("email").value.trim(),{redirectTo:location.origin+location.pathname});
       if(error){
-        if(error.status===429){stepTo("verify");status("Supabase limitó temporalmente los envíos. Si ya recibiste un correo reciente cuyo enlace no abriste, copia su dirección aquí. Si lo abriste, vuelve más tarde a solicitar uno nuevo.")}
+        if(error.status===429){stepTo("verify");status("Supabase limitó temporalmente los envíos. Si tienes un correo reciente sin utilizar, abre su enlace desde el mismo navegador. Si ya lo utilizaste, solicita uno nuevo cuando se levante el límite.")}
         else status("No se pudo solicitar el correo. Comprueba tu conexión y la configuración de Supabase (HTTP "+(error.status||"?")+").");
-      }else{stepTo("verify");status("Revisa Gmail y Spam. Sin abrir el enlace, haz clic derecho en «Reset password», copia su dirección y pégala aquí.")}
+      }else{stepTo("verify");status("Revisa Gmail y Spam. Abre el enlace de recuperación en este mismo navegador; debe llevarte a esta página para establecer la contraseña. Alternativamente, copia el enlace y pégalo aquí.")}
     }else if(step==="verify"){
       const raw=get("link").value.trim();
       let u;
@@ -95,6 +95,30 @@ get("form").addEventListener("submit",async e=>{
   }catch{status("No se pudo conectar con Supabase. Revisa tu internet.")}
   finally{btn.disabled=false}
 });
-if(new URLSearchParams(location.search).get("motivo")==="enlace_vencido")status("El enlace anterior no sirve. Solicita uno nuevo y copia su dirección sin abrirlo.");
+const query=new URLSearchParams(location.search);
+const recoveryCode=query.get("code");
+if(recoveryCode){
+  // Retirar el código del historial antes de realizar cualquier otra acción.
+  history.replaceState(null,"",location.pathname);
+  status("Verificando el enlace de recuperación...");
+  try{
+    const {data,error}=await client.auth.exchangeCodeForSession(recoveryCode);
+    if(error||!data?.session){
+      stepTo("send");
+      status("No se pudo validar este enlace. Puede estar vencido o ya utilizado. Solicita uno nuevo desde aquí.");
+    }else{
+      stepTo("reset");
+      status("Enlace validado. Escribe y confirma tu nueva contraseña.");
+      get("pass").focus();
+    }
+  }catch{
+    stepTo("send");
+    status("No se pudo verificar el enlace. Revisa tu conexión e intenta solicitar uno nuevo.");
+  }
+}else if(query.has("error")||query.get("motivo")==="enlace_vencido"){
+  history.replaceState(null,"",location.pathname);
+  stepTo("send");
+  status("El enlace anterior venció o fue utilizado. Solicita uno nuevo desde esta página.");
+}
 </script>
 </body></html>
