@@ -22,14 +22,53 @@ const client = configured
 let mode = "login";
 let currentUserId = null;
 let processing = false;
+
+// Alias de acceso del doctor externo. Supabase mantiene autenticación por email.
+const EXTERNAL_ALIAS = "externo";
+const EXTERNAL_EMAIL = "trendyoptics1+externo@gmail.com";
+const ALLOWED_ROLES = new Set(["administrador", "externo"]);
+
+function applyRole(role) {
+  const restricted = role !== "administrador";
+  app.dataset.role = role;
+  const roleLabel = document.getElementById("access-role");
+  if (roleLabel) roleLabel.textContent = restricted ? "Doctor externo · demostración" : "Administrador";
+
+  for (const element of app.querySelectorAll("[data-page], [data-go]")) {
+    const section = element.dataset.page || element.dataset.go;
+    const isLocked = restricted && ["ventas", "inventario"].includes(section);
+    if ("disabled" in element) element.disabled = isLocked;
+    element.classList.toggle("role-locked", isLocked);
+    element.setAttribute("aria-disabled", String(isLocked));
+    if (isLocked) element.title = "Acceso exclusivo del administrador";
+    else element.removeAttribute("title");
+  }
+
+  // Nunca dirigir al personal externo a la historia clínica antigua (pública
+  // e independiente de TsysOptics). El doctor usa el piloto clínico DEMO.
+  for (const link of app.querySelectorAll("[data-access-target]")) {
+    const target = link.dataset.accessTarget;
+    link.href = restricted ? "./doctor.html" :
+      (target === "pacientes" ? "./pacientes.html" : "../index.html");
+  }
+
+  window.dispatchEvent(new CustomEvent("tsys:role", { detail: { role } }));
+}
+
+function clearRole() {
+  delete app.dataset.role;
+  window.dispatchEvent(new Event("tsys:locked"));
+}
 function message(text) { notice.textContent = text; }
 function locked(text = "") {
   app.hidden = true;
   root.hidden = false;
   logout.hidden = true;
   if (text) message(text);
+  clearRole();
 }
-function showApp() {
+function showApp(role) {
+  applyRole(role);
   root.hidden = true;
   app.hidden = false;
   logout.hidden = false;
@@ -63,11 +102,11 @@ async function verifyUser() {
     .eq("id", user.id)
     .maybeSingle();
   if (error) { locked("No se pudo validar tu perfil. Comprueba la conexión y la política de acceso."); return; }
-  if (!profile?.activo || profile.rol !== "administrador") {
+  if (!profile?.activo || !ALLOWED_ROLES.has(profile.rol) || (profile.rol === "externo" && user.email?.toLowerCase() !== EXTERNAL_EMAIL)) {
     locked("La cuenta existe, pero aún no tiene permiso para este panel piloto.");
     return;
   }
-  showApp();
+  showApp(profile.rol);
 }
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -83,7 +122,9 @@ form.addEventListener("submit", async (event) => {
       await client.auth.signOut();
       locked("Contraseña actualizada. Ingresa para continuar.");
     } else {
-      const { error } = await client.auth.signInWithPassword({ email: emailField.value.trim(), password });
+      const typedUser = emailField.value.trim();
+      const loginEmail = typedUser.toLowerCase() === EXTERNAL_ALIAS ? EXTERNAL_EMAIL : typedUser;
+      const { error } = await client.auth.signInWithPassword({ email: loginEmail, password });
       if (error) throw error;
       passwordField.value = "";
       await verifyUser();
