@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Historia demo · TsysOptics</title>
+<style>
+:root{font-family:system-ui,-apple-system,Arial,sans-serif;background:#F2F2F2;color:#081226}*{box-sizing:border-box}body{margin:0}header{background:#081226;color:#fff;padding:18px max(18px,calc((100vw - 1000px)/2));display:flex;align-items:center;justify-content:space-between}a{color:inherit}main{max-width:1000px;padding:20px;margin:auto}.cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}article{padding:22px;border:1px solid #dae0e8;border-radius:12px;background:#fff}.warning{padding:14px;background:#e8edf3;border-left:4px solid #585F73;border-radius:6px}.muted{color:#585F73}h1{color:#0B1C40}label{display:block;font-size:13px;font-weight:700;margin:14px 0}select{display:block;width:100%;margin-top:5px;padding:12px;border:1px solid #abb8c9;border-radius:8px;background:#fff;font:inherit}button{background:#0B1C40;color:#fff;border:0;border-radius:8px;padding:12px 16px;cursor:pointer;font-weight:bold}button:disabled{opacity:.5;cursor:not-allowed}.history{padding:14px;border:1px solid #d9dfe9;border-radius:9px;margin-bottom:10px}.history strong{display:block}.small{font-size:12px;color:#585F73}#message{font-size:13px;min-height:22px}@media(max-width:740px){.cards{grid-template-columns:1fr}}
+</style></head><body>
+<header><strong>TsysOptics · Trendy Optics</strong><a href="./pacientes.html">Volver a pacientes</a></header>
+<main>
+<h1>Historia clínica de demostración</h1>
+<p class="warning"><strong>NO ES UNA HISTORIA CLÍNICA REAL.</strong> Solo se permiten pacientes DEMO y valores de ejemplo. No se emiten diagnósticos, recetas ni documentos clínicos. Los registros no se pueden editar o borrar desde el piloto.</p>
+<p id="message" role="status" aria-live="polite">Verificando sesión…</p>
+<section id="content" hidden>
+<h2 id="patient"></h2>
+<div class="cards">
+<article><h2>Crear consulta ficticia</h2>
+<form id="form">
+<label>Motivo de consulta ficticio
+<select id="motivo" required>
+<option value="Control visual de ejemplo">Control visual de ejemplo</option>
+<option value="Vision borrosa de ejemplo">Visión borrosa de ejemplo</option>
+<option value="Revision de formula de ejemplo">Revisión de fórmula de ejemplo</option>
+</select></label>
+<label>Diagnóstico de ejemplo (no clínico)
+<select id="diagnostico" required>
+<option value="DEMO - Sin diagnostico">DEMO - Sin diagnóstico</option>
+<option value="H52.0 - Hipermetropia (demo)">H52.0 - Hipermetropía (demo)</option>
+<option value="H52.1 - Miopia (demo)">H52.1 - Miopía (demo)</option>
+<option value="H52.2 - Astigmatismo (demo)">H52.2 - Astigmatismo (demo)</option>
+<option value="H52.4 - Presbicia (demo)">H52.4 - Presbicia (demo)</option>
+</select></label>
+<button id="save" type="submit">Guardar consulta ficticia</button></form>
+<p class="small">Fecha y hora registradas automáticamente. Estado: borrador DEMO.</p></article>
+<article><h2>Historial de pruebas</h2><div id="records"></div></article>
+</div></section></main>
+<script type="module">
+import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+const $=id=>document.getElementById(id);
+const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:"pkce",autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
+const id=new URLSearchParams(location.search).get("paciente");
+let patient=null,processing=false;
+const status=t=>{$("message").textContent=t};
+function line(t,cls){const n=document.createElement("div");n.textContent=t;n.className=cls||"";return n}
+async function start(){
+ if(!id||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)){status("Selecciona un paciente ficticio desde el módulo Pacientes.");return}
+ const {data:{user},error:authError}=await client.auth.getUser();
+ if(authError||!user){status("Acceso denegado. Primero inicia sesión en el panel.");return}
+ const {data:profile,error:pError}=await client.from("usuarios_tsysoptics").select("rol,activo").eq("id",user.id).maybeSingle();
+ if(pError||profile?.rol!=="administrador"||!profile.activo){status("Solo administradores activos pueden ver este módulo piloto.");return}
+ const {data,error}=await client.from("pacientes_tsysoptics").select("id,documento,tipo_documento,nombre_completo").eq("id",id).single();
+ if(error||!data||!/^DEMO-[A-Z0-9-]{1,25}$/.test(data.documento)){status("Paciente ficticio no encontrado.");return}
+ patient=data;$("patient").textContent=data.nombre_completo+" · "+data.documento;
+ $("content").hidden=false;await load();
+}
+async function load(){
+ const {data,error}=await client.from("historias_clinicas_tsysoptics")
+  .select("id,fecha_consulta,estado,datos_clinicos").eq("paciente_id",patient.id)
+  .order("fecha_consulta",{ascending:false}).limit(30);
+ const box=$("records");box.replaceChildren();
+ if(error){status("No se pudo consultar el historial. Revisa la migración y los permisos RLS.");return}
+ if(!data.length)box.append(line("Aún no hay consultas ficticias.","muted"));
+ for(const record of data){
+  const el=document.createElement("div");el.className="history";
+  const date=new Date(record.fecha_consulta);
+  el.append(line(Number.isNaN(date.getTime())?"Fecha desconocida":date.toLocaleString("es-CO"),"small"));
+  el.append(line(record.datos_clinicos?.motivo||"Motivo no disponible"));
+  el.append(line(record.datos_clinicos?.diagnostico||"Diagnóstico no disponible","small"));
+  el.append(line("BORRADOR DEMO · NO VÁLIDO CLÍNICAMENTE","small"));
+  box.append(el);
+ }
+ status("Historial ficticio actualizado: "+data.length+" registro(s).");
+}
+$("form").addEventListener("submit",async e=>{
+ e.preventDefault();if(processing||!patient)return;
+ processing=true;$("save").disabled=true;status("Guardando consulta de demostración…");
+ const motive=$("motivo").value,diag=$("diagnostico").value;
+ const motifs=["Control visual de ejemplo","Vision borrosa de ejemplo","Revision de formula de ejemplo"];
+ const diagnoses=["DEMO - Sin diagnostico","H52.0 - Hipermetropia (demo)","H52.1 - Miopia (demo)","H52.2 - Astigmatismo (demo)","H52.4 - Presbicia (demo)"];
+ if(!motifs.includes(motive)||!diagnoses.includes(diag)){status("Selecciona opciones válidas de demostración.");processing=false;$("save").disabled=false;return}
+ try {
+  const {error}=await client.from("historias_clinicas_tsysoptics").insert({
+    paciente_id:patient.id,fecha_consulta:new Date().toISOString(),estado:"borrador",
+    optometra_nombre:"DEMO / NO CLINICO",
+    datos_clinicos:{modo:"DEMO",motivo:motive,diagnostico:diag}
+  });
+  if(error){status("No se pudo guardar. Comprueba los permisos y las restricciones de prueba.");return}
+  await load();
+ } catch{status("Error de conexión con Supabase.")}
+ finally{processing=false;$("save").disabled=false}
+});
+await start();
+</script></body></html>
