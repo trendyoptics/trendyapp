@@ -1,0 +1,42 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Demostración · TsysOptics</title><style>
+:root{font-family:system-ui,-apple-system,Arial,sans-serif;background:#F2F2F2;color:#081226}*{box-sizing:border-box}body{margin:0}header{background:#081226;color:white;padding:15px max(18px,calc((100vw - 1050px)/2));display:flex;justify-content:space-between;gap:15px;align-items:center}.logo{display:flex;gap:12px;align-items:center}.logo img{width:45px;height:45px}.logo small{display:block;color:#bfc8d5}main{max-width:1050px;margin:auto;padding:22px 16px}h1,h2{color:#0B1C40}h1{margin-bottom:4px}.muted{color:#585F73}.card{background:#fff;border:1px solid #e0e5ed;border-radius:14px;padding:20px}.login{max-width:420px;margin:50px auto;padding:30px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.grid .card{min-height:145px}.nav{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}button{border:0;border-radius:8px;background:#0B1C40;color:#fff;font-weight:bold;padding:11px 14px;cursor:pointer}button.secondary{background:#585F73}input,select{font:inherit;width:100%;padding:12px;border:1px solid #bfc8d5;border-radius:9px;margin-top:5px}label{display:block;font-size:13px;font-weight:650;margin:14px 0}.alert{background:#e8edf3;padding:13px 15px;border-left:4px solid #585F73;border-radius:6px}.demo{margin-top:18px;padding:20px;background:#fff;border-radius:12px}.value{font-size:25px;font-weight:750;color:#0B1C40}.entry{border-bottom:1px solid #ddd;padding:8px 0}.small{font-size:12px;color:#585F73}[hidden]{display:none!important}@media(max-width:750px){.grid{grid-template-columns:1fr}} </style></head>
+<body><header><div class="logo"><img src="./logo.svg" alt="Logo Trendy Optics"><div><b>TsysOptics</b><small>Demostración externa</small></div></div><button id="out" class="secondary" hidden>Cerrar sesión</button></header>
+<main><section id="login" class="login card"><h1>Acceso de demostración</h1><p class="muted">Explora TsysOptics sin acceder a información de la óptica.</p><form id="form"><label>Usuario<input id="user" value="externo" autocomplete="username" required></label><label>Contraseña<input type="password" id="password" autocomplete="current-password" required></label><button id="in" type="submit">Ingresar</button></form><p id="error" role="status" class="small">Cuenta externa independiente del administrador.</p></section>
+<section id="demo" hidden><h1>Bienvenido a TsysOptics</h1><p class="muted">Vista de demostración para presentar el sistema.</p><p class="alert"><b>Entorno ficticio:</b> todo lo que aparece es ilustrativo. No se consultan ni guardan pacientes, ventas, historias clínicas o inventarios reales.</p><div class="grid"><div class="card"><h2>Pacientes</h2><div class="value">12</div><p class="small">Ejemplos ficticios</p></div><div class="card"><h2>Citas</h2><div class="value">5</div><p class="small">Citas de ejemplo</p></div><div class="card"><h2>Ventas</h2><div class="value">$ 1.250.000</div><p class="small">Valores inventados (COP)</p></div></div>
+<div class="nav"><button data-show="citas">Agenda</button><button data-show="inventario">Inventario</button><button data-show="optica">Simulación óptica</button></div>
+<div id="citas" class="demo"><h2>Agenda ilustrativa</h2><div class="entry">09:00 · Paciente Ejemplo A · Examen visual</div><div class="entry">10:30 · Paciente Ejemplo B · Control</div><div class="entry">15:00 · Paciente Ejemplo C · Entrega de lentes</div></div>
+<div id="inventario" class="demo" hidden><h2>Inventario ilustrativo</h2><div class="entry">Montura modelo Clásica · 12 unidades</div><div class="entry">Montura modelo Urbana · 8 unidades</div><div class="entry">Lente monofocal AR · 20 pares</div></div>
+<div id="optica" class="demo" hidden><h2>Simulación de potencia óptica</h2><p class="small">Representación educativa no clínica.</p><label>Potencia (dioptrías)<input type="range" id="power" min="-10" max="10" step="0.25" value="2"></label><div class="value" id="power-text">+2.00 D</div><p class="muted" id="lens-description">Lente convergente (positivo).</p></div>
+</section></main>
+<script type="module">
+import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+const $=id=>document.getElementById(id);
+const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const ALIAS="externo", INTERNAL_EMAIL="trendyoptics1+externo@gmail.com";
+function denied(t){$("login").hidden=false;$("demo").hidden=true;$("out").hidden=true;$("error").textContent=t}
+async function check(){
+ const {data,error}=await sb.auth.getUser();
+ if(error||!data?.user){denied("Ingresa con las credenciales del usuario externo.");return}
+ const {data:p,error:e}=await sb.from("usuarios_tsysoptics").select("rol,activo").eq("id",data.user.id).maybeSingle();
+ if(e||p?.rol!=="externo"||p.activo!==true||data.user.email?.toLowerCase()!==INTERNAL_EMAIL){denied("Esta cuenta no tiene acceso al entorno de demostración.");return}
+ $("login").hidden=true;$("demo").hidden=false;$("out").hidden=false;
+}
+$("form").addEventListener("submit",async e=>{
+ e.preventDefault();$("in").disabled=true;$("error").textContent="Validando acceso…";
+ try{
+  if($("user").value.trim().toLowerCase()!==ALIAS){denied("Usuario no válido.");return}
+  const {error}=await sb.auth.signInWithPassword({email:INTERNAL_EMAIL,password:$("password").value});
+  $("password").value="";
+  if(error){denied("No se pudo ingresar. Verifica la contraseña.");return}
+  await check();
+ }catch{denied("Error de conexión.")}
+ finally{$("in").disabled=false}
+});
+$("out").addEventListener("click",async()=>{await sb.auth.signOut();denied("Sesión cerrada.")});
+document.querySelectorAll("[data-show]").forEach(btn=>btn.addEventListener("click",()=>{for(const id of ["citas","inventario","optica"])$(id).hidden=id!==btn.dataset.show}));
+$("power").addEventListener("input",()=>{
+ const n=Number($("power").value);$("power-text").textContent=(n>0?"+":"")+n.toFixed(2)+" D";$("lens-description").textContent=n>0?"Lente convergente (positivo).":n<0?"Lente divergente (negativo).":"Lente plano.";
+});
+await check();
+</script></body></html>
