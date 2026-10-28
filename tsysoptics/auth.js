@@ -46,6 +46,7 @@ function setMode(next) {
   message(next === "reset" ? "Define una nueva contraseña de al menos 12 caracteres." : "");
 }
 async function verifyUser() {
+  if (mode === "reset") return;
   if (!client) {
     locked("Configuración pendiente: falta establecer la clave publicable de Supabase.");
     submit.disabled = true;
