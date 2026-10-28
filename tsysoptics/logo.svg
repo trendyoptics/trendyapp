@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="logoTitle">
+<title id="logoTitle">Óptica Trendy Optics · Lentes en tendencia</title>
+<circle cx="120" cy="120" r="116" fill="#0B1C40" stroke="#081226" stroke-width="3"/>
+<circle cx="120" cy="120" r="108" fill="none" stroke="#BFBFBF" stroke-width="2"/>
+<circle cx="120" cy="120" r="78" fill="#BFBFBF" stroke="#081226" stroke-width="3"/>
+<path d="M75 38Q120 24 165 38L160 56Q120 44 80 56Z" fill="#BFBFBF"/>
+<path id="topArc" d="M75 49A88 88 0 0 1 165 49" fill="none"/>
+<text font-family="Georgia,serif" font-size="18" fill="#081226" letter-spacing="2" text-anchor="middle"><textPath href="#topArc" startOffset="50%">ÓPTICA</textPath></text>
+<polygon points="8,108 62,108 55,120 62,132 8,132" fill="#BFBFBF" stroke="#F2F2F2" stroke-width="1.5"/>
+<text x="33" y="124" font-family="Georgia,serif" font-size="12" fill="#081226" text-anchor="middle">Clear</text>
+<polygon points="232,108 178,108 185,120 178,132 232,132" fill="#BFBFBF" stroke="#F2F2F2" stroke-width="1.5"/>
+<text x="207" y="124" font-family="Georgia,serif" font-size="12" fill="#081226" text-anchor="middle">Vision</text>
+<text x="120" y="88" font-family="Georgia,serif" font-style="italic" font-size="25" fill="#081226" text-anchor="middle">Trendy</text>
+<text x="120" y="116" font-family="Georgia,serif" font-style="italic" font-size="33" fill="#081226" text-anchor="middle">Optics</text>
+<circle cx="88" cy="148" r="24" fill="none" stroke="#081226" stroke-width="4.5"/>
+<circle cx="152" cy="148" r="24" fill="none" stroke="#081226" stroke-width="4.5"/>
+<path d="M112 146Q120 135 128 146" fill="none" stroke="#081226" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M34 158A94 94 0 0 0 206 158L190 180A112 112 0 0 1 50 180Z" fill="#BFBFBF" opacity=".95"/>
+<path id="bottomArc" d="M38 162A88 88 0 0 0 202 162" fill="none"/>
+<text font-family="Georgia,serif" font-size="13.5" font-weight="bold" fill="#081226" letter-spacing="1.5"><textPath href="#bottomArc" startOffset="50%" text-anchor="middle">LENTES EN TENDENCIA</textPath></text>
+</svg>
