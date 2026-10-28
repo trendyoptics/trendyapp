@@ -1,0 +1,68 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Doctor · TsysOptics</title><style>
+:root{font-family:system-ui,-apple-system,Arial,sans-serif;background:#F2F2F2;color:#081226}*{box-sizing:border-box}body{margin:0}header{background:#081226;color:white;padding:16px 5%;display:flex;justify-content:space-between;align-items:center}main{max-width:1060px;margin:auto;padding:22px}h1,h2{color:#0B1C40}p{line-height:1.6;color:#585F73}.card{background:#fff;border:1px solid #d9e0e9;border-radius:12px;padding:20px;margin-bottom:16px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.warning{border-left:4px solid #585F73;background:#e8edf3;padding:13px}.button,button{background:#0B1C40;border:0;color:#fff;border-radius:8px;padding:12px 14px;cursor:pointer;font-weight:bold;text-decoration:none;display:inline-block}button[disabled]{opacity:.5}label{display:block;font-size:13px;font-weight:bold;margin:12px 0}input,select{font:inherit;width:100%;padding:11px;border:1px solid #bfc8d4;border-radius:8px;margin-top:5px}.entry{background:#f5f7fa;border:1px solid #dde3ed;border-radius:8px;padding:12px;margin:10px 0}.small{font-size:12px;color:#585F73}[hidden]{display:none!important}@media(max-width:730px){.cols{grid-template-columns:1fr}}
+</style></head><body><header><strong>TsysOptics · Área profesional</strong><button id="logout" hidden>Salir</button></header><main>
+<section id="login" class="card" style="max-width:440px;margin:45px auto"><h1>Acceso del doctor</h1><form id="login-form"><label>Usuario<input id="alias" value="externo" autocomplete="username" required></label><label>Contraseña<input type="password" id="pass" autocomplete="current-password" required></label><button type="submit" id="enter">Ingresar</button></form><p id="login-status" role="status">Acceso exclusivo del personal clínico autorizado.</p></section>
+<section id="workspace" hidden><h1>Panel del doctor externo</h1><p class="warning"><b>Entorno de pruebas.</b> Trabaja solo con pacientes DEMO. Sin ventas, caja, cobros ni información clínica real. La historia clínica original de Trendy Optics sigue separada.</p>
+<div class="cols"><div class="card"><h2>Pacientes ficticios</h2><p>Busca un paciente existente y abre sus consultas de demostración. El doctor no modifica los datos personales.</p><label>Documento o nombre de prueba<input id="query" placeholder="DEMO-1001"></label><button id="search">Buscar</button><p id="search-status" role="status"></p><div id="patients"></div></div><div class="card"><h2>Historia clínica de prueba</h2><p id="selected">Selecciona un paciente de ejemplo.</p><div id="clinical" hidden><label>Motivo de consulta<select id="reason"><option>Control visual de ejemplo</option><option>Vision borrosa de ejemplo</option><option>Revision de formula de ejemplo</option></select></label><label>Diagnóstico educativo<select id="diagnosis"><option>DEMO - Sin diagnostico</option><option>H52.0 - Hipermetropia (demo)</option><option>H52.1 - Miopia (demo)</option><option>H52.2 - Astigmatismo (demo)</option><option>H52.4 - Presbicia (demo)</option></select></label><button id="save">Registrar consulta demo</button><p id="history-status" role="status"></p><h2>Consultas anteriores</h2><div id="history"></div></div></div></div>
+<div class="cols"><div class="card"><h2>Indicaciones para el asesor</h2><p>Solo fichas comerciales ficticias; el asesor no verá antecedentes ni diagnósticos.</p><label>Tipo de lente<select id="lens"><option>Monofocal de ejemplo</option><option>Progresivo de ejemplo</option><option>Ocupacional de ejemplo</option></select></label><label>Tratamiento<select id="treatment"><option>Antirreflejo de ejemplo</option><option>Fotocromatico de ejemplo</option><option>Sin filtro de ejemplo</option></select></label><label>Instrucción<select id="instruction"><option>Confirmar medidas y disponibilidad de ejemplo</option><option>Cotizar segun recomendacion ficticia</option><option>Verificar adaptacion en una prueba ficticia</option></select></label><button id="recommend" disabled>Registrar indicación DEMO</button><p id="recommend-status" role="status"></p></div><div class="card"><h2>Otros módulos</h2><p>Agenda, inventario y simulaciones se incorporarán a este panel conforme sus datos se migren a Supabase. No se habilitan enlaces a ventas.</p><p class="small">Los controles de este portal consultan el rol en la base de datos y usan las políticas RLS, no solo ocultación visual.</p></div></div></section></main>
+<script type="module">
+import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+const $=id=>document.getElementById(id);
+const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const EMAIL="trendyoptics1+externo@gmail.com",ROLES=["externo","optometra"];let patient=null;
+const msg=(id,t)=>{$(id).textContent=t};
+function node(t,c){const d=document.createElement("div");d.textContent=t;if(c)d.className=c;return d}
+async function check(){
+ const {data,error}=await sb.auth.getUser();if(error||!data?.user)return false;
+ const {data:p,error:e}=await sb.from("usuarios_tsysoptics").select("rol,activo").eq("id",data.user.id).maybeSingle();
+ if(e||!p?.activo||!ROLES.includes(p.rol))return false;
+ $("login").hidden=true;$("workspace").hidden=false;$("logout").hidden=false;return true;
+}
+$("login-form").addEventListener("submit",async e=>{
+ e.preventDefault();$("enter").disabled=true;msg("login-status","Comprobando…");
+ try {
+  if($("alias").value.trim().toLowerCase()!=="externo"){msg("login-status","Usuario no válido.");return}
+  const {error}=await sb.auth.signInWithPassword({email:EMAIL,password:$("pass").value});
+  $("pass").value="";if(error){msg("login-status","Credenciales incorrectas.");return}
+  if(!(await check()))msg("login-status","Esta cuenta aún no tiene rol clínico.");
+ }catch{msg("login-status","No se pudo conectar con Supabase.")}
+ finally{$("enter").disabled=false}
+});
+$("logout").addEventListener("click",async()=>{await sb.auth.signOut();location.reload()});
+$("search").addEventListener("click",async()=>{
+ const q=$("query").value.trim();if(q.length>65){msg("search-status","Búsqueda demasiado larga.");return}
+ const escaped=q.replaceAll("%","\\%").replaceAll("_","\\_");
+ const res=await sb.from("pacientes_tsysoptics").select("id,documento,nombre_completo").like("documento","DEMO-%").ilike("documento","%"+escaped+"%").limit(30);
+ const res2=q?await sb.from("pacientes_tsysoptics").select("id,documento,nombre_completo").like("documento","DEMO-%").ilike("nombre_completo","%"+escaped+"%").limit(30):{data:[],error:null};
+ if(res.error||res2.error){msg("search-status","Sin permiso para consultar pacientes.");return}
+ const list=[...new Map([...(res.data||[]),...(res2.data||[])].map(v=>[v.id,v])).values()];
+ $("patients").replaceChildren();msg("search-status",list.length+" paciente(s) demo.");
+ for(const p of list){const b=document.createElement("button");b.className="entry";b.textContent=p.nombre_completo+" · "+p.documento;b.addEventListener("click",()=>selectPatient(p));$("patients").append(b)}
+});
+async function selectPatient(p){patient=p;$("clinical").hidden=false;$("recommend").disabled=false;msg("selected",p.nombre_completo+" · "+p.documento);await history()}
+async function history(){
+ if(!patient)return;
+ const {data,error}=await sb.from("historias_clinicas_tsysoptics").select("fecha_consulta,datos_clinicos").eq("paciente_id",patient.id).order("fecha_consulta",{ascending:false}).limit(20);
+ const box=$("history");box.replaceChildren();
+ if(error){msg("history-status","No se pudieron leer consultas.");return}
+ for(const h of data||[])box.append(node(new Date(h.fecha_consulta).toLocaleDateString("es-CO")+" · "+(h.datos_clinicos?.motivo||"")+" · "+(h.datos_clinicos?.diagnostico||""),"entry"));
+ msg("history-status",(data||[]).length+" consultas demo.");
+}
+$("save").addEventListener("click",async()=>{
+ if(!patient)return;$("save").disabled=true;
+ try{
+  const {error}=await sb.from("historias_clinicas_tsysoptics").insert({paciente_id:patient.id,fecha_consulta:new Date().toISOString(),estado:"borrador",optometra_nombre:"DEMO / NO CLINICO",datos_clinicos:{modo:"DEMO",motivo:$("reason").value,diagnostico:$("diagnosis").value}});
+  if(error){msg("history-status","No se pudo guardar la consulta ficticia.");return}
+  await history();
+ }finally{$("save").disabled=false}
+});
+$("recommend").addEventListener("click",async()=>{
+ if(!patient)return;$("recommend").disabled=true;
+ try{
+  const {error}=await sb.from("indicaciones_venta_demo_tsysoptics").insert({paciente_id:patient.id,codigo_demo:patient.documento,tipo_lente:$("lens").value,tratamiento:$("treatment").value,instrucciones:$("instruction").value});
+  msg("recommend-status",error?(error.code==="23505"?"Esta indicación ya existe.":"No se pudo registrar la indicación."):"Indicación ficticia registrada para el asesor.");
+ }finally{$("recommend").disabled=false}
+});
+await check();
+</script></body></html>
