@@ -14,6 +14,7 @@ alter table public.historias_clinicas_tsysoptics
     and estado = 'borrador'
     and optometra_id is null
     and optometra_nombre = 'DEMO / NO CLINICO'
+    and datos_clinicos = jsonb_build_object('modo','DEMO','motivo',datos_clinicos->>'motivo','diagnostico',datos_clinicos->>'diagnostico')
     and datos_clinicos->>'modo' = 'DEMO'
     and datos_clinicos->>'motivo' in (
       'Control visual de ejemplo',
