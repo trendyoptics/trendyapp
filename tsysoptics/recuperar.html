@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recuperar acceso · TsysOptics</title>
+<style>
+:root{font-family:system-ui,-apple-system,Arial,sans-serif;color:#081226;background:#081226}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:22px;background:linear-gradient(135deg,#081226,#0B1C40,#585F73)}
+main{max-width:440px;width:100%;background:#F2F2F2;padding:30px;border-radius:16px;box-shadow:0 20px 65px #0003}
+img{width:78px;height:78px;display:block;margin:auto}h1{text-align:center;color:#0B1C40;font-size:25px;margin:12px 0 4px}
+p{color:#585F73;font-size:13px;line-height:1.5}label{display:block;font-size:13px;font-weight:700;margin:14px 0}
+input{margin-top:7px;display:block;width:100%;background:#fff;border:1px solid #BFBFBF;border-radius:8px;padding:12px;color:#081226;font-size:15px}
+button{border:0;background:#0B1C40;color:#fff;width:100%;border-radius:8px;padding:12px;cursor:pointer;font:600 14px system-ui}
+button:disabled{opacity:.6;cursor:not-allowed}a{display:block;text-align:center;margin-top:20px;color:#0B1C40;font-size:13px}
+#status{font-size:13px;margin:15px 0;min-height:25px;color:#585F73}section[hidden],label[hidden]{display:none}
+</style>
+</head>
+<body>
+<main>
+<img src="./logo.svg" alt="Trendy Optics">
+<h1>Recuperar acceso</h1>
+<p>Solicita un código por correo, escríbelo aquí y define una contraseña nueva. No necesitas abrir enlaces del mensaje.</p>
+<form id="form">
+<label id="email-label">Correo administrativo<input id="email" type="email" autocomplete="email" required placeholder="Tu correo"></label>
+<label id="code-label" hidden>Código recibido (6 dígitos)<input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6"></label>
+<label id="pass-label" hidden>Contraseña nueva<input id="pass" type="password" autocomplete="new-password" minlength="12"></label>
+<label id="confirm-label" hidden>Confirmar contraseña<input id="confirm" type="password" autocomplete="new-password" minlength="12"></label>
+<button id="submit" type="submit">Enviar código</button>
+</form>
+<p role="status" aria-live="polite" id="status">Para evitar enlaces caducados, usaremos un código de un solo uso.</p>
+<button id="back" type="button" hidden>Solicitar otro código</button>
+<a href="./">Volver a TsysOptics</a>
+<p style="font-size:11px">No compartas el código ni la contraseña con nadie. Proyecto piloto.</p>
+</main>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
+const client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+  auth:{flowType:"pkce",autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}
+});
+const get=id=>document.getElementById(id);
+let step="send";
+function status(s){get("status").textContent=s}
+function stepTo(s){
+  step=s;
+  get("email-label").hidden=s==="reset";
+  get("email").required=s!=="reset";
+  get("code-label").hidden=s!=="verify";
+  get("code").required=s==="verify";
+  get("pass-label").hidden=s!=="reset";
+  get("pass").required=s==="reset";
+  get("confirm-label").hidden=s!=="reset";
+  get("confirm").required=s==="reset";
+  get("submit").textContent=s==="send"?"Enviar código":s==="verify"?"Verificar código":"Guardar nueva contraseña";
+  get("back").hidden=s==="send"||s==="reset";
+}
+get("back").addEventListener("click",()=>{stepTo("send");status("Puedes solicitar un código nuevo si el anterior no funciona. Evita intentos repetidos.")});
+get("form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const btn=get("submit");
+  btn.disabled=true;
+  status("Comprobando…");
+  try{
+    if(step==="send"){
+      const {error}=await client.auth.resetPasswordForEmail(get("email").value.trim());
+      if(error){
+        if(error.status===429){stepTo("verify");status("Hay un límite temporal de envíos. Revisa el correo anterior; si contiene un código, introdúcelo aquí.")}
+        else status("No se pudo solicitar el código. Comprueba tu conexión y la configuración del correo (HTTP "+(error.status||"?")+").");
+      }else{stepTo("verify");status("Revisa Gmail y Spam. Escribe el código de seis dígitos recibido.")}
+    }else if(step==="verify"){
+      const code=get("code").value.trim();
+      if(!/^\d{6}$/.test(code)){status("Escribe los seis números del correo.");return;}
+      const {error}=await client.auth.verifyOtp({email:get("email").value.trim(),token:code,type:"recovery"});
+      if(error)status("Código incorrecto, vencido o ya utilizado. Vuelve atrás para solicitar otro.");
+      else{stepTo("reset");status("Código confirmado. Establece una contraseña nueva de al menos 12 caracteres.")}
+    }else{
+      if(get("pass").value.length<12){status("La contraseña debe tener al menos 12 caracteres.");return}
+      if(get("pass").value!==get("confirm").value){status("Las contraseñas no coinciden.");return}
+      const {error}=await client.auth.updateUser({password:get("pass").value});
+      if(error){status("No se pudo cambiar la contraseña. La sesión de recuperación puede haber caducado.");return}
+      await client.auth.signOut();
+      get("pass").value="";get("confirm").value="";
+      get("form").hidden=true;get("back").hidden=true;
+      status("Contraseña actualizada. Regresa a TsysOptics e ingresa con la nueva contraseña.");
+    }
+  }catch{status("No se pudo conectar con Supabase. Revisa tu internet.")}
+  finally{btn.disabled=false}
+});
+if(new URLSearchParams(location.search).get("motivo")==="enlace_vencido")status("El enlace anterior ya no sirve. Solicita un código y escríbelo aquí, sin abrir enlaces.");
+</script>
+</body></html>

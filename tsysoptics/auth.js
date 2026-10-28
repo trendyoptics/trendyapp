@@ -91,31 +91,7 @@ form.addEventListener("submit", async (event) => {
   } catch (e) { message("No se pudo completar la operación. Verifica tus credenciales y prueba de nuevo."); }
   finally { processing = false; submit.disabled = !client; }
 });
-recover.addEventListener("click", async () => {
-  if (!client || processing) return;
-  const email = emailField.value.trim();
-  if (!email) { message("Escribe tu correo primero."); return; }
-  processing = true; recover.disabled = true;
-  try {
-    const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: location.origin + location.pathname
-    });
-    if (error) {
-      if (error.status === 429 || error.code === "over_email_send_rate_limit" || error.code === "over_request_rate_limit") {
-        message("Supabase limitó temporalmente las solicitudes. Revisa primero tu correo: posiblemente ya se envió un enlace. No hagas solicitudes repetidas.");
-      } else {
-        message("No se pudo enviar el enlace. Comprueba tu conexión y revisa la configuración de correo en Supabase. Código: " + (error.status || "desconocido"));
-      }
-    } else {
-      message("Solicitud aceptada. Revisa el correo y Spam. Utiliza el enlace de recuperación más reciente.");
-    }
-  } catch {
-    message("No se pudo conectar con Supabase. Revisa la conexión a internet.");
-  } finally {
-    processing = false;
-    recover.disabled = false;
-  }
-});
+recover.addEventListener("click", () => { window.location.assign("./recuperar.html"); });
 change.addEventListener("click", async () => {
   if (client) await client.auth.signOut();
   setMode("login"); locked("Ingresa con tu contraseña actualizada.");
