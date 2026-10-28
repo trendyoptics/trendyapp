@@ -19,18 +19,18 @@ button:disabled{opacity:.6;cursor:not-allowed}a{display:block;text-align:center;
 <main>
 <img src="./logo.svg" alt="Trendy Optics">
 <h1>Recuperar acceso</h1>
-<p>Solicita un código por correo, escríbelo aquí y define una contraseña nueva. No necesitas abrir enlaces del mensaje.</p>
+<p>Solicita el correo de recuperación. En Gmail, haz clic derecho sobre «Reset password» y elige «Copiar dirección de enlace». Pega el enlace aquí, sin abrirlo.</p>
 <form id="form">
 <label id="email-label">Correo administrativo<input id="email" type="email" autocomplete="email" required placeholder="Tu correo"></label>
-<label id="code-label" hidden>Código recibido (6 dígitos)<input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6"></label>
+<label id="link-label" hidden>Enlace copiado del correo<input id="link" type="url" placeholder="https://...supabase.co/auth/v1/verify?..." autocomplete="off" spellcheck="false" referrerpolicy="no-referrer"></label>
 <label id="pass-label" hidden>Contraseña nueva<input id="pass" type="password" autocomplete="new-password" minlength="12"></label>
 <label id="confirm-label" hidden>Confirmar contraseña<input id="confirm" type="password" autocomplete="new-password" minlength="12"></label>
 <button id="submit" type="submit">Enviar código</button>
 </form>
-<p role="status" aria-live="polite" id="status">Para evitar enlaces caducados, usaremos un código de un solo uso.</p>
+<p role="status" aria-live="polite" id="status">No abras el enlace de recuperación en Gmail. Cópialo y pégalo únicamente aquí.</p>
 <button id="back" type="button" hidden>Solicitar otro código</button>
 <a href="./">Volver a TsysOptics</a>
-<p style="font-size:11px">No compartas el código ni la contraseña con nadie. Proyecto piloto.</p>
+<p style="font-size:11px">No compartas el enlace de recuperación ni tu contraseña con nadie. Proyecto piloto.</p>
 </main>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -45,13 +45,13 @@ function stepTo(s){
   step=s;
   get("email-label").hidden=s==="reset";
   get("email").required=s!=="reset";
-  get("code-label").hidden=s!=="verify";
-  get("code").required=s==="verify";
+  get("link-label").hidden=s!=="verify";
+  get("link").required=s==="verify";
   get("pass-label").hidden=s!=="reset";
   get("pass").required=s==="reset";
   get("confirm-label").hidden=s!=="reset";
   get("confirm").required=s==="reset";
-  get("submit").textContent=s==="send"?"Enviar código":s==="verify"?"Verificar código":"Guardar nueva contraseña";
+  get("submit").textContent=s==="send"?"Enviar correo de recuperación":s==="verify"?"Verificar enlace copiado":"Guardar nueva contraseña";
   get("back").hidden=s==="send"||s==="reset";
 }
 get("back").addEventListener("click",()=>{stepTo("send");status("Puedes solicitar un código nuevo si el anterior no funciona. Evita intentos repetidos.")});
@@ -64,15 +64,24 @@ get("form").addEventListener("submit",async e=>{
     if(step==="send"){
       const {error}=await client.auth.resetPasswordForEmail(get("email").value.trim());
       if(error){
-        if(error.status===429){stepTo("verify");status("Hay un límite temporal de envíos. Revisa el correo anterior; si contiene un código, introdúcelo aquí.")}
-        else status("No se pudo solicitar el código. Comprueba tu conexión y la configuración del correo (HTTP "+(error.status||"?")+").");
-      }else{stepTo("verify");status("Revisa Gmail y Spam. Escribe el código de seis dígitos recibido.")}
+        if(error.status===429){stepTo("verify");status("Supabase limitó temporalmente los envíos. Si ya recibiste un correo reciente cuyo enlace no abriste, copia su dirección aquí. Si lo abriste, vuelve más tarde a solicitar uno nuevo.")}
+        else status("No se pudo solicitar el correo. Comprueba tu conexión y la configuración de Supabase (HTTP "+(error.status||"?")+").");
+      }else{stepTo("verify");status("Revisa Gmail y Spam. Sin abrir el enlace, haz clic derecho en «Reset password», copia su dirección y pégala aquí.")}
     }else if(step==="verify"){
-      const code=get("code").value.trim();
-      if(!/^\d{6}$/.test(code)){status("Escribe los seis números del correo.");return;}
-      const {error}=await client.auth.verifyOtp({email:get("email").value.trim(),token:code,type:"recovery"});
-      if(error)status("Código incorrecto, vencido o ya utilizado. Vuelve atrás para solicitar otro.");
-      else{stepTo("reset");status("Código confirmado. Establece una contraseña nueva de al menos 12 caracteres.")}
+      const raw=get("link").value.trim();
+      let u;
+      try{u=new URL(raw)}catch{status("Copia la dirección completa del enlace del correo, no el texto del botón.");return;}
+      const expectedOrigin=new URL(SUPABASE_URL).origin;
+      if(u.origin!==expectedOrigin||u.pathname!=="/auth/v1/verify"||u.searchParams.get("type")!=="recovery"){
+        status("El enlace debe ser el de recuperación de Supabase para TsysOptics. No pegues enlaces de otros sitios.");
+        return;
+      }
+      const tokenHash=u.searchParams.get("token");
+      if(!tokenHash||tokenHash.length<12){status("El enlace parece incompleto. Copia la dirección entera desde Gmail.");return;}
+      const {data,error}=await client.auth.verifyOtp({token_hash:tokenHash,type:"recovery"});
+      get("link").value="";
+      if(error||!data?.session)status("El enlace ya fue usado, expiró o fue procesado automáticamente. Solicita uno nuevo cuando termine el límite de envíos.");
+      else{stepTo("reset");status("Enlace verificado. Establece una contraseña nueva de al menos 12 caracteres.")}
     }else{
       if(get("pass").value.length<12){status("La contraseña debe tener al menos 12 caracteres.");return}
       if(get("pass").value!==get("confirm").value){status("Las contraseñas no coinciden.");return}
@@ -86,6 +95,6 @@ get("form").addEventListener("submit",async e=>{
   }catch{status("No se pudo conectar con Supabase. Revisa tu internet.")}
   finally{btn.disabled=false}
 });
-if(new URLSearchParams(location.search).get("motivo")==="enlace_vencido")status("El enlace anterior ya no sirve. Solicita un código y escríbelo aquí, sin abrir enlaces.");
+if(new URLSearchParams(location.search).get("motivo")==="enlace_vencido")status("El enlace anterior no sirve. Solicita uno nuevo y copia su dirección sin abrirlo.");
 </script>
 </body></html>
