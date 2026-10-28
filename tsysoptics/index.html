@@ -61,6 +61,8 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 "use strict";
 const key="tsysoptics_demo_piloto_v01";
 let currentRole=null;
+// Aunque estos datos DEMO son locales, el panel no debe compartirlos entre roles.
+
 let data;try{data=JSON.parse(localStorage.getItem(key)||"{}")}catch{data={}}
 for(const k of ["citas","productos","ventas"])if(!Array.isArray(data[k]))data[k]=[];
 const $=id=>document.getElementById(id),cop=n=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(Number(n)||0);
@@ -75,7 +77,7 @@ function list(id,records,format,remove){const el=$(id);el.replaceChildren();if(!
 function render(){
  $("metric-citas").textContent=data.citas.length;
  $("metric-productos").textContent=currentRole==="administrador"?data.productos.length:"🔒";
- $("metric-ventas").textContent=currentRole==="administrador"?cop(data.ventas.reduce((a,x)=>a+x.total,0)):"🔒";list("lista-citas",data.citas,r=>[r.referencia,r.fecha+" · "+r.hora+" · "+r.tipo],"citas");list("lista-productos",data.productos,r=>[r.nombre,r.tipo+" · "+cop(r.precio)+" · "+r.cantidad+" disponibles"],null);list("lista-ventas",data.ventas,r=>[r.producto+" × "+r.cantidad,"Total "+cop(r.total)+" · Abono "+cop(r.abono)+" · Saldo "+cop(r.saldo)],null);const old=$("venta-producto").value;$("venta-producto").replaceChildren();for(const p of data.productos){const o=document.createElement("option");o.value=p.id;o.textContent=p.nombre+" · "+cop(p.precio)+" ("+p.cantidad+" uds)";$("venta-producto").add(o)}if(data.productos.some(x=>x.id===old))$("venta-producto").value=old;preview()}
+ $("metric-ventas").textContent=currentRole==="administrador"?cop(data.ventas.reduce((a,x)=>a+x.total,0)):"🔒";list("lista-citas",data.citas,r=>[r.referencia,r.fecha+" · "+r.hora+" · "+r.tipo],"citas");list("lista-productos",currentRole==="administrador"?data.productos:[],r=>[r.nombre,r.tipo+" · "+cop(r.precio)+" · "+r.cantidad+" disponibles"],null);list("lista-ventas",currentRole==="administrador"?data.ventas:[],r=>[r.producto+" × "+r.cantidad,"Total "+cop(r.total)+" · Abono "+cop(r.abono)+" · Saldo "+cop(r.saldo)],null);const old=$("venta-producto").value;$("venta-producto").replaceChildren();for(const p of (currentRole==="administrador"?data.productos:[])){const o=document.createElement("option");o.value=p.id;o.textContent=p.nombre+" · "+cop(p.precio)+" ("+p.cantidad+" uds)";$("venta-producto").add(o)}if(data.productos.some(x=>x.id===old))$("venta-producto").value=old;preview()}
 const uuid=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random();
 $("form-cita").addEventListener("submit",e=>{e.preventDefault();const f=new FormData(e.currentTarget);data.citas.push({id:uuid(),referencia:String(f.get("referencia")).trim(),fecha:String(f.get("fecha")),hora:String(f.get("hora")),tipo:String(f.get("tipo"))});save();e.currentTarget.reset();render()});
 $("form-producto").addEventListener("submit",e=>{e.preventDefault();if(currentRole!=="administrador"){toast("Acceso restringido.");return;}const f=new FormData(e.currentTarget),nombre=String(f.get("nombre")).trim(),precio=Number(f.get("precio")),cantidad=Number(f.get("cantidad"));if(!nombre||!Number.isFinite(precio)||precio<0||!Number.isSafeInteger(cantidad)||cantidad<0){toast("Revisa el precio y las existencias.");return}data.productos.push({id:uuid(),nombre,tipo:String(f.get("tipo")),precio,cantidad});save();e.currentTarget.reset();render()});
