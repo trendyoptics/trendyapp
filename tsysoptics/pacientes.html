@@ -94,7 +94,7 @@ form.addEventListener("submit",async e=>{
    ? await sb.from("pacientes_tsysoptics").update(data).eq("id",selectedId).select("id").single()
    : await sb.from("pacientes_tsysoptics").insert({...data,documento:doc,tipo_documento:tipo}).select("id").single();
   if(result.error){status(result.error.code==="23505"?"Ese documento ya está registrado.":"No se pudo guardar. Verifica los datos y permisos.");return;}
-  resetForm();status("Paciente ficticio guardado en Supabase.");await searchPatients();
+  resetForm();busy=false;await searchPatients();status("Paciente ficticio guardado en Supabase. Listado actualizado.");
  } catch{status("No se pudo conectar con Supabase.");}
  finally{busy=false;save.disabled=false}
 });
