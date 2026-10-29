@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>TrendyOptics | Historia Clínica Optométrica y Cierre de Caja</title>
+  <title>TrendyOptics | Historia Clínica Optométrica</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -87,8 +87,16 @@
       }
     }
   </style>
+<style id="tsys-clinic-access">
+  body:not(.tsys-clinica-autorizada)>*:not(#tsys-clinica-gate){visibility:hidden!important}
+  #tsys-clinica-gate{position:fixed;inset:0;background:#081226;color:#fff;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px}
+  #tsys-clinica-gate>div{background:#0B1C40;border:1px solid #344563;max-width:520px;padding:24px;border-radius:14px;font:15px/1.55 system-ui}
+  #tsys-clinica-gate a{color:#fff;text-decoration:underline}
+  #tsys-clinica-gate[hidden]{display:none!important}
+</style>
 </head>
 <body class="min-h-screen flex flex-col justify-between pb-28 lg:pb-12">
+<div id="tsys-clinica-gate"><div><h2>Historia clínica · Trendy Optics</h2><p id="tsys-clinica-gate-message">Verificando sesión y permisos…</p><p><a href="./tsysoptics/">Volver al panel de TsysOptics</a></p></div></div>
 
   <!-- ENCABEZADO SUPERIOR -->
   <header class="no-print bg-[#0B172A] text-white shadow-lg sticky top-0 z-40 border-b border-slate-800">
@@ -127,7 +135,7 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white">TrendyOptics</h1>
-            <span class="text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full">Drive Activo</span>
+            <span id="storageStatus" class="text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full">Conectando Supabase</span>
           </div>
           <p class="text-[11px] text-slate-300 leading-tight">Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá &bull; NIT: 1073263942-5 &bull; Cel: +57 3003391055</p>
         </div>
@@ -138,15 +146,8 @@
           <i data-lucide="folder-search" class="w-4 h-4 text-sky-400"></i>
           <span>Pacientes (<span id="savedCountBadge">0</span>)</span>
         </button>
-        <a href="https://docs.google.com/spreadsheets/d/19hbfmMq5Vdq4OsQDuG3kq-mD_lLoC2EuxFXXLNeU8Kw/edit?gid=0#gid=0" target="_blank" class="flex items-center gap-1.5 text-xs font-semibold bg-emerald-900/50 hover:bg-emerald-800/70 text-emerald-200 px-3 py-2 rounded-lg border border-emerald-700/60">
-          <i data-lucide="table" class="w-4 h-4 text-emerald-400"></i>
-          <span class="hidden md:inline">Abrir Excel Drive</span>
-        </a>
-        <button type="button" onclick="openDriveModal()" class="flex items-center gap-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg border border-slate-700">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-          <i data-lucide="cloud" class="w-4 h-4 text-emerald-400"></i>
-          <span class="hidden sm:inline">Drive</span>
-        </button>
+        
+        
         <button type="button" onclick="limpiarFormulario()" class="flex items-center gap-1 text-xs font-semibold bg-rose-950/60 hover:bg-rose-900/80 text-rose-200 px-2.5 py-2 rounded-lg border border-rose-800/50">
           <i data-lucide="file-plus-2" class="w-4 h-4 text-rose-400"></i>
           <span class="hidden md:inline">Nueva</span>
@@ -504,9 +505,9 @@
           <span>Enviar WhatsApp (+57)</span>
         </button>
 
-        <button type="button" id="btnGuardarDrive" onclick="registrarEnDrive()" class="flex items-center justify-center gap-1.5 bg-[#0B172A] hover:bg-[#1E293B] text-white font-bold text-xs sm:text-sm px-3 sm:px-5 py-2.5 rounded-xl shadow transition">
+        <button type="button" id="btnGuardarHistoria" onclick="guardarHistoriaClinica()" class="flex items-center justify-center gap-1.5 bg-[#0B172A] hover:bg-[#1E293B] text-white font-bold text-xs sm:text-sm px-3 sm:px-5 py-2.5 rounded-xl shadow transition">
           <i data-lucide="save" class="w-4 h-4 shrink-0 text-sky-400"></i>
-          <span id="btnGuardarTexto">Registrar en Drive</span>
+          <span id="btnGuardarTexto">Guardar historia clínica</span>
         </button>
       </div>
     </div>
@@ -621,24 +622,11 @@
     </div>
   </section>
 
-  <!-- MODAL DRIVE -->
-  <div id="driveModal" class="no-print fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-3">
-      <h3 class="text-base font-bold">Estado de Google Drive</h3>
-      <p class="text-xs text-slate-600">Conectado permanentemente a <strong>trendyoptics1@gmail.com</strong>.</p>
-      <input type="text" id="driveWebhookInput" style="text-transform:none;" class="clinical-input font-mono text-xs bg-slate-50" />
-      <div class="flex gap-2">
-        <button type="button" onclick="saveDriveWebhook()" class="bg-sky-600 text-white text-xs font-bold px-3 py-2 rounded">Guardar</button>
-        <button type="button" onclick="closeDriveModal()" class="bg-slate-200 text-xs font-bold px-3 py-2 rounded">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL HISTORIAL PACIENTES -->
   <div id="historyModal" class="no-print fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col p-5">
       <div class="flex justify-between items-center pb-3 border-b">
-        <h3 class="font-bold text-base">Pacientes Guardados en este Dispositivo</h3>
+        <h3 class="font-bold text-base">Historias clínicas guardadas en Supabase</h3>
         <button onclick="closeHistoryModal()" class="text-slate-500 hover:text-black font-bold px-2">✕</button>
       </div>
       <div class="flex-1 overflow-y-auto py-2">
@@ -669,8 +657,7 @@
   <datalist id="cie10Catalog"></datalist>
 
   <script>
-    const DEFAULT_DRIVE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyRt6KGqkN_agtBbN_JPeFHQfU_dslYqAtBsBDjQjFtf3mNNuzGZKjm1ZbFm-gzpu3e/exec";
-
+    // Los registros clínicos se guardan exclusivamente en Supabase.
     // Escalas completas solicitadas: Snellen 20/20 hasta 20/800 y Métrico 0.50 M hasta 2.00 M
     const SNELLEN_FEET_OPTIONS = [
       "NO APLICA",
@@ -958,32 +945,8 @@
       window.print();
     }
 
-    async function registrarEnDrive() {
-      let d = obtenerDatos();
-      if (!d.nombre || !d.documento) {
-        mostrarToast("⚠️ Ingresa Nombre y Documento del paciente");
-        return;
-      }
-      guardarLocal(d);
-      let url = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL;
-      
-      let btn = document.getElementById('btnGuardarDrive'), txt = document.getElementById('btnGuardarTexto');
-      btn.disabled = true; txt.textContent = "Registrando...";
-
-      try {
-        await fetch(url, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(d)
-        });
-        mostrarToast("✅ ¡Registrado con éxito en Google Drive!");
-        generarConsecutivo();
-      } catch (err) {
-        mostrarToast("⚠️ Guardado en memoria local (Sin conexión)");
-      } finally {
-        btn.disabled = false; txt.textContent = "Registrar en Drive";
-      }
+    function registrarEnDrive() {
+      return window.guardarHistoriaClinica?.();
     }
 
     function enviarWhatsApp() {
@@ -1016,64 +979,28 @@
       window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, '_blank');
     }
 
-    function guardarLocal(r) {
-      let l = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
-      const idx = l.findIndex(item => item.id === r.id);
-      if (idx >= 0) l[idx] = r; else l.unshift(r);
-      localStorage.setItem('trendy_hc_records', JSON.stringify(l));
-      actualizarContadorPacientes();
+    function guardarLocal() {
+      mostrarToast("El guardado local está desactivado. Usa Supabase.");
     }
 
     function actualizarContadorPacientes() {
-      document.getElementById('savedCountBadge').textContent = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]').length;
+      if (window.tsysActualizarContador) window.tsysActualizarContador();
     }
 
-    function openDriveModal() {
-      document.getElementById('driveWebhookInput').value = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL;
-      document.getElementById('driveModal').classList.remove('hidden');
-      document.getElementById('driveModal').classList.add('flex');
-    }
-    function closeDriveModal() { document.getElementById('driveModal').classList.add('hidden'); }
-    function saveDriveWebhook() {
-      localStorage.setItem('trendy_drive_webhook', document.getElementById('driveWebhookInput').value.trim() || DEFAULT_DRIVE_WEBHOOK_URL);
-      mostrarToast("URL Guardada");
-      closeDriveModal();
-    }
+    function openDriveModal() { mostrarToast("La configuración de Google Drive fue retirada; el sistema usa Supabase."); }
+    function closeDriveModal() {}
+    function saveDriveWebhook() { mostrarToast("La configuración de Google Drive ya no se utiliza."); }
 
     function openHistoryModal() {
-      let l = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
-      document.getElementById('tablaHistorialBody').innerHTML = l.map(r => `
-        <tr class="hover:bg-slate-50">
-          <td class="py-2">${r.fechaConsulta || ''}</td>
-          <td class="py-2 font-bold">${r.nombre || ''}</td>
-          <td class="py-2">${r.documento || ''}</td>
-          <td class="py-2 font-mono text-[11px]">OD: ${r.odEsfera} ${r.odCilindro} x ${r.odEje}°<br/>OI: ${r.oiEsfera} ${r.oiCilindro} x ${r.oiEje}°</td>
-          <td class="py-2"><b>${formatoCOP(r.precioTotal)}</b><br/><span class="text-amber-700">Saldo: ${formatoCOP(r.saldoPendiente)}</span></td>
-          <td class="py-2 text-right"><button onclick="cargarPaciente('${r.id}')" class="bg-sky-100 text-sky-800 font-bold px-2.5 py-1 rounded">Cargar</button></td>
-        </tr>
-      `).join('');
-      document.getElementById('historyModal').classList.remove('hidden');
-      document.getElementById('historyModal').classList.add('flex');
+      if (window.tsysAbrirHistorial) return window.tsysAbrirHistorial();
+      mostrarToast("La conexión de historias clínicas aún no está disponible.");
     }
+
     function closeHistoryModal() { document.getElementById('historyModal').classList.add('hidden'); }
 
     function cargarPaciente(id) {
-      let l = JSON.parse(localStorage.getItem('trendy_hc_records') || '[]');
-      let r = l.find(x => x.id === id);
-      if (!r) return;
-      document.getElementById('hcConsecutivo').textContent = r.id;
-      ['fechaConsulta','horaConsulta','tipoDoc','documento','nombre','fechaNacimiento','edad','direccion','eps','ocupacion','acompanante','motivoConsulta','antecedentes','avScOdLejos','avScOiLejos','avScOdCerca','avScOiCerca','lensoOd','lensoOi','odEsfera','odCilindro','odEje','odAdicion','odAvLejos','odAvCerca','odDnp','oiEsfera','oiCilindro','oiEje','oiAdicion','oiAvLejos','oiAvCerca','oiDnp','dp','tipoLente','montura','biomicroscopia','oftalmoscopia','motilidad','cie1','cie2','cie3','cie4','cie5','notas','optometra','metodoPago'].forEach(k => {
-        if (document.getElementById(k) && r[k] !== undefined) document.getElementById(k).value = r[k];
-      });
-      document.getElementById('telefono').value = (r.telefono || '').replace(/^\+?57\s*/, '');
-      document.getElementById('precioTotal').value = r.precioTotal || 0;
-      document.getElementById('precioTotalDisplay').value = (r.precioTotal || 0).toLocaleString('es-CO');
-      document.getElementById('valorAbonado').value = r.valorAbonado || 0;
-      document.getElementById('valorAbonadoDisplay').value = (r.valorAbonado || 0).toLocaleString('es-CO');
-      document.getElementById('saldoPendiente').value = r.saldoPendiente || 0;
-      document.getElementById('saldoPendienteDisplay').value = (r.saldoPendiente || 0).toLocaleString('es-CO');
-      closeHistoryModal();
-      mostrarToast(`Cargado: ${r.nombre}`);
+      if (window.tsysCargarHistoriaClinica) return window.tsysCargarHistoriaClinica(id);
+      mostrarToast("No se pudo cargar la historia clínica.");
     }
 
     function generarConsecutivo() {
@@ -1084,6 +1011,7 @@
     }
 
     function limpiarFormulario() {
+      window.tsysResetHistoriaActual?.();
       document.getElementById('hcForm').reset();
       setTodayDate();
       poblarMenus();
@@ -1099,7 +1027,6 @@
     }
 
     function cargarConfig() {
-      document.getElementById('driveWebhookInput').value = localStorage.getItem('trendy_drive_webhook') || DEFAULT_DRIVE_WEBHOOK_URL;
       const savedLogo = localStorage.getItem('trendy_logo');
       if (savedLogo) {
         document.getElementById('defaultLogoSvg').classList.add('hidden');
@@ -1129,5 +1056,243 @@
       r.readAsDataURL(e.target.files[0]);
     }
   </script>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./tsysoptics/supabase-config.js";
+
+const gate = document.getElementById("tsys-clinica-gate");
+const gateMessage = document.getElementById("tsys-clinica-gate-message");
+const statusBadge = document.getElementById("storageStatus");
+const saveButton = document.getElementById("btnGuardarHistoria");
+const saveButtonText = document.getElementById("btnGuardarTexto");
+let currentHistoryId = null;
+let currentPatientId = null;
+let saveBusy = false;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: { flowType: "pkce", autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
+});
+
+function clinicalMessage(message) {
+  if (typeof window.mostrarToast === "function") window.mostrarToast(message);
+}
+function field(id) { return document.getElementById(id); }
+function setField(id, value) {
+  const el = field(id);
+  if (el && value !== undefined && value !== null) el.value = String(value);
+}
+function setDateTimeFromHistory(d, fechaConsulta) {
+  if (!d.fechaConsulta && fechaConsulta) {
+    const date = new Date(fechaConsulta);
+    if (!Number.isNaN(date.getTime())) {
+      setField("fechaConsulta", date.getFullYear() + "-" + String(date.getMonth()+1).padStart(2,"0") + "-" + String(date.getDate()).padStart(2,"0"));
+      setField("horaConsulta", String(date.getHours()).padStart(2,"0") + ":" + String(date.getMinutes()).padStart(2,"0"));
+    }
+  }
+}
+function formatDate(value) {
+  if (!value) return "Sin fecha";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString("es-CO");
+}
+function appendCell(row, value, className) {
+  const cell = document.createElement("td");
+  cell.className = className || "py-2";
+  cell.textContent = value == null ? "" : String(value);
+  row.append(cell);
+  return cell;
+}
+function fillClinicalForm(record) {
+  const d = record.datos_clinicos || {};
+  currentHistoryId = record.id;
+  currentPatientId = record.paciente_id || null;
+  field("hcConsecutivo").textContent = d.id || ("HC-" + record.id.slice(0,8).toUpperCase());
+  const keys = [
+    "fechaConsulta","horaConsulta","tipoDoc","documento","nombre","fechaNacimiento","edad","direccion","eps","ocupacion","acompanante",
+    "motivoConsulta","antecedentes","avScOdLejos","avScOiLejos","avScOdCerca","avScOiCerca","lensoOd","lensoOi","odEsfera","odCilindro",
+    "odEje","odAdicion","odAvLejos","odAvCerca","odDnp","oiEsfera","oiCilindro","oiEje","oiAdicion","oiAvLejos","oiAvCerca","oiDnp",
+    "dp","tipoLente","montura","biomicroscopia","oftalmoscopia","motilidad","cie1","cie2","cie3","cie4","cie5","notas","optometra","metodoPago"
+  ];
+  for (const key of keys) setField(key, d[key]);
+  setDateTimeFromHistory(d, record.fecha_consulta);
+  setField("telefono", String(d.telefono || "").replace(/^\+?57\s*/, ""));
+  const total = Number(d.precioTotal || 0);
+  const paid = Number(d.valorAbonado || 0);
+  const balance = d.saldoPendiente == null ? Math.max(0, total-paid) : Number(d.saldoPendiente || 0);
+  setField("precioTotal", total); setField("precioTotalDisplay", total.toLocaleString("es-CO"));
+  setField("valorAbonado", paid); setField("valorAbonadoDisplay", paid.toLocaleString("es-CO"));
+  setField("saldoPendiente", balance); setField("saldoPendienteDisplay", balance.toLocaleString("es-CO"));
+}
+
+async function updateHistoryCount() {
+  const { count, error } = await supabase.from("historias_clinicas_tsysoptics").select("id", {count:"exact", head:true});
+  if (!error && field("savedCountBadge")) field("savedCountBadge").textContent = String(count ?? 0);
+}
+window.tsysActualizarContador = updateHistoryCount;
+window.tsysResetHistoriaActual = () => { currentHistoryId = null; currentPatientId = null; };
+
+async function openHistoryModal(patientId = null) {
+  const tbody = field("tablaHistorialBody");
+  tbody.replaceChildren();
+  let query = supabase
+    .from("historias_clinicas_tsysoptics")
+    .select("id,paciente_id,fecha_consulta,optometra_nombre,datos_clinicos,estado,paciente:pacientes_tsysoptics(tipo_documento,documento,nombre_completo)")
+    .order("fecha_consulta", {ascending:false})
+    .limit(100);
+  if (patientId) query = query.eq("paciente_id", patientId);
+  const { data, error } = await query;
+  if (error) {
+    clinicalMessage("No se pudo consultar el historial. Verifica la migración y los permisos.");
+    return;
+  }
+  const rows = data || [];
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    const td = appendCell(tr, patientId ? "Este paciente todavía no tiene historias. Cierra esta ventana para iniciar una consulta." : "Todavía no hay historias clínicas guardadas.", "py-5 text-center text-slate-500");
+    td.colSpan = 6; tbody.append(tr);
+  } else {
+    for (const r of rows) {
+      const d = r.datos_clinicos || {};
+      const patient = r.paciente || {};
+      const tr = document.createElement("tr");
+      tr.className = "hover:bg-slate-50";
+      appendCell(tr, formatDate(r.fecha_consulta));
+      appendCell(tr, patient.nombre_completo || d.nombre || "Sin nombre", "py-2 font-bold");
+      appendCell(tr, [patient.tipo_documento || d.tipoDoc, patient.documento || d.documento].filter(Boolean).join(" · "));
+      appendCell(tr, "OD: " + [d.odEsfera,d.odCilindro,d.odEje].filter(v=>v!==undefined&&v!=="").join(" ") + " | OI: " + [d.oiEsfera,d.oiCilindro,d.oiEje].filter(v=>v!==undefined&&v!=="").join(" "));
+      const finance = appendCell(tr, (typeof window.formatoCOP === "function" ? window.formatoCOP(d.precioTotal || 0) : "$ " + Number(d.precioTotal||0).toLocaleString("es-CO")), "py-2");
+      const small = document.createElement("div"); small.className = "text-amber-700";
+      small.textContent = "Saldo: " + (typeof window.formatoCOP === "function" ? window.formatoCOP(d.saldoPendiente || 0) : "$ " + Number(d.saldoPendiente||0).toLocaleString("es-CO"));
+      finance.append(small);
+      const action = appendCell(tr, "", "py-2 text-right");
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "bg-sky-100 text-sky-800 font-bold px-2.5 py-1 rounded"; btn.textContent = "Cargar";
+      btn.addEventListener("click", () => window.tsysCargarHistoriaClinica(r.id));
+      action.append(btn);
+      tbody.append(tr);
+    }
+  }
+  field("historyModal").classList.remove("hidden");
+  field("historyModal").classList.add("flex");
+}
+window.tsysAbrirHistorial = openHistoryModal;
+window.openHistoryModal = openHistoryModal;
+
+async function loadHistory(id) {
+  const { data, error } = await supabase
+    .from("historias_clinicas_tsysoptics")
+    .select("id,paciente_id,fecha_consulta,datos_clinicos")
+    .eq("id", id).single();
+  if (error || !data) { clinicalMessage("No se pudo cargar la historia clínica."); return; }
+  fillClinicalForm(data);
+  if (typeof window.closeHistoryModal === "function") window.closeHistoryModal();
+  clinicalMessage("Historia clínica cargada.");
+}
+window.tsysCargarHistoriaClinica = loadHistory;
+window.cargarPaciente = loadHistory;
+
+async function saveClinicalHistory() {
+  if (saveBusy) return;
+  const d = window.obtenerDatos();
+  const type = String(d.tipoDoc || "").trim().toUpperCase();
+  const documentNumber = String(d.documento || "").trim().toUpperCase();
+  const name = String(d.nombre || "").trim().toUpperCase();
+  if (!type || !documentNumber || !name) {
+    clinicalMessage("Completa tipo de documento, documento y nombre del paciente.");
+    return;
+  }
+  if (d.fechaNacimiento && !/^\d{4}-\d{2}-\d{2}$/.test(d.fechaNacimiento)) {
+    clinicalMessage("Verifica la fecha de nacimiento.");
+    return;
+  }
+  const date = d.fechaConsulta || new Date().toISOString().slice(0,10);
+  const time = d.horaConsulta || "12:00";
+  const dateObj = new Date(date + "T" + time + ":00");
+  if (Number.isNaN(dateObj.getTime())) {
+    clinicalMessage("Verifica la fecha y hora de consulta.");
+    return;
+  }
+  const phoneDigits = String(d.telefono || "").replace(/^\+?57\s*/, "").trim();
+  const patient = {
+    tipo_documento: type,
+    documento: documentNumber,
+    nombre_completo: name,
+    fecha_nacimiento: d.fechaNacimiento || null,
+    telefono: phoneDigits ? "+57 " + phoneDigits : null,
+    direccion: String(d.direccion || "").trim() || null,
+    eps: String(d.eps || "").trim() || null
+  };
+  saveBusy = true;
+  if (saveButton) saveButton.disabled = true;
+  if (saveButtonText) saveButtonText.textContent = "Guardando…";
+  try {
+    const { data, error } = await supabase.rpc("guardar_historia_clinica_tsysoptics", {
+      p_paciente: patient,
+      p_datos_clinicos: d,
+      p_fecha_consulta: dateObj.toISOString(),
+      p_optometra_nombre: String(d.optometra || "").trim() || null,
+      p_historia_id: currentHistoryId
+    });
+    if (error || !data) {
+      clinicalMessage("No se pudo guardar. Comprueba la migración y los permisos de la base de datos.");
+      return;
+    }
+    currentHistoryId = data;
+    const { data: patientRow } = await supabase.from("pacientes_tsysoptics")
+      .select("id").eq("tipo_documento", type).eq("documento", documentNumber).maybeSingle();
+    currentPatientId = patientRow?.id || currentPatientId;
+    await updateHistoryCount();
+    clinicalMessage("Historia clínica guardada en Supabase.");
+  } catch {
+    clinicalMessage("No se pudo conectar con Supabase. Inténtalo de nuevo.");
+  } finally {
+    saveBusy = false;
+    if (saveButton) saveButton.disabled = false;
+    if (saveButtonText) saveButtonText.textContent = "Guardar historia clínica";
+  }
+}
+window.guardarHistoriaClinica = saveClinicalHistory;
+
+try {
+  const { data: userResult, error: authError } = await supabase.auth.getUser();
+  const user = userResult?.user;
+  if (authError || !user) throw new Error("No hay sesión activa.");
+  const { data: profile, error: profileError } = await supabase
+    .from("usuarios_tsysoptics").select("rol,activo").eq("id", user.id).maybeSingle();
+  if (profileError || !profile?.activo || profile.rol !== "administrador") {
+    throw new Error("La historia clínica principal requiere una cuenta administradora activa.");
+  }
+  document.body.classList.add("tsys-clinica-autorizada");
+  gate.hidden = true;
+  if (statusBadge) statusBadge.textContent = "Supabase conectado";
+  await updateHistoryCount();
+  const requestedPatientId = new URLSearchParams(window.location.search).get("paciente");
+  if (requestedPatientId) {
+    const { data: patientRow, error: patientError } = await supabase
+      .from("pacientes_tsysoptics")
+      .select("id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps")
+      .eq("id", requestedPatientId).maybeSingle();
+    if (patientError || !patientRow) {
+      clinicalMessage("No se encontró el paciente solicitado.");
+    } else {
+      currentPatientId = patientRow.id;
+      setField("tipoDoc", patientRow.tipo_documento);
+      setField("documento", patientRow.documento);
+      setField("nombre", patientRow.nombre_completo);
+      setField("fechaNacimiento", patientRow.fecha_nacimiento || "");
+      setField("telefono", String(patientRow.telefono || "").replace(/^\+?57\s*/, ""));
+      setField("direccion", patientRow.direccion || "");
+      setField("eps", patientRow.eps || "");
+      await openHistoryModal(patientRow.id);
+    }
+  }
+} catch (error) {
+  gateMessage.textContent = error?.message === "No hay sesión activa."
+    ? "Inicia sesión desde el panel de TsysOptics para abrir la historia clínica."
+    : "No se pudo validar el acceso. Verifica la sesión, el perfil administrador y la conexión.";
+  if (statusBadge) statusBadge.textContent = "Acceso no validado";
+}
+</script>
 </body>
 </html>
