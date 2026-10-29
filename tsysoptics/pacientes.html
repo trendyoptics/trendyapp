@@ -385,28 +385,26 @@ form.addEventListener("submit",async e=>{
  const nombre=rowField("nombre_completo"),tipo=rowField("tipo_documento"),doc=rowField("documento").toUpperCase();
  if(doc.length<3||doc.length>30||!nombre){status("Ingresa un documento válido y el nombre completo del paciente.");return}
  const data={nombre_completo:nombre,fecha_nacimiento:rowField("fecha_nacimiento")||null,telefono:rowField("telefono")||null,direccion:rowField("direccion")||null,eps:rowField("eps")||null};
+ let savedConfirmed=false;
  busy=true;save.disabled=true;status("Guardando…");
  try {
   const result=selectedId
-   ? await sb.from("pacientes_tsysoptics").update(data).eq("id",selectedId).select("id").single()
-   : await sb.from("pacientes_tsysoptics").insert({...data,documento:doc,tipo_documento:tipo}).select("id").single();
+   ? await sb.from("pacientes_tsysoptics").update(data).eq("id",selectedId).select("id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps").single()
+   : await sb.from("pacientes_tsysoptics").insert({...data,documento:doc,tipo_documento:tipo}).select("id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps").single();
   if(result.error){status(result.error.code==="23505"?"Ese documento ya está registrado.":"No se pudo guardar. Verifica los datos y permisos.");return;}
-  const savedId=result.data.id;
+  savedConfirmed=true;
+  // El registro devuelto por Supabase es el mismo que acaba de guardarse.
+  // No se realiza otra escritura ni se repite la operación.
+  const saved=result.data;
   resetForm();busy=false;
-  // Evitar que un resultado de búsqueda anterior sobrescriba la consulta actual.
-  searchRequest++;
+  choosePatient(saved);
   await searchPatients();
-  const {data:saved,error:savedError}=await sb.from("pacientes_tsysoptics")
-   .select("id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps")
-   .eq("id",savedId).maybeSingle();
-  if(!savedError&&saved&&authorized){
-   choosePatient(saved);
-   status("Paciente guardado. Puedes abrir su historia clínica desde la ficha.");
-  }else{
-   showPatientView("buscar",true);
-   status("Paciente guardado en Supabase. Busca por documento para ver su ficha.");
-  }
- } catch{status("No se pudo conectar con Supabase.");}
+  status("Paciente guardado correctamente. La ficha y la historia clínica están disponibles.");
+ }catch{
+  status(savedConfirmed
+   ?"El paciente se guardó, pero no fue posible actualizar la pantalla. Busca su documento antes de intentar registrarlo de nuevo."
+   :"No se pudo confirmar el guardado. Revisa la conexión y busca el documento antes de volver a intentar.");
+ }
  finally{busy=false;save.disabled=false}
 });
 $("cancel").addEventListener("click",()=>{
