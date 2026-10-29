@@ -149,6 +149,14 @@
  searchInput.addEventListener("input",filterHistory);
  window.addEventListener("tsys:ventas-lista",filterHistory);
 
+ window.tsysVentasMobileReset=()=>{
+  filterInput.value="";
+  filterState.textContent="";
+  searchInput.value="";
+  matchCount.textContent="";
+  setTab("nueva");
+ };
+
  const cartBadge=buttons.get("nueva")?.badge;
  window.addEventListener("tsys:ventas-carrito",event=>{
   const quantity=Number(event.detail?.unidades)||0;
