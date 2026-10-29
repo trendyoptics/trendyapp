@@ -1,5 +1,6 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+import "./movil.js";
 
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
  auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
@@ -11,7 +12,20 @@ const labels={efectivo:"Efectivo",nequi:"Nequi",daviplata:"Daviplata",transferen
 let admin=false,initializing=false,loading=false;
 let snapshot=null,requestGeneration=0,doing=null;
 let movementToken=crypto.randomUUID();
-function status(id,msg){$(id).textContent=msg}
+function status(id,msg){
+ const field=$(id);
+ if(field)field.textContent=msg;
+}
+function ensureRefundLabel(){
+ if($("caja-devoluciones-resumen"))return;
+ const target=$("caja-manuales-resumen");
+ if(!target)return;
+ const note=document.createElement("p");
+ note.id="caja-devoluciones-resumen";
+ note.className="muted";
+ target.before(note);
+}
+ensureRefundLabel();
 function el(tag,value,cls){
  const node=document.createElement(tag);
  if(value!==undefined&&value!==null)node.textContent=String(value);
@@ -82,7 +96,10 @@ async function refresh(){
   ]);
   if(!admin||mine!==requestGeneration)return;
   if(r.error||turnos.error){
-   status("caja-estado-mensaje","No se pudo cargar Caja. Comprueba la conexión y los permisos.");
+   console.warn("Error consultando Caja:",r.error?.code||turnos.error?.code||"Consulta");
+   snapshot=null;
+   setControls();notify();
+   status("caja-estado-mensaje","No se pudieron consultar los datos de Caja. Revisa la conexión y pulsa Actualizar.");
    return;
   }
   snapshot=Array.isArray(r.data)&&r.data.length?r.data[0]:null;
@@ -112,8 +129,11 @@ async function refresh(){
     li.append(info);moves.append(li);
    }
   }else moves.append(el("p","Sin movimientos todavía."));
- }catch{
-  status("caja-estado-mensaje","No fue posible actualizar Caja.");
+ }catch(error){
+  console.warn("Caja: error al actualizar interfaz",error);
+  snapshot=null;
+  setControls();notify();
+  status("caja-estado-mensaje","Error al presentar Caja. Pulsa Actualizar. Si continúa, recarga la página.");
  }finally{loading=false}
 }
 async function operation(name,work,statusId,success){
