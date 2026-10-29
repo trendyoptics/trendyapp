@@ -1,0 +1,331 @@
+/* TsysOptics · Ventas táctil piloto. Nunca altera las vistas de escritorio. */
+#tsys-ventas-nav,
+#tsys-ventas-product-search,
+#tsys-ventas-history-search{display:none}
+#ventas .tsys-sales-disclosure summary{display:none}
+#ventas .tsys-sales-disclosure{display:contents}
+#ventas .tsys-sales-disclosure>p{margin-top:12px}
+@media(max-width:850px){
+ #ventas{min-width:0}
+ #ventas .tsys-sales-disclosure{
+  display:block;
+  margin:9px 0 10px;
+  padding:10px 13px;
+  border:1px solid #d5dfed;
+  border-radius:11px;
+  background:color-mix(in srgb,var(--tsys-primary,#0B1C40) 6%,white);
+  color:var(--tsys-primary,#0B1C40);
+ }
+ #ventas .tsys-sales-disclosure summary{
+  display:list-item;
+  cursor:pointer;
+  font-size:12px;
+  line-height:1.45;
+  font-weight:750;
+  color:var(--tsys-primary,#0B1C40);
+  list-style-position:inside;
+ }
+ #ventas .tsys-sales-disclosure p{
+  margin:10px 0 0;
+  padding-top:9px;
+  border-top:1px solid #d9e1ed;
+  font-size:12px;
+  line-height:1.5;
+  color:#465775;
+ }
+ #tsys-ventas-nav.tsys-sales-tabs{
+  position:sticky;
+  top:57px;
+  z-index:35;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:stretch;
+  gap:5px;
+  padding:7px 4px;
+  margin:10px -4px 10px;
+  background:var(--tsys-bg,#f2f2f2);
+  border-radius:12px;
+  box-shadow:0 2px 12px rgba(8,18,38,.06);
+  scroll-margin-top:62px;
+ }
+ #tsys-ventas-nav .tsys-sales-tab{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:4px;
+  min-width:0;
+  min-height:51px;
+  padding:9px 5px;
+  background:#fff !important;
+  color:#3b4a64 !important;
+  -webkit-text-fill-color:#3b4a64 !important;
+  border:1px solid #d8e0eb !important;
+  border-radius:10px;
+  font:750 11.5px/1.2 system-ui,-apple-system,sans-serif;
+  white-space:normal;
+ }
+ #tsys-ventas-nav .tsys-sales-tab.is-active{
+  background:var(--tsys-primary,#0B1C40) !important;
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  border-color:var(--tsys-primary,#0B1C40) !important;
+ }
+ #tsys-ventas-nav .tsys-sales-tab:focus-visible{
+  outline:3px solid var(--tsys-accent,#0077B6);
+  outline-offset:2px;
+ }
+ #tsys-ventas-nav .tsys-sales-tab-icon{font-size:16px;flex:none}
+ #tsys-ventas-nav .tsys-sales-tab-label{min-width:0;overflow-wrap:anywhere}
+ #tsys-ventas-nav .tsys-sales-tab-badge{
+  font:800 10px system-ui;
+  color:var(--tsys-primary,#0B1C40);
+  -webkit-text-fill-color:var(--tsys-primary,#0B1C40);
+  background:#fff;
+  padding:2px 5px;
+  border-radius:100px;
+ }
+ #ventas[data-tsys-mobile-tab="nueva"] .tsys-sales-history-card,
+ #ventas[data-tsys-mobile-tab="nueva"] #ventas-form-abono,
+ #ventas[data-tsys-mobile-tab="historial"] #form-venta,
+ #ventas[data-tsys-mobile-tab="historial"] #ventas-form-abono,
+ #ventas[data-tsys-mobile-tab="abonos"] #form-venta,
+ #ventas[data-tsys-mobile-tab="abonos"] .tsys-sales-history-card,
+ #ventas .tsys-sales-info-card {
+  display:none !important;
+ }
+ #ventas:not([data-tsys-mobile-tab="historial"]) > .venta-resumen{
+  display:none!important;
+ }
+ #ventas > .cols{
+  display:block;
+  margin-top:0 !important;
+ }
+ #ventas > .cols > .card{
+  width:100%;
+  min-width:0;
+  margin:0 0 12px;
+  box-shadow:0 3px 15px rgba(8,18,38,.045);
+ }
+ #ventas .venta-resumen{
+  margin:8px 0 12px;
+  gap:9px;
+ }
+ #ventas .venta-resumen .card{
+  padding:12px;
+  border-radius:11px;
+ }
+ #ventas .venta-resumen strong{
+  font-size:19px;
+  font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere;
+ }
+ #ventas #form-venta,#ventas #ventas-form-abono{
+  gap:12px;
+  scroll-margin-top:127px;
+ }
+ #ventas #form-venta h2,#ventas #ventas-form-abono h2,
+ #ventas .tsys-sales-history-card h2{
+  font-size:19px;
+  margin:0;
+  color:var(--tsys-primary,#0B1C40);
+ }
+ #ventas #venta-turno-estado,#ventas #ventas-abono-turno{
+  border:1px solid #d7e0ed;
+  border-radius:9px;
+  background:#f6f8fc;
+  padding:11px 12px;
+  margin:0;
+  color:#435572;
+  line-height:1.4;
+  font-size:12px;
+ }
+ #ventas .form label{font-size:13px;line-height:1.4;color:#344663}
+ #ventas .form input,#ventas .form select{
+  min-height:51px;
+  font-size:16px;
+  border-radius:10px;
+  background:#fff;
+  color:#112445;
+  border:1px solid #cbd5e2;
+ }
+ #ventas .form input:focus-visible,#ventas .form select:focus-visible,
+ #ventas .tsys-sales-history-search input:focus-visible,
+ #ventas .tsys-sales-product-search input:focus-visible{
+  outline:2px solid var(--tsys-accent,#0077B6);
+  outline-offset:1px;
+ }
+ #tsys-ventas-product-search,#tsys-ventas-history-search{
+  display:grid;
+  gap:5px;
+  margin:1px 0 4px;
+ }
+ #ventas .tsys-sales-product-search label,
+ #ventas .tsys-sales-history-search label{
+  display:block;
+  margin:0;
+  font-size:13px;
+  color:#344663;
+  font-weight:750;
+ }
+ #ventas .tsys-sales-product-search input,
+ #ventas .tsys-sales-history-search input{
+  display:block;
+  min-height:51px;
+  width:100%;
+  padding:11px 13px;
+  border:1px solid #c5d0e0;
+  border-radius:10px;
+  background:white;
+  color:#112445;
+  font:400 16px system-ui;
+  -webkit-text-fill-color:#112445;
+ }
+ #ventas .tsys-sales-search-state{
+  color:#596b85;
+  font-size:11px;
+  line-height:1.5;
+  min-height:14px;
+ }
+ #ventas #venta-agregar-producto,
+ #ventas #venta-guardar,
+ #ventas #ventas-registrar-abono,
+ #ventas #ventas-actualizar{
+  display:block;
+  width:100%;
+  min-height:51px;
+  font-size:14px;
+ }
+ #ventas #venta-carrito{
+  gap:8px;
+  margin:4px 0;
+ }
+ #ventas #venta-carrito .item{
+  border:1px solid #dce3ed;
+  background:#f8fafd;
+  padding:12px;
+  align-items:center;
+  gap:10px;
+ }
+ #ventas #venta-carrito .item>div{
+  min-width:0;
+  flex:1 1 130px;
+ }
+ #ventas #venta-carrito .item button{
+  flex:none;
+  min-width:76px;
+  min-height:44px;
+  padding:8px;
+ }
+ #ventas .money{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-items:center;
+  justify-content:space-between;
+  padding:13px;
+  font-size:12px;
+  color:#455671;
+  border:1px solid #dbe2ec;
+  border-radius:10px;
+  background:#eef2f7;
+ }
+ #ventas .money strong{
+  color:var(--tsys-primary,#0B1C40);
+  font-size:19px;
+  font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere;
+ }
+ #ventas #venta-form-status,
+ #ventas #ventas-abono-status{
+  font-size:12px;
+  line-height:1.5;
+  min-height:0;
+ }
+ #ventas .tsys-sales-history-card .item{
+  align-items:stretch;
+  flex-direction:column;
+  background:#f9fafc;
+  border:1px solid #dae2ed;
+  padding:13px;
+  gap:10px;
+ }
+ #ventas .tsys-sales-history-card .item strong{
+  color:var(--tsys-primary,#0B1C40);
+  font-size:13px;
+ }
+ #ventas .tsys-sales-history-card .item small{
+  line-height:1.5;
+  font-size:11px;
+  overflow-wrap:anywhere;
+ }
+ #ventas .venta-fila-controles{
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+ }
+ #ventas .venta-fila-controles button,
+ #ventas .venta-fila-controles a.btn{
+  width:100%;
+  min-height:44px;
+  padding:9px 7px;
+  border:1px solid #cad5e5;
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:12px;
+  white-space:normal;
+ }
+ #ventas .venta-fila-controles .venta-fila-info{
+  grid-column:span 2;
+  max-width:none;
+  color:#735c24;
+  font-size:11px;
+ }
+ #ventas #lista-ventas{gap:10px}
+ #ventas #ventas-link-devoluciones{
+  display:none !important; /* Se ofrece en Más > Notas internas */
+ }
+ #ventas #ventas-form-abono{scroll-margin-top:127px}
+ #venta-comprobante{
+  align-items:center;
+  padding:14px 8px calc(82px + env(safe-area-inset-bottom,0px));
+ }
+ #venta-comprobante .recibo{
+  padding:16px;
+  max-width:100%;
+  max-height:calc(100dvh - 112px);
+  border-radius:14px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+ }
+ #venta-comprobante .recibo table{
+  display:block;
+  max-width:100%;
+  overflow-x:auto;
+  font-size:11px;
+ }
+ #venta-comprobante .recibo-acciones{gap:8px}
+ #venta-comprobante .recibo-acciones button{
+  min-height:44px;
+  flex:1 1 120px;
+ }
+ #venta-anular-modal .venta-anular-panel{
+  padding:17px;
+  max-width:100%;
+  max-height:calc(100dvh - 105px);
+ }
+}
+@media(max-width:370px){
+ #tsys-ventas-nav .tsys-sales-tab{font-size:10px;padding:8px 3px}
+ #tsys-ventas-nav .tsys-sales-tab-icon{font-size:14px}
+ #ventas .venta-fila-controles{grid-template-columns:1fr}
+ #ventas .venta-fila-controles .venta-fila-info{grid-column:auto}
+}
+@media(print){
+ #tsys-ventas-nav,#tsys-ventas-product-search,#tsys-ventas-history-search{display:none!important}
+ #ventas .tsys-sales-disclosure{display:contents!important}
+ #ventas .tsys-sales-disclosure summary{display:none!important}
+}
