@@ -1475,6 +1475,20 @@ try {
         setField("eps", patientRow.eps || "");
         // Si el paciente tiene una única consulta, abrir sus valores históricos
         // directamente. Así no se confunden los campos nuevos con la historia guardada.
+        const requestedHistoryId = new URLSearchParams(window.location.search).get("historia");
+        if (requestedHistoryId) {
+          if (!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(requestedHistoryId)) {
+            clinicalMessage("Identificador de consulta no válido.");return;
+          }
+          const {data:requestedHistory,error:historyError}=await supabase
+            .from("historias_clinicas_tsysoptics").select("id")
+            .eq("id",requestedHistoryId).eq("paciente_id",patientRow.id).maybeSingle();
+          if(historyError||!requestedHistory){
+            clinicalMessage("La consulta no existe o no pertenece al paciente seleccionado.");return;
+          }
+          await loadHistory(requestedHistory.id);
+          return;
+        }
         const { data: linked, error: linkedError } = await supabase
           .from("historias_clinicas_tsysoptics")
           .select("id")
