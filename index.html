@@ -1207,7 +1207,7 @@ async function saveClinicalHistory() {
     return;
   }
   const date = d.fechaConsulta || new Date().toISOString().slice(0,10);
-  const time = d.horaConsulta || "12:00";
+  const time = String(d.horaConsulta || "12:00").slice(0,5);
   const dateObj = new Date(date + "T" + time + ":00");
   if (Number.isNaN(dateObj.getTime())) {
     clinicalMessage("Verifica la fecha y hora de consulta.");
