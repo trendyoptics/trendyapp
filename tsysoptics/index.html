@@ -27,6 +27,11 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 #auth-message{font-size:12px;min-height:24px;color:#585F73;margin:8px 0}
 #auth-logout{border:1px solid #c9d0da;border-radius:8px;padding:8px 12px;background:#F2F2F2;color:#0B1C40;font-weight:650}
 .role-locked{opacity:.50!important;cursor:not-allowed!important;filter:grayscale(.5)}.role-locked::after{content:" 🔒";font-size:12px}.role-locked:focus-visible{outline:2px solid #585F73}.access-tile-locked{opacity:.65;position:relative}.access-tile-locked::after{content:"🔒 Exclusivo administrador";font-size:11px;color:#585F73;display:block}.access-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 15px;border:1px solid #d4dbe6;background:#e9edf4;border-radius:9px;margin-bottom:16px;font-size:12px;color:#34445d}.access-banner b{color:#0B1C40}
+.password-wrap{position:relative}
+.auth-card .password-wrap input{margin-top:0;padding-right:55px}
+.auth-card .password-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:#585F73;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.auth-card .password-toggle:hover,.auth-card .password-toggle:focus-visible{background:#e5eaf3;color:#0B1C40}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 </style></head><body>
 <section id="auth-root" class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
@@ -34,7 +39,17 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <h1>TsysOptics</h1><p>Gestión óptica inteligente · acceso privado</p>
   <form id="auth-form">
    <label>Correo o usuario<input id="auth-email" type="text" autocomplete="username" placeholder="Correo personal o externo" required></label>
-   <label>Contraseña<input id="auth-password" type="password" autocomplete="current-password" minlength="1" required></label>
+   <label for="auth-password">Contraseña</label>
+   <div class="password-wrap">
+    <input id="auth-password" type="password" autocomplete="current-password" minlength="1" required aria-describedby="auth-password-help">
+    <button id="auth-toggle-password" class="password-toggle" type="button" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">
+     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+      <path id="auth-password-strike" d="M3 3l18 18" hidden/>
+     </svg>
+    </button>
+   </div>
+   <span id="auth-password-help" class="sr-only">Pulsa el botón para mostrar u ocultar la contraseña escrita.</span>
    <button class="btn" id="auth-submit" type="submit">Ingresar</button>
   </form>
   <div id="auth-message" role="status" aria-live="polite">Verificando configuración…</div>

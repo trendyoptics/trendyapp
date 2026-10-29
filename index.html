@@ -1300,7 +1300,24 @@ try {
         setField("telefono", String(patientRow.telefono || "").replace(/^\+?57\s*/, ""));
         setField("direccion", patientRow.direccion || "");
         setField("eps", patientRow.eps || "");
-        await openHistoryModal(patientRow.id);
+        // Si el paciente tiene una única consulta, abrir sus valores históricos
+        // directamente. Así no se confunden los campos nuevos con la historia guardada.
+        const { data: linked, error: linkedError } = await supabase
+          .from("historias_clinicas_tsysoptics")
+          .select("id")
+          .eq("paciente_id", patientRow.id)
+          .order("fecha_consulta", {ascending:false})
+          .limit(2);
+        if (linkedError) {
+          clinicalMessage("No se pudieron consultar las historias del paciente.");
+        } else if (linked?.length === 1) {
+          await loadHistory(linked[0].id);
+          clinicalMessage("Historia anterior cargada. Es una consulta finalizada y no se puede sobrescribir.");
+        } else if (linked?.length > 1) {
+          await openHistoryModal(patientRow.id);
+        } else {
+          clinicalMessage("Paciente seleccionado. No tiene historias previas; puedes iniciar una consulta nueva.");
+        }
       };
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => { void fillRequestedPatient(); }, {once:true});
