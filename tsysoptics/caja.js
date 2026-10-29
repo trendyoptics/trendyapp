@@ -52,9 +52,20 @@ function renderSummary(){
  const medio=$("caja-medios");medio.replaceChildren();
  for(const [key,label] of Object.entries(labels)){
   const li=el("div",undefined,"item");
-  li.append(el("strong",label),el("span",money(s?.["recibido_"+key]||0)));
+  const recibido=Number(s?.["recibido_"+key]||0);
+  const devuelto=Number(s?.["devuelto_"+key]||0);
+  const values=el("div");
+  values.style.textAlign="right";
+  values.append(el("strong","Neto "+money(recibido-devuelto)));
+  const details=el("small","Cobrado "+money(recibido)+" · Devuelto "+money(devuelto));
+  details.style.display="block";details.style.marginTop="4px";
+  values.append(details);
+  li.append(el("strong",label),values);
   medio.append(li);
  }
+ status("caja-devoluciones-resumen","Devoluciones registradas en este turno: "+money(Object.keys(labels).reduce(
+  (sum,key)=>sum+Number(s?.["devuelto_"+key]||0),0))+
+  ". Los importes se descuentan del medio correspondiente; solo el efectivo afecta el arqueo físico.");
  status("caja-manuales-resumen","Movimientos manuales · Ingresos: "+money(s?.ingreso_manual||0)+" · Egresos: "+money(s?.egreso_manual||0));
  setControls();notify();
 }
