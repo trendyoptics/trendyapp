@@ -3,6 +3,7 @@ html[data-tsys-theme="clasico"]{--tsys-primary:#0B1C40;--tsys-dark:#081226;--tsy
 html[data-tsys-theme="oceano"]{--tsys-primary:#095B73;--tsys-dark:#073244;--tsys-bg:#F0F8FA;--tsys-accent:#097F9E;--tsys-nav-hover:#176B81}
 html[data-tsys-theme="esmeralda"]{--tsys-primary:#166345;--tsys-dark:#103B2C;--tsys-bg:#F0F8F3;--tsys-accent:#1F845C;--tsys-nav-hover:#245C47}
 html[data-tsys-theme="violeta"]{--tsys-primary:#554096;--tsys-dark:#261B47;--tsys-bg:#F6F3FB;--tsys-accent:#7056AD;--tsys-nav-hover:#463475}
+html[data-tsys-theme="morado-neon"]{--tsys-primary:#4C17BF;--tsys-dark:#320140;--tsys-bg:#F8F4FE;--tsys-accent:#7135F2;--tsys-nav-hover:#9666D9}
 html[data-tsys-theme="terracota"]{--tsys-primary:#8E472F;--tsys-dark:#42291F;--tsys-bg:#FFF7F2;--tsys-accent:#A65335;--tsys-nav-hover:#72402E}
 /* El panel ya usa --navy, --deep y --paper en sus componentes clave. */
 html[data-tsys-theme]{--navy:var(--tsys-primary);--deep:var(--tsys-dark);--paper:var(--tsys-bg)}
