@@ -10,7 +10,7 @@ const defaultLogo=new URL("./logo.svg",import.meta.url).href;
 const defaults={nombre_optica:"Trendy Optics",logo_data_url:null};
 const $=id=>document.getElementById(id);
 const allowedTypes=new Set(["image/png","image/jpeg","image/webp"]);
-let current={...defaults},pendingLogo=null,canEdit=false,saving=false;
+let current={...defaults},pendingLogo=null,canEdit=false,saving=false,processingImage=false;
 const form=$("identidad-form");
 const fieldset=$("identidad-editor");
 const nameInput=$("identidad-nombre");
@@ -62,8 +62,8 @@ function resetEditor(){
  renderPreview();
 }
 function togglePermissions(){
- if(fieldset)fieldset.disabled=!canEdit||saving;
- if(saveButton)saveButton.disabled=!canEdit||saving;
+ if(fieldset)fieldset.disabled=!canEdit||saving||processingImage;
+ if(saveButton)saveButton.disabled=!canEdit||saving||processingImage;
  const message=$("identidad-permisos");
  if(message)message.textContent=canEdit
   ?"Solo el administrador puede guardar cambios. El nombre y logo se comparten en esta instalación."
@@ -112,6 +112,7 @@ if(form){
  fileInput.addEventListener("change",async()=>{
   const file=fileInput.files?.[0];
   if(!file)return;
+  processingImage=true;togglePermissions();
   status.textContent="Preparando imagen…";
   try{
    pendingLogo=await imageData(file);
@@ -120,7 +121,7 @@ if(form){
   }catch(e){
    fileInput.value="";
    status.textContent=e?.message||"No se pudo procesar el logo.";
-  }
+  }finally{processingImage=false;togglePermissions()}
  });
  nameInput.addEventListener("input",renderPreview);
  $("identidad-quitar-logo").addEventListener("click",()=>{
@@ -132,7 +133,7 @@ if(form){
  });
  form.addEventListener("submit",async event=>{
   event.preventDefault();
-  if(!canEdit||saving)return;
+  if(!canEdit||saving||processingImage)return;
   const nombre=nameInput.value.trim().replace(/\s+/g," ");
   if(nombre.length<2||nombre.length>80){
    status.textContent="El nombre debe tener entre 2 y 80 caracteres.";
