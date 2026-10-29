@@ -132,4 +132,6 @@
  }
  function adapt(){for(const el of details)el.open=!media.matches}
  adapt();media.addEventListener("change",adapt);
+ // Si el login terminó antes que este módulo, recuperar el rol ya validado.
+ if(app.dataset.role){role=app.dataset.role;renderRole()}
 })();
