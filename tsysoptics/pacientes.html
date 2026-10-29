@@ -210,7 +210,13 @@ function showPatientView(view,scroll=false){
  }
 }
 for(const button of navButtons){
- button.addEventListener("click",()=>showPatientView(button.dataset.view));
+ button.addEventListener("click",()=>{
+  if(button.dataset.view==="registrar"&&selectedId){
+   if(dirty&&!window.confirm("Hay cambios sin guardar. ¿Quieres iniciar otro registro?"))return;
+   resetForm();
+  }
+  showPatientView(button.dataset.view);
+ });
 }
 $("patient-tabs").addEventListener("keydown",event=>{
  if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
@@ -218,8 +224,13 @@ $("patient-tabs").addEventListener("keydown",event=>{
  const index=available.findIndex(b=>b.dataset.view===$("panel").dataset.patientView);
  const next=event.key==="Home"?0:event.key==="End"?available.length-1:
   (index+(event.key==="ArrowLeft"?available.length-1:1))%available.length;
- showPatientView(available[next].dataset.view);
- available[next].focus();
+ const target=available[next];
+ if(target.dataset.view==="registrar"&&selectedId){
+  if(dirty&&!window.confirm("Hay cambios sin guardar. ¿Quieres iniciar otro registro?"))return;
+  resetForm();
+ }
+ showPatientView(target.dataset.view);
+ target.focus();
  event.preventDefault();
 });
 showPatientView("buscar");
