@@ -1,0 +1,42 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Devoluciones | TsysOptics</title>
+<link rel="stylesheet" href="./temas.css"><script src="./preferencias.js" defer></script>
+<style>
+:root{--navy:#0B1C40;--deep:#081226;--paper:#f2f2f2}
+*{box-sizing:border-box}body{margin:0;background:var(--tsys-bg,var(--paper));font:15px system-ui;color:var(--deep)}
+header{background:var(--tsys-dark,var(--deep));color:white;padding:16px max(20px,calc((100vw - 1100px)/2));display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header img{width:42px;height:42px;border-radius:50%}header a{color:white;margin-left:auto}
+main{max-width:1100px;margin:30px auto;padding:0 20px}h1,h2{margin:0 0 14px}h1{font-size:30px}
+.card{background:white;border:1px solid #dce2e9;border-radius:12px;padding:22px;margin:14px 0}
+input,select,textarea{font:inherit;border:1px solid #c4cedb;border-radius:8px;padding:12px;width:100%;background:white;color:#081226}
+textarea{min-height:90px}label{display:block;margin:14px 0;font-weight:600}
+button{cursor:pointer;padding:11px 16px;border:0;background:var(--tsys-primary,var(--navy));color:white;border-radius:8px;font-weight:600}
+button:disabled{opacity:.55;cursor:not-allowed}.secondary{background:#e6ebf3;color:#0B1C40}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.muted{color:#58657c;font-size:13px}
+.warning{border-left:4px solid #c18b43;background:#fff7e8;padding:14px;margin:16px 0}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #e1e6ed;border-radius:9px;padding:15px;margin:10px 0;flex-wrap:wrap}
+.tag{background:#ebf0f8;border-radius:30px;padding:3px 8px;font-size:12px}
+.check{display:flex;gap:10px;align-items:flex-start}.check input{width:22px;height:22px;flex:none}
+#app[hidden],#edit[hidden]{display:none!important}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<header><img src="./logo.svg" alt="TrendyOptics"><strong>TsysOptics · Devoluciones internas</strong><a href="./">Volver al panel</a></header>
+<main><h1>Notas crédito internas</h1>
+<p class="muted">Gestión de devoluciones completas de ventas pagadas, con registro por medio de pago y control de mercancía.</p>
+<div class="warning"><strong>Piloto:</strong> TsysOptics no devuelve dinero automáticamente ni emite notas crédito electrónicas DIAN. Registra exclusivamente devoluciones ya efectuadas fuera del sistema.</div>
+<p id="estado" role="status">Validando acceso…</p>
+<div id="app" hidden>
+ <div class="card"><h2>Ventas que pueden devolverse</h2><button id="actualizar" class="secondary">Actualizar listado</button><div id="ventas"></div></div>
+ <div class="card" id="edit" hidden>
+  <h2>Registrar devolución completa</h2><p id="resumen"></p><div id="medios"></div>
+  <form id="form">
+   <label>Motivo de la devolución<textarea id="motivo" minlength="10" maxlength="300" required></textarea></label>
+   <label class="check"><input type="checkbox" id="reintegrar"><span>La mercancía fue recibida y TODAS las unidades son aptas para venderse. Reintegrar existencias.</span></label>
+   <label class="check"><input type="checkbox" id="confirmado" required><span>Confirmo que ya realicé fuera del sistema el reembolso por los medios y valores indicados.</span></label>
+   <p class="muted">Se cancela el saldo pendiente. El efectivo se descuenta del turno abierto. La venta y los pagos originales permanecen en el historial.</p>
+   <button id="guardar" type="submit">Registrar devolución</button>
+   <button id="cancelar" type="button" class="secondary">Cancelar</button>
+   <p id="resultado" role="status"></p>
+  </form>
+ </div>
+</div></main><script type="module" src="./devoluciones.js"></script></body></html>
