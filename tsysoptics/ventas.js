@@ -182,7 +182,8 @@ function appendCell(row,value){
 }
 function receiptOpen(sale){
  if(!sale)return;
- $("venta-recibo-meta").textContent=(sale.estado==="anulada"?"ANULADA · Documento histórico · ":"Comprobante ")+salesNumber(sale.numero)+" · "+new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"});
+ const devuelta=sale.estado==="devuelta";
+ $("venta-recibo-meta").textContent=(sale.estado==="anulada"?"ANULADA · Documento histórico · ":devuelta?"DEVUELTA · Comprobante original · ":"Comprobante ")+salesNumber(sale.numero)+" · "+new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"});
  $("venta-recibo-paciente").textContent="Paciente/cliente: "+(sale.paciente?.nombre_completo||"Consumidor final");
  const tbody=$("venta-recibo-lineas");tbody.replaceChildren();
  for(const line of sale.lineas||[]){
@@ -203,6 +204,12 @@ function receiptOpen(sale){
  canceledInfo.textContent=sale.estado==="anulada"?
   "ANULACIÓN REGISTRADA · "+new Date(sale.anulada_en).toLocaleString("es-CO",{timeZone:"America/Bogota"})+
   " · Motivo: "+(sale.motivo_anulacion||"No disponible"):"";
+ if(devuelta){
+  canceledInfo.hidden=false;
+  canceledInfo.textContent="DEVOLUCIÓN COMPLETA REGISTRADA · "+new Date(sale.devuelta_en).toLocaleString("es-CO",{timeZone:"America/Bogota"})+
+   " · Monto devuelto: "+money(sale.abonado)+" · Motivo: "+(sale.motivo_devolucion||"No disponible")+
+   ". Nota crédito interna disponible en Devoluciones. No equivale a nota crédito DIAN.";
+ }
  receipt.hidden=false;
 }
 function receiptClose(){
@@ -230,14 +237,16 @@ function renderSales(){
   if(sale.estado==="emitida"&&Number(sale.saldo)>0) paymentSaleSelect.append(
     new Option(salesNumber(sale.numero)+" · Saldo "+money(sale.saldo),sale.id)
   );
-  const row=element("div",undefined,sale.estado==="anulada"?"item venta-anulada":"item");
+  const row=element("div",undefined,sale.estado==="anulada"?"item venta-anulada":sale.estado==="devuelta"?"item venta-devuelta":"item");
   const info=element("div");
   const labels=(sale.lineas||[]).map(x=>x.codigo_snapshot+" × "+x.cantidad).join(", ");
-  info.append(element("strong",salesNumber(sale.numero)+" · "+money(sale.total)+(sale.estado==="anulada"?" · ANULADA":"")),
+  info.append(element("strong",salesNumber(sale.numero)+" · "+money(sale.total)+(sale.estado==="anulada"?" · ANULADA":sale.estado==="devuelta"?" · DEVUELTA":"")),
    element("small",new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+(sale.paciente?.nombre_completo||"Consumidor final")),
    element("small",labels),
    element("small",sale.estado==="anulada"
     ?"Sin saldo exigible · Motivo: "+(sale.motivo_anulacion||"Auditoría registrada")
+    :sale.estado==="devuelta"
+    ?"Reembolsado "+money(sale.abonado)+" · Saldo cancelado · "+(sale.motivo_devolucion||"Devolución registrada")
     :"Abonado "+money(sale.abonado)+" · Saldo "+money(sale.saldo)));
   const actions=element("div",undefined,"venta-fila-controles");
   const receiptBtn=element("button","Comprobante");
@@ -262,6 +271,10 @@ function renderSales(){
   }else if(sale.estado==="emitida"&&Number(sale.abonado)>0){
    actions.append(element("span","Requiere devolución financiera","venta-fila-info"));
   }
+  if(sale.estado==="devuelta"){
+   const note=element("a","Nota interna");note.href="./devoluciones.html";
+   note.className="btn alt";actions.append(note);
+  }
   row.append(info,actions);saleList.append(row);
  }
 }
@@ -285,7 +298,7 @@ async function refreshSales(){
  const mine=++generation;
  displayStatus("ventas-list-status","Consultando ventas…");
  const {data,error,count}=await sb.from("ventas_tsysoptics")
-  .select("id,numero,solicitud_id,fecha,paciente_id,total,abonado,saldo,estado,motivo_anulacion,anulada_en,paciente:pacientes_tsysoptics(nombre_completo),lineas:detalle_ventas_tsysoptics(codigo_snapshot,nombre_snapshot,cantidad,precio_unitario,total_linea),pagos:pagos_ventas_tsysoptics(monto,medio,registrado_en)",{count:"exact"})
+  .select("id,numero,solicitud_id,fecha,paciente_id,total,abonado,saldo,estado,motivo_anulacion,anulada_en,devuelta_en,motivo_devolucion,paciente:pacientes_tsysoptics(nombre_completo),lineas:detalle_ventas_tsysoptics(codigo_snapshot,nombre_snapshot,cantidad,precio_unitario,total_linea),pagos:pagos_ventas_tsysoptics(monto,medio,registrado_en)",{count:"exact"})
   .order("fecha",{ascending:false}).limit(100);
  if(!isActive||mine!==generation)return;
  if(error){displayStatus("ventas-list-status","No se pudieron cargar las ventas. Verifica la conexión y los permisos.");return}
@@ -294,8 +307,10 @@ async function refreshSales(){
  renderSales();
  if(Array.from(paymentSaleSelect.options).some(o=>o.value===selected))paymentSaleSelect.value=selected;
  const anuladas=sales.filter(s=>s.estado==="anulada").length;
- displayStatus("ventas-list-status",sales.length+" ventas mostradas: "+(sales.length-anuladas)+
-  " vigentes y "+anuladas+" anuladas"+(Number(count)>100?" (máximo 100 recientes)":"")+".");
+ const devueltas=sales.filter(s=>s.estado==="devuelta").length;
+ displayStatus("ventas-list-status",sales.length+" ventas mostradas: "+(sales.length-anuladas-devueltas)+
+  " vigentes, "+anuladas+" anuladas y "+devueltas+" devueltas"+
+  (Number(count)>100?" (máximo 100 recientes)":"")+".");
  await refreshSummary();
 }
 async function refresh(){
@@ -406,6 +421,14 @@ function reset(){
  displayStatus("ventas-list-status","");
  displayStatus("ventas-abono-status","");
 }
+function addNotesLink(){
+ const title=document.querySelector("#ventas h1");
+ if(!title||document.getElementById("ventas-link-devoluciones"))return;
+ const link=element("a","Notas crédito internas · Devoluciones");
+ link.href="./devoluciones.html";link.id="ventas-link-devoluciones";
+ link.className="btn alt";link.style.display="inline-block";link.style.margin="8px 0 14px";
+ title.insertAdjacentElement("afterend",link);
+}
 async function activate(){
  if(isActive||isStarting)return;
  isStarting=true;
@@ -414,7 +437,7 @@ async function activate(){
    displayStatus("ventas-list-status","No tienes permiso para consultar ventas.");
    return;
   }
-  isActive=true;await Promise.all([refresh(),refreshCaja()]);
+  isActive=true;addNotesLink();await Promise.all([refresh(),refreshCaja()]);
  }catch{
   displayStatus("ventas-list-status","No fue posible iniciar el módulo de ventas.");
  }finally{isStarting=false}
