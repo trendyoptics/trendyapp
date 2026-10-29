@@ -65,4 +65,33 @@
   replaced.delete(input);
   if(!state.edited&&input.value==="")input.value=state.original;
  });
+ // En los campos COP, mostrar 100.000 (y 100.000,50 si hay centavos),
+ // manteniendo los datos exactos para las operaciones de Supabase.
+ // Los campos de cantidades, ejes, dioptrías y fechas NO usan este formato.
+ const copNumber = raw => {
+  const text=String(raw??"").trim();
+  if(!text||!/^(?:\\d+|\\d{1,3}(?:\\.\\d{3})+)(?:,\\d{1,2})?$/.test(text))return NaN;
+  const n=Number(text.replace(/\\./g,"").replace(",","."));
+  return Number.isFinite(n)&&n>=0?n:NaN;
+ };
+ const copFormat=new Intl.NumberFormat("es-CO",{minimumFractionDigits:0,maximumFractionDigits:2});
+ function formatCopField(input){
+  if(!(input instanceof HTMLInputElement)||!input.matches("[data-tsys-cop]"))return;
+  if(input.value.trim()==="")return;
+  const n=copNumber(input.value);
+  if(Number.isFinite(n))input.value=copFormat.format(n);
+ }
+ window.tsysParseCOP=copNumber;
+ window.tsysFormatCOPInput=formatCopField;
+ window.tsysFormatCOPInputs=(scope=document)=>{
+  scope.querySelectorAll("[data-tsys-cop]").forEach(formatCopField);
+ };
+ document.addEventListener("focusout",event=>{
+  formatCopField(event.target);
+ });
+ // El navegador puede restaurar valores de autocompletado después de cargar:
+ // formatear al iniciarse la página sin modificar los valores almacenados.
+ if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",()=>window.tsysFormatCOPInputs(),{once:true});
+ }else{window.tsysFormatCOPInputs();}
 })();
