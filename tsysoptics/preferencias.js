@@ -70,8 +70,8 @@
  // Los campos de cantidades, ejes, dioptrías y fechas NO usan este formato.
  const copNumber = raw => {
   const text=String(raw??"").trim();
-  if(!text||!/^(?:\\d+|\\d{1,3}(?:\\.\\d{3})+)(?:,\\d{1,2})?$/.test(text))return NaN;
-  const n=Number(text.replace(/\\./g,"").replace(",","."));
+  if(!text||!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(text))return NaN;
+  const n=Number(text.replace(/\./g,"").replace(",","."));
   return Number.isFinite(n)&&n>=0?n:NaN;
  };
  const copFormat=new Intl.NumberFormat("es-CO",{minimumFractionDigits:0,maximumFractionDigits:2});
