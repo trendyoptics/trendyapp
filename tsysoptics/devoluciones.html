@@ -19,6 +19,9 @@ button:disabled{opacity:.55;cursor:not-allowed}.secondary{background:#e6ebf3;col
 .check{display:flex;gap:10px;align-items:flex-start}.check input{width:22px;height:22px;flex:none}
 #app[hidden],#edit[hidden]{display:none!important}
 @media(max-width:760px){.grid{grid-template-columns:1fr}}
+#nota-vista[hidden]{display:none!important}
+@media print{header,main>*:not(#nota-vista),#nota-acciones{display:none!important}
+#nota-vista{display:block!important;border:0;box-shadow:none;padding:0}}
 </style></head><body>
 <header><img src="./logo.svg" alt="TrendyOptics"><strong>TsysOptics · Devoluciones internas</strong><a href="./">Volver al panel</a></header>
 <main><h1>Notas crédito internas</h1>
@@ -27,6 +30,7 @@ button:disabled{opacity:.55;cursor:not-allowed}.secondary{background:#e6ebf3;col
 <p id="estado" role="status">Validando acceso…</p>
 <div id="app" hidden>
  <div class="card"><h2>Ventas que pueden devolverse</h2><button id="actualizar" class="secondary">Actualizar listado</button><div id="ventas"></div></div>
+ <div class="card"><h2>Notas crédito internas registradas</h2><p class="muted">Registro histórico: no elimina pagos ni modifica los turnos cerrados.</p><div id="notas"></div></div>
  <div class="card" id="edit" hidden>
   <h2>Registrar devolución completa</h2><p id="resumen"></p><div id="medios"></div>
   <form id="form">
@@ -39,4 +43,13 @@ button:disabled{opacity:.55;cursor:not-allowed}.secondary{background:#e6ebf3;col
    <p id="resultado" role="status"></p>
   </form>
  </div>
-</div></main><script type="module" src="./devoluciones.js"></script></body></html>
+</div>
+<div id="nota-vista" class="card" hidden>
+ <div id="nota-acciones"><button type="button" class="secondary" id="nota-cerrar">Cerrar nota</button> <button type="button" id="nota-imprimir">Imprimir / guardar PDF</button></div>
+ <h2>Óptica Trendy Optics · Nota crédito interna</h2>
+ <p id="nota-codigo"></p><p id="nota-fecha"></p>
+ <p id="nota-motivo"></p><p id="nota-importe"></p>
+ <p id="nota-detalle"></p><p id="nota-stock"></p>
+ <p><strong>Documento interno de prueba. No es nota crédito electrónica DIAN. El reintegro del dinero fue confirmado manualmente.</strong></p>
+</div>
+</main><script type="module" src="./devoluciones.js"></script></body></html>
