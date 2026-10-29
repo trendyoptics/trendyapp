@@ -39,6 +39,14 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 #agenda .item{align-items:center;gap:10px}
 #agenda .item small{display:block;margin-top:4px}
 @media(max-width:650px){#agenda .item{flex-direction:column;align-items:flex-start}.agenda-actions{justify-content:start}}
+.stock-danger{color:#a13d28;font-weight:700}
+.stock-ok{color:#24643c;font-weight:700}
+#inventario .item{align-items:center;gap:10px}
+#inventario .item small{display:block;margin-top:4px}
+.inv-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.inv-actions button{font:600 12px system-ui;background:#edf1f8;border:1px solid #c9d3e4;border-radius:6px;color:#0B1C40;padding:7px 9px;cursor:pointer}
+.inv-actions button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:650px){#inventario .item{align-items:flex-start;flex-direction:column}.inv-actions{justify-content:start}}
 </style></head><body>
 <section id="auth-root" class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
@@ -67,11 +75,11 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </section>
 <div id="tsys-app" hidden><div class="layout">
 <aside class="sidebar"><div class="brand"><img src="logo.svg" alt="Logo Trendy Optics"><span><b>TsysOptics</b><small>Trendy Optics · Gestión</small></span></div><nav aria-label="Módulos">
-<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><a data-access-target="pacientes" href="./pacientes.html">♙ &nbsp; Pacientes · piloto</a><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><a data-access-target="clinica" href="../index.html">✚ &nbsp; Historia clínica ↗</a></nav><footer>Versión piloto, no usar con datos reales.</footer></aside>
+<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><a data-access-target="pacientes" href="./pacientes.html">♙ &nbsp; Pacientes</a><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><a data-access-target="clinica" href="../index.html">✚ &nbsp; Historia clínica ↗</a></nav><footer>Versión piloto, no usar con datos reales.</footer></aside>
 <div class="main"><header class="top"><strong>TsysOptics <span style="font-size:12px;color:#585F73">| Óptica Trendy Optics</span></strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
 <div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><a data-access-target="pacientes" href="./pacientes.html">Pacientes</a><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><a data-access-target="clinica" href="../index.html">Clínica ↗</a></div>
-<main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Prototipo:</strong> los módulos administrativos almacenan únicamente datos de prueba en este navegador, sin servidor ni acceso seguro. No introduzcas información real de pacientes. La historia clínica sigue en la página original.</div>
-<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Gestión comercial de prueba y acceso a la historia clínica existente de Trendy Optics.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small>Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small>Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase) ↗</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
+<main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda e Inventario utilizan Supabase y permisos de acceso. <strong>Ventas y simulador continúan en modo demostración local.</strong> Aún faltan revisiones de seguridad y pruebas antes de utilizar TsysOptics como sistema clínico de producción.</div>
+<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historia clínica, citas e inventario centralizados. Ventas aún en demostración.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small>Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase) ↗</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
 <section class="page" id="agenda"><span class="label">AGENDA · SUPABASE</span><h1>Agenda de citas</h1>
 <p class="muted">Organiza las citas por fecha, hora y tipo de atención. El administrador puede asociarlas a pacientes de TsysOptics.</p>
 <div class="cols">
@@ -98,8 +106,52 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  <div class="list" id="lista-citas"></div>
 </div>
 </div></section>
-<section class="page" id="inventario"><span class="label">CATÁLOGO · DEMOSTRACIÓN</span><h1>Inventario</h1><div class="cols"><form class="card form" id="form-producto"><h2>Nueva referencia ficticia</h2><label>Referencia<input name="nombre" maxlength="80" placeholder="Montura demo" required></label><label>Tipo<select name="tipo"><option>Montura</option><option>Lente oftálmico</option><option>Accesorio</option></select></label><label>Precio COP<input name="precio" type="number" min="0" step="100" value="150000" required></label><label>Existencias<input name="cantidad" type="number" min="0" step="1" value="1" required></label><button class="btn">Agregar al catálogo de prueba</button></form><div class="card"><h2>Referencias</h2><div class="list" id="lista-productos"></div></div></div></section>
-<section class="page" id="ventas"><span class="label">CAJA · DEMOSTRACIÓN</span><h1>Ventas y abonos</h1><div class="cols"><form class="card form" id="form-venta"><h2>Nueva venta ficticia</h2><label>Producto<select name="producto" id="venta-producto" required></select></label><label>Cantidad<input name="cantidad" type="number" value="1" min="1" step="1" required></label><label>Abono COP<input name="abono" type="number" value="0" min="0" step="100" required></label><div class="money">Total estimado <strong id="total-preview">$ 0</strong></div><div class="money">Saldo estimado <strong id="saldo-preview">$ 0</strong></div><button class="btn">Guardar venta de prueba</button></form><div class="card"><h2>Últimas ventas</h2><div class="list" id="lista-ventas"></div></div></div></section>
+<section class="page" id="inventario">
+<span class="label">INVENTARIO · SUPABASE</span><h1>Inventario de la óptica</h1>
+<p class="muted">Catálogo centralizado de monturas, lentes y accesorios, con existencias, alertas y movimientos de stock. Ventas sigue siendo una demostración independiente.</p>
+<div class="cols">
+<form class="card form" id="form-producto">
+ <h2 id="inventario-form-title">Nueva referencia</h2>
+ <input type="hidden" name="editar_id" id="inventario-editar-id">
+ <label>Código / SKU <input name="codigo" id="inventario-codigo" maxlength="40" minlength="3" placeholder="Ej. MON-001" required></label>
+ <label>Descripción de referencia <input name="nombre" maxlength="120" placeholder="Ej. Montura metálica dorada" required></label>
+ <label>Tipo<select name="tipo"><option>Montura</option><option>Lente oftálmico</option><option>Accesorio</option></select></label>
+ <label>Precio de venta (COP) <input name="precio" type="number" min="0" step="0.01" value="150000" required></label>
+ <label>Costo de compra (COP, opcional) <input name="costo" type="number" min="0" step="0.01" placeholder="Costo real"></label>
+ <label>Existencias iniciales <input name="cantidad" id="inventario-cantidad-inicial" type="number" min="0" step="1" value="1" required></label>
+ <p id="inventario-aviso-edicion" class="muted" hidden>Las existencias se modifican desde Ajustar inventario, con justificación y registro de movimientos.</p>
+ <label>Stock mínimo (alerta) <input name="stock_minimo" type="number" min="0" step="1" value="2" required></label>
+ <button class="btn" id="inventario-guardar" type="submit">Agregar referencia</button>
+ <button class="btn alt" id="inventario-cancelar-edicion" type="button" hidden>Cancelar edición</button>
+ <p id="inventario-form-status" class="muted" aria-live="polite" role="status"></p>
+</form>
+<div class="card">
+ <h2>Referencias registradas</h2>
+ <div class="form" style="margin-bottom:15px">
+  <label>Buscar por código o nombre <input id="inventario-buscar" placeholder="Ej. MON-001"></label>
+  <button type="button" class="btn alt" id="inventario-actualizar">Actualizar inventario</button>
+ </div>
+ <p id="inventario-list-status" class="muted" role="status" aria-live="polite"></p>
+ <div class="list" id="lista-productos"></div>
+</div>
+</div>
+<div class="cols" style="margin-top:16px">
+<form class="card form" id="inventario-ajuste-form">
+ <h2>Ajustar existencias</h2>
+ <label>Referencia <select name="producto_id" id="inventario-ajuste-producto" required><option value="">Seleccionar referencia</option></select></label>
+ <label>Existencias después del ajuste <input name="nueva_cantidad" id="inventario-ajuste-cantidad" type="number" min="0" step="1" required></label>
+ <label>Motivo del ajuste <textarea name="motivo" rows="2" minlength="3" maxlength="160" required placeholder="Ej. Conteo físico, ingreso, daño o devolución"></textarea></label>
+ <button class="btn" id="inventario-ajuste-guardar" type="submit">Guardar ajuste</button>
+ <p id="inventario-ajuste-status" class="muted" role="status" aria-live="polite"></p>
+</form>
+<div class="card">
+ <h2>Últimos movimientos</h2>
+ <p class="muted">Registro automático de ingresos y cambios de existencias.</p>
+ <div class="list" id="inventario-movimientos"></div>
+</div>
+</div>
+</section>
+<section class="page" id="ventas"><span class="label">CAJA · DEMOSTRACIÓN LOCAL</span><h1>Ventas y abonos</h1><p class="muted">Este módulo todavía no está conectado al inventario ni registra movimientos comerciales reales. No utilizar para ventas reales.</p><div class="cols"><form class="card form" id="form-venta"><h2>Nueva venta ficticia</h2><label>Producto<select name="producto" id="venta-producto" required></select></label><label>Cantidad<input name="cantidad" type="number" value="1" min="1" step="1" required></label><label>Abono COP<input name="abono" type="number" value="0" min="0" step="100" required></label><div class="money">Total estimado <strong id="total-preview">$ 0</strong></div><div class="money">Saldo estimado <strong id="saldo-preview">$ 0</strong></div><button class="btn">Guardar venta de prueba</button></form><div class="card"><h2>Últimas ventas</h2><div class="list" id="lista-ventas"></div></div></div></section>
 <section class="page" id="simulador"><span class="label">LENTES · DEMOSTRACIÓN</span><h1>Simulación del perfil óptico</h1><div class="cols"><div class="card form"><h2>Parámetros</h2><label>Esfera <strong id="potencia-label">−2.00 D</strong><input id="potencia" type="range" min="-10" max="10" step=".25" value="-2"></label><label>Índice<select id="indice"><option>1.50</option><option>1.60</option><option>1.67</option><option>1.74</option></select></label><label>Diámetro <strong id="diametro-label">65 mm</strong><input id="diametro" type="range" min="50" max="80" value="65"></label><p class="muted">Representación conceptual sin escala. No predice espesores ni reemplaza los cálculos de laboratorio.</p></div><div class="card visual"><h2>Vista ilustrativa</h2><svg viewBox="0 0 360 235" role="img" aria-label="Sección esquemática de lente"><defs><linearGradient id="g"><stop stop-color="#b4c4d5"/><stop offset=".5" stop-color="#e7f0f6"/><stop offset="1" stop-color="#718aa7"/></linearGradient></defs><line x1="30" x2="330" y1="115" y2="115" stroke="#BFBFBF" stroke-dasharray="4 5"/><path id="perfil" fill="url(#g)" stroke="#585F73" stroke-width="2.5"/></svg><p id="tipo-lente" class="muted"></p></div></div></section>
 <footer style="margin-top:35px;color:#9099a7;font-size:11px">TsysOptics · Trendy Optics · Piloto aislado de la página clínica</footer></main></div></div></div>
 <div id="notice" hidden role="status" aria-live="polite"></div>
@@ -108,6 +160,11 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 "use strict";
 const key="tsysoptics_demo_piloto_v01";
 let currentRole=null;
+let inventoryCount=null;
+window.tsysInventarioSetCount=n=>{
+ inventoryCount=n;
+ if(currentRole==="administrador")document.getElementById("metric-productos").textContent=String(n);
+};
 let agendaCount=null;
 window.tsysAgendaSetCount=n=>{agendaCount=n;if(currentRole==="administrador")document.getElementById("metric-citas").textContent=String(n)};
 // Aunque estos datos DEMO son locales, el panel no debe compartirlos entre roles.
@@ -125,11 +182,11 @@ document.querySelectorAll("[data-go]").forEach(x=>x.addEventListener("click",()=
 function list(id,records,format,remove){const el=$(id);el.replaceChildren();if(!records.length){el.append(node("p","Sin registros de prueba."));return}for(const r of records){const row=node("div","");row.className="item";const info=node("div","");info.append(node("strong",format(r)[0]),node("small",format(r)[1]));row.append(info);if(remove){const b=node("button","Eliminar");b.type="button";b.addEventListener("click",()=>{data[remove]=data[remove].filter(x=>x.id!==r.id);save();render()});row.append(b)}el.append(row)}}
 function render(){
  $("metric-citas").textContent=currentRole==="administrador"?(agendaCount===null?"…":String(agendaCount)):data.citas.length;
- $("metric-productos").textContent=currentRole==="administrador"?data.productos.length:"🔒";
- $("metric-ventas").textContent=currentRole==="administrador"?cop(data.ventas.reduce((a,x)=>a+x.total,0)):"🔒";if(currentRole!=="administrador")list("lista-citas",data.citas,r=>[r.referencia,r.fecha+" · "+r.hora+" · "+r.tipo],"citas");list("lista-productos",currentRole==="administrador"?data.productos:[],r=>[r.nombre,r.tipo+" · "+cop(r.precio)+" · "+r.cantidad+" disponibles"],null);list("lista-ventas",currentRole==="administrador"?data.ventas:[],r=>[r.producto+" × "+r.cantidad,"Total "+cop(r.total)+" · Abono "+cop(r.abono)+" · Saldo "+cop(r.saldo)],null);const old=$("venta-producto").value;$("venta-producto").replaceChildren();for(const p of (currentRole==="administrador"?data.productos:[])){const o=document.createElement("option");o.value=p.id;o.textContent=p.nombre+" · "+cop(p.precio)+" ("+p.cantidad+" uds)";$("venta-producto").add(o)}if(data.productos.some(x=>x.id===old))$("venta-producto").value=old;preview()}
+ $("metric-productos").textContent=currentRole==="administrador"?(inventoryCount===null?"…":String(inventoryCount)):"🔒";
+ $("metric-ventas").textContent=currentRole==="administrador"?cop(data.ventas.reduce((a,x)=>a+x.total,0)):"🔒";if(currentRole!=="administrador")list("lista-citas",data.citas,r=>[r.referencia,r.fecha+" · "+r.hora+" · "+r.tipo],"citas");if(currentRole!=="administrador")list("lista-productos",[],r=>[r.nombre,r.tipo],null);list("lista-ventas",currentRole==="administrador"?data.ventas:[],r=>[r.producto+" × "+r.cantidad,"Total "+cop(r.total)+" · Abono "+cop(r.abono)+" · Saldo "+cop(r.saldo)],null);const old=$("venta-producto").value;$("venta-producto").replaceChildren();for(const p of (currentRole==="administrador"?data.productos:[])){const o=document.createElement("option");o.value=p.id;o.textContent=p.nombre+" · "+cop(p.precio)+" ("+p.cantidad+" uds)";$("venta-producto").add(o)}if(data.productos.some(x=>x.id===old))$("venta-producto").value=old;preview()}
 const uuid=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random();
 $("form-cita").addEventListener("submit",e=>{e.preventDefault();if(currentRole==="administrador")return;const f=new FormData(e.currentTarget);data.citas.push({id:uuid(),referencia:String(f.get("referencia")).trim(),fecha:String(f.get("fecha")),hora:String(f.get("hora")),tipo:String(f.get("tipo"))});save();e.currentTarget.reset();render()});
-$("form-producto").addEventListener("submit",e=>{e.preventDefault();if(currentRole!=="administrador"){toast("Acceso restringido.");return;}const f=new FormData(e.currentTarget),nombre=String(f.get("nombre")).trim(),precio=Number(f.get("precio")),cantidad=Number(f.get("cantidad"));if(!nombre||!Number.isFinite(precio)||precio<0||!Number.isSafeInteger(cantidad)||cantidad<0){toast("Revisa el precio y las existencias.");return}data.productos.push({id:uuid(),nombre,tipo:String(f.get("tipo")),precio,cantidad});save();e.currentTarget.reset();render()});
+$("form-producto").addEventListener("submit",e=>{if(currentRole==="administrador")return;e.preventDefault();if(currentRole!=="administrador"){toast("Acceso restringido.");return;}const f=new FormData(e.currentTarget),nombre=String(f.get("nombre")).trim(),precio=Number(f.get("precio")),cantidad=Number(f.get("cantidad"));if(!nombre||!Number.isFinite(precio)||precio<0||!Number.isSafeInteger(cantidad)||cantidad<0){toast("Revisa el precio y las existencias.");return}data.productos.push({id:uuid(),nombre,tipo:String(f.get("tipo")),precio,cantidad});save();e.currentTarget.reset();render()});
 function calc(){const f=new FormData($("form-venta"));const producto=data.productos.find(p=>p.id===f.get("producto"));const cantidad=Number(f.get("cantidad")),abono=Number(f.get("abono"));return {producto,cantidad,abono,total:producto&&cantidad>0?cantidad*producto.precio:0}}
 function preview(){const x=calc();$("total-preview").textContent=cop(x.total);$("saldo-preview").textContent=cop(Math.max(0,x.total-(x.abono||0)))}
 $("form-venta").addEventListener("input",preview);$("form-venta").addEventListener("change",preview);
@@ -140,7 +197,9 @@ function applyDashboardRole(role){
  currentRole=role;
  const limited=role!=="administrador";
  const details=document.getElementById("access-details");
- if(details)details.textContent=limited?"Ventas e inventario bloqueados. Agenda de prueba y simulador disponibles.":"Acceso completo al panel.";
+ if(details)details.textContent=limited?"Inventario y ventas bloqueados. Agenda de prueba y simulador disponibles.":"Acceso administrativo. Inventario y agenda centralizados; ventas aún en demostración.";
+ const inventarioOrigin=document.getElementById("metric-productos-origen");
+ if(inventarioOrigin)inventarioOrigin.textContent=limited?"Demo local":"Supabase";
  const origin=document.getElementById("metric-citas-origin");
  if(origin)origin.textContent=limited?"Demo local":"Supabase";
  const shortcut=document.getElementById("quick-cita");
@@ -164,4 +223,4 @@ window.addEventListener("tsys:role",e=>applyDashboardRole(e.detail.role));
 window.addEventListener("tsys:locked",()=>{currentRole=null;});
 render();lens();
 })();
-</script><script type="module" src="./agenda.js"></script><script type="module" src="./auth.js"></script></body></html>
+</script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js"></script><script type="module" src="./auth.js"></script></body></html>
