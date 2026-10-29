@@ -140,7 +140,7 @@ function renderCart(){
  }
  if(!cart.length)cartRoot.append(element("p","Carrito vacío. Selecciona una referencia y agrégala.","muted"));
  const total=cartTotal();
- const paid=Number(form.elements.abono.value||0);
+ const paid=window.tsysParseCOP(form.elements.abono.value||"0");
  $("total-preview").textContent=money(total);
  $("saldo-preview").textContent=money(Math.max(0,total-(Number.isFinite(paid)?paid:0)));
 }
@@ -249,7 +249,8 @@ function renderSales(){
    payBtn.type="button";
    payBtn.addEventListener("click",()=>{
     paymentSaleSelect.value=sale.id;
-    $("ventas-abono-monto").value=Number(sale.saldo);
+    $("ventas-abono-monto").value=String(sale.saldo);
+    window.tsysFormatCOPInput($("ventas-abono-monto"));
     paymentsForm.scrollIntoView({behavior:"smooth",block:"start"});
    });
    actions.append(payBtn);
@@ -328,7 +329,7 @@ form.addEventListener("submit",async e=>{
  if(registering)return;
  if(!(await refreshCaja())){displayStatus("venta-form-status","Abre Caja antes de registrar la venta.");return}
  const total=cartTotal();
- const abono=Number(form.elements.abono.value);
+ const abono=window.tsysParseCOP(form.elements.abono.value);
  const metodo=String(form.elements.medio.value||"");
  const paciente=patientSelect.value;
  if(!cart.length){displayStatus("venta-form-status","Primero agrega productos al carrito.");return}
@@ -350,6 +351,7 @@ form.addEventListener("submit",async e=>{
   if(error||!data){displayStatus("venta-form-status",saleError(error));return}
   saleToken=crypto.randomUUID();cart=[];
   form.reset();form.elements.cantidad.value="1";form.elements.abono.value="0";
+  window.tsysFormatCOPInputs(form);
   displayStatus("venta-form-status","Venta registrada y existencias descontadas en Supabase.");
   await refresh();
   const receiptSale=sales.find(s=>s.id===data);
@@ -366,7 +368,7 @@ paymentsForm.addEventListener("submit",async e=>{
  if(collecting)return;
  if(!(await refreshCaja())){displayStatus("ventas-abono-status","Abre Caja antes de registrar un abono.");return}
  const sale=sales.find(x=>x.id===paymentSaleSelect.value);
- const monto=Number(paymentsForm.elements.monto.value);
+ const monto=window.tsysParseCOP(paymentsForm.elements.monto.value);
  const medio=String(paymentsForm.elements.medio.value||"");
  if(!sale||sale.estado!=="emitida"||!Number.isFinite(monto)||monto<=0||monto>Number(sale.saldo)||!paymentLabel[medio]){
   displayStatus("ventas-abono-status","Elige una venta y un abono válido, sin superar su saldo.");
@@ -381,7 +383,7 @@ paymentsForm.addEventListener("submit",async e=>{
   });
   if(error||!data){displayStatus("ventas-abono-status",saleError(error));return}
   paymentToken=crypto.randomUUID();
-  paymentsForm.reset();
+  paymentsForm.reset();window.tsysFormatCOPInputs(paymentsForm);
   displayStatus("ventas-abono-status","Abono registrado correctamente en Supabase.");
   await refreshSales();
  }catch{

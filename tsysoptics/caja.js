@@ -126,7 +126,7 @@ $("caja-actualizar").addEventListener("click",refresh);
 $("caja-abrir-form").addEventListener("submit",async e=>{
  e.preventDefault();
  if(!admin)return;
- const fondo=Number(new FormData(e.currentTarget).get("fondo"));
+ const fondo=window.tsysParseCOP(new FormData(e.currentTarget).get("fondo"));
  if(!Number.isFinite(fondo)||fondo<0||fondo>999999999999){
   status("caja-abrir-status","Introduce un fondo inicial válido.");return;
  }
@@ -138,7 +138,7 @@ $("caja-abrir-form").addEventListener("submit",async e=>{
 $("caja-movimiento-form").addEventListener("submit",async e=>{
  e.preventDefault();if(!admin)return;
  const fd=new FormData(e.currentTarget);
- const tipo=String(fd.get("tipo")||""),monto=Number(fd.get("monto")),motivo=String(fd.get("motivo")||"").trim();
+ const tipo=String(fd.get("tipo")||""),monto=window.tsysParseCOP(fd.get("monto")),motivo=String(fd.get("motivo")||"").trim();
  if(!["ingreso","egreso"].includes(tipo)||!Number.isFinite(monto)||monto<=0||motivo.length<3||motivo.length>160){
   status("caja-movimiento-status","Completa el tipo, importe y justificación.");return;
  }
@@ -158,7 +158,7 @@ $("caja-movimiento-form").addEventListener("submit",async e=>{
 $("caja-cierre-form").addEventListener("submit",async e=>{
  e.preventDefault();if(!admin)return;
  const fd=new FormData(e.currentTarget);
- const contado=Number(fd.get("contado")),obs=String(fd.get("observaciones")||"").trim();
+ const contado=window.tsysParseCOP(fd.get("contado")),obs=String(fd.get("observaciones")||"").trim();
  if(!Number.isFinite(contado)||contado<0||obs.length>500){
   status("caja-cierre-status","Revisa el efectivo contado y las observaciones.");return;
  }

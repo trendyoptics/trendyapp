@@ -167,8 +167,8 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  <label>Código / SKU <input name="codigo" id="inventario-codigo" maxlength="40" minlength="3" placeholder="Ej. MON-001" required></label>
  <label>Descripción de referencia <input name="nombre" maxlength="120" placeholder="Ej. Montura metálica dorada" required></label>
  <label>Tipo<select name="tipo"><option>Montura</option><option>Lente oftálmico</option><option>Accesorio</option></select></label>
- <label>Precio de venta (COP) <input name="precio" type="number" min="0" step="0.01" value="150000" required></label>
- <label>Costo de compra (COP, opcional) <input name="costo" type="number" min="0" step="0.01" placeholder="Costo real"></label>
+ <label>Precio de venta (COP) <input name="precio" type="text" inputmode="decimal" data-tsys-cop value="150000" autocomplete="off" required></label>
+ <label>Costo de compra (COP, opcional) <input name="costo" type="text" inputmode="decimal" data-tsys-cop placeholder="Costo real" autocomplete="off"></label>
  <label>Existencias iniciales <input name="cantidad" id="inventario-cantidad-inicial" type="number" min="0" step="1" value="1" required></label>
  <p id="inventario-aviso-edicion" class="muted" hidden>Las existencias se modifican desde Ajustar inventario, con justificación y registro de movimientos.</p>
  <label>Stock mínimo (alerta) <input name="stock_minimo" type="number" min="0" step="1" value="2" required></label>
@@ -224,7 +224,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <button class="btn alt" type="button" id="venta-agregar-producto">Agregar al carrito</button>
   <div class="list" id="venta-carrito"></div>
   <div class="money">Total calculado en Supabase (estimado) <strong id="total-preview">$ 0</strong></div>
-  <label>Pago inicial (COP) <input name="abono" id="venta-abono" type="number" min="0" step="0.01" value="0" required></label>
+  <label>Pago inicial (COP) <input name="abono" id="venta-abono" type="text" inputmode="decimal" data-tsys-cop value="0" autocomplete="off" required></label>
   <label>Medio de pago<select name="medio" id="venta-medio">
    <option value="">Sin pago inicial</option>
    <option value="efectivo">Efectivo</option>
@@ -250,7 +250,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  <form class="card form" id="ventas-form-abono">
   <h2>Registrar abono a una venta</h2><p class="muted" id="ventas-abono-turno">Los abonos requieren un turno de caja abierto.</p>
   <label>Venta con saldo pendiente <select id="ventas-abono-venta" name="venta_id" required><option value="">Seleccionar venta</option></select></label>
-  <label>Valor del abono (COP)<input name="monto" id="ventas-abono-monto" type="number" min="0.01" step="0.01" required></label>
+  <label>Valor del abono (COP)<input name="monto" id="ventas-abono-monto" type="text" inputmode="decimal" data-tsys-cop autocomplete="off" required></label>
   <label>Medio de pago <select name="medio" id="ventas-abono-medio" required>
    <option value="efectivo">Efectivo</option>
    <option value="transferencia">Transferencia</option>
@@ -288,7 +288,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  <div class="cols">
   <form class="card form" id="caja-abrir-form">
    <h2>Abrir turno</h2>
-   <label>Fondo inicial en efectivo (COP)<input name="fondo" type="number" min="0" step="0.01" value="0" required></label>
+   <label>Fondo inicial en efectivo (COP)<input name="fondo" type="text" inputmode="decimal" data-tsys-cop value="0" autocomplete="off" required></label>
    <button id="caja-abrir-btn" class="btn" type="submit">Abrir caja</button>
    <p id="caja-abrir-status" class="muted" role="status" aria-live="polite"></p>
   </form>
@@ -302,7 +302,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <form class="card form" id="caja-movimiento-form">
    <h2>Movimiento manual de efectivo</h2>
    <label>Tipo de movimiento<select name="tipo" required><option value="ingreso">Ingreso</option><option value="egreso">Egreso</option></select></label>
-   <label>Valor (COP)<input name="monto" type="number" min="0.01" step="0.01" required></label>
+   <label>Valor (COP)<input name="monto" type="text" inputmode="decimal" data-tsys-cop autocomplete="off" required></label>
    <label>Justificación<textarea name="motivo" minlength="3" maxlength="160" rows="3" required placeholder="Ej. Compra de bolsas o ingreso por cambio de fondo"></textarea></label>
    <button class="btn" id="caja-movimiento-btn" type="submit">Registrar movimiento</button>
    <p id="caja-movimiento-status" class="muted" role="status" aria-live="polite"></p>
@@ -310,7 +310,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <form class="card form" id="caja-cierre-form">
    <h2>Cerrar turno · Arqueo</h2>
    <p>Cuenta físicamente el efectivo disponible y digita ese valor. El servidor calculará la diferencia.</p>
-   <label>Efectivo contado (COP)<input name="contado" type="number" min="0" step="0.01" required></label>
+   <label>Efectivo contado (COP)<input name="contado" type="text" inputmode="decimal" data-tsys-cop autocomplete="off" required></label>
    <label>Observaciones (opcional)<textarea name="observaciones" maxlength="500" rows="3" placeholder="Novedades, faltantes o sobrantes"></textarea></label>
    <button class="btn" id="caja-cierre-btn" type="submit">Cerrar y registrar arqueo</button>
    <p id="caja-cierre-status" class="muted" role="status" aria-live="polite"></p>
