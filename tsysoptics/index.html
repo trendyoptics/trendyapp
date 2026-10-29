@@ -32,6 +32,13 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 .auth-card .password-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:#585F73;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:8px}
 .auth-card .password-toggle:hover,.auth-card .password-toggle:focus-visible{background:#e5eaf3;color:#0B1C40}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.agenda-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:end}
+.agenda-action,.agenda-action-cancel{font:600 12px system-ui;border:1px solid #b8c5d7;border-radius:6px;background:#e9eef8;color:#0B1C40;padding:7px 10px;cursor:pointer}
+.agenda-action-cancel{background:#fff0f0;color:#7e2727;border-color:#f1c9c9}
+.agenda-action:disabled,.agenda-action-cancel:disabled{opacity:.5;cursor:wait}
+#agenda .item{align-items:center;gap:10px}
+#agenda .item small{display:block;margin-top:4px}
+@media(max-width:650px){#agenda .item{flex-direction:column;align-items:flex-start}.agenda-actions{justify-content:start}}
 </style></head><body>
 <section id="auth-root" class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
@@ -64,8 +71,33 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 <div class="main"><header class="top"><strong>TsysOptics <span style="font-size:12px;color:#585F73">| Óptica Trendy Optics</span></strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
 <div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><a data-access-target="pacientes" href="./pacientes.html">Pacientes</a><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><a data-access-target="clinica" href="../index.html">Clínica ↗</a></div>
 <main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Prototipo:</strong> los módulos administrativos almacenan únicamente datos de prueba en este navegador, sin servidor ni acceso seguro. No introduzcas información real de pacientes. La historia clínica sigue en la página original.</div>
-<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Gestión comercial de prueba y acceso a la historia clínica existente de Trendy Optics.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small>Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small>Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small>Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes ficticios (Supabase) ↗</a><button data-go="agenda">+ Registrar cita de prueba</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
-<section class="page" id="agenda"><span class="label">AGENDA · DEMOSTRACIÓN</span><h1>Citas</h1><div class="cols"><form class="card form" id="form-cita"><h2>Agendar cita ficticia</h2><label>Referencia ficticia<input name="referencia" maxlength="60" placeholder="Ej. Paciente prueba A" required></label><label>Fecha<input name="fecha" type="date" required></label><label>Hora<input name="hora" type="time" required></label><label>Tipo<select name="tipo"><option>Optometría</option><option>Entrega de lentes</option><option>Control</option></select></label><button class="btn">Guardar cita de prueba</button></form><div class="card"><h2>Citas registradas</h2><div class="list" id="lista-citas"></div></div></div></section>
+<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Gestión comercial de prueba y acceso a la historia clínica existente de Trendy Optics.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small>Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small>Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase) ↗</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
+<section class="page" id="agenda"><span class="label">AGENDA · SUPABASE</span><h1>Agenda de citas</h1>
+<p class="muted">Organiza las citas por fecha, hora y tipo de atención. El administrador puede asociarlas a pacientes de TsysOptics.</p>
+<div class="cols">
+<form class="card form" id="form-cita">
+ <h2>Nueva cita</h2>
+ <label>Paciente registrado (opcional)
+  <select name="paciente_id" id="agenda-paciente"><option value="">Sin paciente registrado</option></select>
+ </label>
+ <label>Nombre o referencia de la cita<input name="referencia" maxlength="100" placeholder="Nombre o referencia de atención" required></label>
+ <label>Fecha<input name="fecha" type="date" required></label>
+ <label>Hora<input name="hora" type="time" required></label>
+ <label>Tipo de atención<select name="tipo"><option>Optometría</option><option>Entrega de lentes</option><option>Control</option></select></label>
+ <button class="btn" id="agenda-submit" type="submit">Guardar cita</button>
+ <p id="agenda-save-status" class="muted" role="status" aria-live="polite"></p>
+</form>
+<div class="card">
+ <h2>Citas registradas</h2>
+ <div class="form" style="margin-bottom:14px">
+  <label>Filtrar por fecha (opcional)<input id="agenda-filtro-fecha" type="date"></label>
+  <label>Estado<select id="agenda-filtro-estado"><option value="">Todos</option><option value="programada">Programadas</option><option value="confirmada">Confirmadas</option><option value="atendida">Atendidas</option><option value="cancelada">Canceladas</option><option value="no_asistio">No asistió</option></select></label>
+  <button type="button" class="btn alt" id="agenda-refresh">Actualizar agenda</button>
+ </div>
+ <p id="agenda-list-status" class="muted" role="status" aria-live="polite"></p>
+ <div class="list" id="lista-citas"></div>
+</div>
+</div></section>
 <section class="page" id="inventario"><span class="label">CATÁLOGO · DEMOSTRACIÓN</span><h1>Inventario</h1><div class="cols"><form class="card form" id="form-producto"><h2>Nueva referencia ficticia</h2><label>Referencia<input name="nombre" maxlength="80" placeholder="Montura demo" required></label><label>Tipo<select name="tipo"><option>Montura</option><option>Lente oftálmico</option><option>Accesorio</option></select></label><label>Precio COP<input name="precio" type="number" min="0" step="100" value="150000" required></label><label>Existencias<input name="cantidad" type="number" min="0" step="1" value="1" required></label><button class="btn">Agregar al catálogo de prueba</button></form><div class="card"><h2>Referencias</h2><div class="list" id="lista-productos"></div></div></div></section>
 <section class="page" id="ventas"><span class="label">CAJA · DEMOSTRACIÓN</span><h1>Ventas y abonos</h1><div class="cols"><form class="card form" id="form-venta"><h2>Nueva venta ficticia</h2><label>Producto<select name="producto" id="venta-producto" required></select></label><label>Cantidad<input name="cantidad" type="number" value="1" min="1" step="1" required></label><label>Abono COP<input name="abono" type="number" value="0" min="0" step="100" required></label><div class="money">Total estimado <strong id="total-preview">$ 0</strong></div><div class="money">Saldo estimado <strong id="saldo-preview">$ 0</strong></div><button class="btn">Guardar venta de prueba</button></form><div class="card"><h2>Últimas ventas</h2><div class="list" id="lista-ventas"></div></div></div></section>
 <section class="page" id="simulador"><span class="label">LENTES · DEMOSTRACIÓN</span><h1>Simulación del perfil óptico</h1><div class="cols"><div class="card form"><h2>Parámetros</h2><label>Esfera <strong id="potencia-label">−2.00 D</strong><input id="potencia" type="range" min="-10" max="10" step=".25" value="-2"></label><label>Índice<select id="indice"><option>1.50</option><option>1.60</option><option>1.67</option><option>1.74</option></select></label><label>Diámetro <strong id="diametro-label">65 mm</strong><input id="diametro" type="range" min="50" max="80" value="65"></label><p class="muted">Representación conceptual sin escala. No predice espesores ni reemplaza los cálculos de laboratorio.</p></div><div class="card visual"><h2>Vista ilustrativa</h2><svg viewBox="0 0 360 235" role="img" aria-label="Sección esquemática de lente"><defs><linearGradient id="g"><stop stop-color="#b4c4d5"/><stop offset=".5" stop-color="#e7f0f6"/><stop offset="1" stop-color="#718aa7"/></linearGradient></defs><line x1="30" x2="330" y1="115" y2="115" stroke="#BFBFBF" stroke-dasharray="4 5"/><path id="perfil" fill="url(#g)" stroke="#585F73" stroke-width="2.5"/></svg><p id="tipo-lente" class="muted"></p></div></div></section>
@@ -76,6 +108,8 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 "use strict";
 const key="tsysoptics_demo_piloto_v01";
 let currentRole=null;
+let agendaCount=null;
+window.tsysAgendaSetCount=n=>{agendaCount=n;if(currentRole==="administrador")document.getElementById("metric-citas").textContent=String(n)};
 // Aunque estos datos DEMO son locales, el panel no debe compartirlos entre roles.
 
 let data;try{data=JSON.parse(localStorage.getItem(key)||"{}")}catch{data={}}
@@ -90,11 +124,11 @@ document.querySelectorAll("[data-page]").forEach(x=>x.addEventListener("click",(
 document.querySelectorAll("[data-go]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.go)));
 function list(id,records,format,remove){const el=$(id);el.replaceChildren();if(!records.length){el.append(node("p","Sin registros de prueba."));return}for(const r of records){const row=node("div","");row.className="item";const info=node("div","");info.append(node("strong",format(r)[0]),node("small",format(r)[1]));row.append(info);if(remove){const b=node("button","Eliminar");b.type="button";b.addEventListener("click",()=>{data[remove]=data[remove].filter(x=>x.id!==r.id);save();render()});row.append(b)}el.append(row)}}
 function render(){
- $("metric-citas").textContent=data.citas.length;
+ $("metric-citas").textContent=currentRole==="administrador"?(agendaCount===null?"…":String(agendaCount)):data.citas.length;
  $("metric-productos").textContent=currentRole==="administrador"?data.productos.length:"🔒";
- $("metric-ventas").textContent=currentRole==="administrador"?cop(data.ventas.reduce((a,x)=>a+x.total,0)):"🔒";list("lista-citas",data.citas,r=>[r.referencia,r.fecha+" · "+r.hora+" · "+r.tipo],"citas");list("lista-productos",currentRole==="administrador"?data.productos:[],r=>[r.nombre,r.tipo+" · "+cop(r.precio)+" · "+r.cantidad+" disponibles"],null);list("lista-ventas",currentRole==="administrador"?data.ventas:[],r=>[r.producto+" × "+r.cantidad,"Total "+cop(r.total)+" · Abono "+cop(r.abono)+" · Saldo "+cop(r.saldo)],null);const old=$("venta-producto").value;$("venta-producto").replaceChildren();for(const p of (currentRole==="administrador"?data.productos:[])){const o=document.createElement("option");o.value=p.id;o.textContent=p.nombre+" · "+cop(p.precio)+" ("+p.cantidad+" uds)";$("venta-producto").add(o)}if(data.productos.some(x=>x.id===old))$("venta-producto").value=old;preview()}
+ $("metric-ventas").textContent=currentRole==="administrador"?cop(data.ventas.reduce((a,x)=>a+x.total,0)):"🔒";if(currentRole!=="administrador")list("lista-citas",data.citas,r=>[r.referencia,r.fecha+" · "+r.hora+" · "+r.tipo],"citas");list("lista-productos",currentRole==="administrador"?data.productos:[],r=>[r.nombre,r.tipo+" · "+cop(r.precio)+" · "+r.cantidad+" disponibles"],null);list("lista-ventas",currentRole==="administrador"?data.ventas:[],r=>[r.producto+" × "+r.cantidad,"Total "+cop(r.total)+" · Abono "+cop(r.abono)+" · Saldo "+cop(r.saldo)],null);const old=$("venta-producto").value;$("venta-producto").replaceChildren();for(const p of (currentRole==="administrador"?data.productos:[])){const o=document.createElement("option");o.value=p.id;o.textContent=p.nombre+" · "+cop(p.precio)+" ("+p.cantidad+" uds)";$("venta-producto").add(o)}if(data.productos.some(x=>x.id===old))$("venta-producto").value=old;preview()}
 const uuid=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random();
-$("form-cita").addEventListener("submit",e=>{e.preventDefault();const f=new FormData(e.currentTarget);data.citas.push({id:uuid(),referencia:String(f.get("referencia")).trim(),fecha:String(f.get("fecha")),hora:String(f.get("hora")),tipo:String(f.get("tipo"))});save();e.currentTarget.reset();render()});
+$("form-cita").addEventListener("submit",e=>{e.preventDefault();if(currentRole==="administrador")return;const f=new FormData(e.currentTarget);data.citas.push({id:uuid(),referencia:String(f.get("referencia")).trim(),fecha:String(f.get("fecha")),hora:String(f.get("hora")),tipo:String(f.get("tipo"))});save();e.currentTarget.reset();render()});
 $("form-producto").addEventListener("submit",e=>{e.preventDefault();if(currentRole!=="administrador"){toast("Acceso restringido.");return;}const f=new FormData(e.currentTarget),nombre=String(f.get("nombre")).trim(),precio=Number(f.get("precio")),cantidad=Number(f.get("cantidad"));if(!nombre||!Number.isFinite(precio)||precio<0||!Number.isSafeInteger(cantidad)||cantidad<0){toast("Revisa el precio y las existencias.");return}data.productos.push({id:uuid(),nombre,tipo:String(f.get("tipo")),precio,cantidad});save();e.currentTarget.reset();render()});
 function calc(){const f=new FormData($("form-venta"));const producto=data.productos.find(p=>p.id===f.get("producto"));const cantidad=Number(f.get("cantidad")),abono=Number(f.get("abono"));return {producto,cantidad,abono,total:producto&&cantidad>0?cantidad*producto.precio:0}}
 function preview(){const x=calc();$("total-preview").textContent=cop(x.total);$("saldo-preview").textContent=cop(Math.max(0,x.total-(x.abono||0)))}
@@ -106,14 +140,18 @@ function applyDashboardRole(role){
  currentRole=role;
  const limited=role!=="administrador";
  const details=document.getElementById("access-details");
- if(details)details.textContent=limited?"Ventas e inventario bloqueados. Agenda y simulador disponibles.":"Acceso completo al piloto.";
+ if(details)details.textContent=limited?"Ventas e inventario bloqueados. Agenda de prueba y simulador disponibles.":"Acceso completo al panel.";
+ const origin=document.getElementById("metric-citas-origin");
+ if(origin)origin.textContent=limited?"Demo local":"Supabase";
+ const shortcut=document.getElementById("quick-cita");
+ if(shortcut)shortcut.textContent=limited?"+ Registrar cita de prueba":"+ Registrar cita";
  const cardTitle=document.getElementById("clinical-card-title");
  const cardDescription=document.getElementById("clinical-card-description");
  const cardLink=document.getElementById("clinical-card-link");
  if(cardTitle)cardTitle.textContent=limited?"Historia clínica completa (DEMO)":"Tu historia clínica actual";
  if(cardDescription)cardDescription.textContent=limited
    ?"Abre el formulario optométrico completo, con todos los parámetros del original. Es una copia de prueba sin ventas ni envíos a Google Sheets. No ingresar datos reales."
-   :"Accede al formulario optométrico original de Trendy Optics. La integración segura con Supabase está pendiente.";
+   :"Accede al formulario optométrico original de Trendy Optics, conectado a Supabase y con historial de consultas.";
  if(cardLink)cardLink.textContent=limited?"Abrir formulario completo ↗":"Abrir clínica ↗";
  for(const p of ["ventas","inventario"]){
   document.querySelectorAll(".tile").forEach(t=>{const txt=t.querySelector("span")?.textContent.trim().toLowerCase();if(txt===p || txt===(p==="inventario"?"referencias":"ventas"))t.classList.toggle("access-tile-locked",limited)});
@@ -126,4 +164,4 @@ window.addEventListener("tsys:role",e=>applyDashboardRole(e.detail.role));
 window.addEventListener("tsys:locked",()=>{currentRole=null;});
 render();lens();
 })();
-</script><script type="module" src="./auth.js"></script></body></html>
+</script><script type="module" src="./agenda.js"></script><script type="module" src="./auth.js"></script></body></html>
