@@ -33,10 +33,7 @@ CREATE POLICY tsys_historias_admin_update_all
   USING (tsys_privado.tiene_rol(ARRAY['administrador'::text]))
   WITH CHECK (tsys_privado.tiene_rol(ARRAY['administrador'::text]));
 
-CREATE POLICY tsys_historias_admin_delete_all
-  ON public.historias_clinicas_tsysoptics
-  FOR DELETE TO authenticated
-  USING (tsys_privado.tiene_rol(ARRAY['administrador'::text]));
+-- No se permite borrar historias desde la interfaz; se conserva la trazabilidad.
 
 -- El acceso externo sigue limitado a borradores vinculados a pacientes DEMO.
 CREATE POLICY tsys_historias_externo_update_demo_drafts
