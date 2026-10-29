@@ -66,6 +66,10 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  body.venta-imprimiendo #venta-comprobante .recibo{max-width:none;max-height:none;overflow:visible;padding:0;box-shadow:none}
  body.venta-imprimiendo #venta-comprobante .recibo-acciones{display:none!important}
 }
+#caja-abrir-form[hidden],#caja-movimiento-form[hidden],#caja-cierre-form[hidden]{display:none!important}
+#caja .card .item{display:flex;justify-content:space-between;gap:10px;align-items:start}
+#caja .card .item small{display:block;margin-top:4px}
+#caja .card .item strong{font-size:13px}
 </style></head><body>
 <section id="auth-root" class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
@@ -94,11 +98,11 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </section>
 <div id="tsys-app" hidden><div class="layout">
 <aside class="sidebar"><div class="brand"><img src="logo.svg" alt="Logo Trendy Optics"><span><b>TsysOptics</b><small>Trendy Optics · Gestión</small></span></div><nav aria-label="Módulos">
-<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><a data-access-target="pacientes" href="./pacientes.html">♙ &nbsp; Pacientes</a><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><a data-access-target="clinica" href="../index.html">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación. Agenda e inventario usan Supabase; ventas aún en demostración.</footer></aside>
+<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><a data-access-target="pacientes" href="./pacientes.html">♙ &nbsp; Pacientes</a><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><a data-access-target="clinica" href="../index.html">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
 <div class="main"><header class="top"><strong>TsysOptics <span style="font-size:12px;color:#585F73">| Óptica Trendy Optics</span></strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
 <div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><a data-access-target="pacientes" href="./pacientes.html">Pacientes</a><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><a data-access-target="clinica" href="../index.html">Clínica ↗</a></div>
-<main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda, Inventario y Ventas de prueba utilizan Supabase. <strong>Simulador óptico sigue siendo un esquema de demostración.</strong> Ventas aún no incluye caja operativa ni facturación electrónica. No usar como sistema de producción.</div>
-<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historias, agenda, inventario y ventas de prueba centralizados en Supabase.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small id="metric-ventas-origen">Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase) ↗</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
+<main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda, Inventario, Ventas y Caja de prueba utilizan Supabase. <strong>Simulador óptico sigue siendo un esquema de demostración.</strong> Ventas aún no incluye caja operativa ni facturación electrónica. No usar como sistema de producción.</div>
+<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historias, agenda, inventario y ventas de prueba centralizados en Supabase.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small id="metric-ventas-origen">Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase) ↗</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="caja">▣ &nbsp; Abrir Caja</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
 <section class="page" id="agenda"><span class="label">AGENDA · SUPABASE</span><h1>Agenda de citas</h1>
 <p class="muted">Organiza las citas por fecha, hora y tipo de atención. El administrador puede asociarlas a pacientes de TsysOptics.</p>
 <div class="cols">
@@ -172,8 +176,8 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </section>
 <section class="page" id="ventas">
 <span class="label">VENTAS Y COBROS · PILOTO SUPABASE</span>
-<h1>Ventas y caja</h1>
-<p class="muted">Registra ventas con descuento automático de existencias y cobros parciales. Este módulo aún no incluye apertura, cierre ni arqueo de caja, ni facturación electrónica DIAN. Usa solo datos de prueba.</p>
+<h1>Ventas y cobros</h1>
+<p class="muted">Registra ventas con descuento de existencias y cobros parciales. Debes abrir un turno en Caja antes de realizar nuevas operaciones. El comprobante no sustituye la factura electrónica DIAN.</p>
 <div class="venta-resumen">
  <div class="card"><span class="label">VENTAS EMITIDAS</span><strong id="ventas-cantidad">0</strong></div>
  <div class="card"><span class="label">TOTAL VENDIDO</span><strong id="ventas-total">$ 0</strong></div>
@@ -182,7 +186,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </div>
 <div class="cols">
  <form class="card form" id="form-venta">
-  <h2>Nueva venta de prueba</h2>
+  <h2>Nueva venta de prueba</h2><p class="muted" id="venta-turno-estado" role="status">Consultando estado de Caja…</p><button type="button" class="btn alt" data-go="caja" id="ventas-ir-caja">Ir a Caja</button>
   <label>Paciente registrado (opcional)<select name="paciente_id" id="venta-paciente"><option value="">Consumidor final</option></select></label>
   <label>Producto del inventario
    <select name="producto" id="venta-producto"><option value="">Seleccionar referencia</option></select>
@@ -215,7 +219,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </div>
 <div class="cols" style="margin-top:16px">
  <form class="card form" id="ventas-form-abono">
-  <h2>Registrar abono a una venta</h2>
+  <h2>Registrar abono a una venta</h2><p class="muted" id="ventas-abono-turno">Los abonos requieren un turno de caja abierto.</p>
   <label>Venta con saldo pendiente <select id="ventas-abono-venta" name="venta_id" required><option value="">Seleccionar venta</option></select></label>
   <label>Valor del abono (COP)<input name="monto" id="ventas-abono-monto" type="number" min="0.01" step="0.01" required></label>
   <label>Medio de pago <select name="medio" id="ventas-abono-medio" required>
@@ -232,9 +236,62 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  <div class="card">
   <h2>Estado de caja</h2>
   <p>Los <strong>cobros</strong> se registran con su medio de pago y fecha. Las cifras de la parte superior provienen de Supabase.</p>
-  <p class="muted">La apertura de turno, el fondo inicial, los gastos, el arqueo y el cierre de caja se implementarán en la siguiente etapa. No utilices este piloto para una caja real.</p>
+  <p class="muted">Los turnos, movimientos y arqueos se gestionan en el módulo Caja. Sigue siendo un piloto sin autorización para caja real.</p>
  </div>
 </div>
+</section>
+<section class="page" id="caja">
+ <span class="label">CAJA · TURNOS Y ARQUEO · SUPABASE</span>
+ <h1>Control de caja</h1>
+ <p class="muted">Un turno abierto por óptica. Registra el fondo inicial, los pagos por medio, las entradas y salidas manuales de efectivo, y la diferencia de arqueo. No incluye facturación electrónica.</p>
+ <div class="card" style="margin-bottom:16px">
+  <h2>Estado del turno</h2>
+  <p id="caja-estado-mensaje" role="status" aria-live="polite">Consultando estado…</p>
+  <p id="caja-turno-fechas" class="muted"></p>
+  <button type="button" id="caja-actualizar" class="btn alt">Actualizar estado de caja</button>
+ </div>
+ <div class="venta-resumen" aria-label="Resumen de caja">
+  <div class="card"><span class="label">FONDO INICIAL</span><strong id="caja-fondo">$ 0</strong></div>
+  <div class="card"><span class="label">PAGOS EN EFECTIVO</span><strong id="caja-efectivo">$ 0</strong></div>
+  <div class="card"><span class="label">EFECTIVO ESPERADO</span><strong id="caja-esperado">$ 0</strong></div>
+  <div class="card"><span class="label">DIFERENCIA AL CIERRE</span><strong id="caja-diferencia">—</strong></div>
+ </div>
+ <div class="cols">
+  <form class="card form" id="caja-abrir-form">
+   <h2>Abrir turno</h2>
+   <label>Fondo inicial en efectivo (COP)<input name="fondo" type="number" min="0" step="0.01" value="0" required></label>
+   <button id="caja-abrir-btn" class="btn" type="submit">Abrir caja</button>
+   <p id="caja-abrir-status" class="muted" role="status" aria-live="polite"></p>
+  </form>
+  <div class="card">
+   <h2>Recaudos del turno por medio de pago</h2>
+   <div id="caja-medios" class="list"></div>
+   <p class="muted" id="caja-manuales-resumen"></p>
+  </div>
+ </div>
+ <div class="cols" style="margin-top:16px">
+  <form class="card form" id="caja-movimiento-form">
+   <h2>Movimiento manual de efectivo</h2>
+   <label>Tipo de movimiento<select name="tipo" required><option value="ingreso">Ingreso</option><option value="egreso">Egreso</option></select></label>
+   <label>Valor (COP)<input name="monto" type="number" min="0.01" step="0.01" required></label>
+   <label>Justificación<textarea name="motivo" minlength="3" maxlength="160" rows="3" required placeholder="Ej. Compra de bolsas o ingreso por cambio de fondo"></textarea></label>
+   <button class="btn" id="caja-movimiento-btn" type="submit">Registrar movimiento</button>
+   <p id="caja-movimiento-status" class="muted" role="status" aria-live="polite"></p>
+  </form>
+  <form class="card form" id="caja-cierre-form">
+   <h2>Cerrar turno · Arqueo</h2>
+   <p>Cuenta físicamente el efectivo disponible y digita ese valor. El servidor calculará la diferencia.</p>
+   <label>Efectivo contado (COP)<input name="contado" type="number" min="0" step="0.01" required></label>
+   <label>Observaciones (opcional)<textarea name="observaciones" maxlength="500" rows="3" placeholder="Novedades, faltantes o sobrantes"></textarea></label>
+   <button class="btn" id="caja-cierre-btn" type="submit">Cerrar y registrar arqueo</button>
+   <p id="caja-cierre-status" class="muted" role="status" aria-live="polite"></p>
+  </form>
+ </div>
+ <div class="cols" style="margin-top:16px">
+  <div class="card"><h2>Movimientos manuales recientes</h2><div id="caja-movimientos" class="list"></div></div>
+  <div class="card"><h2>Historial de turnos</h2><div id="caja-turnos" class="list"></div></div>
+ </div>
+ <p class="muted">Las operaciones anteriores a la primera apertura de caja permanecen en Ventas, sin asignarse retroactivamente a un turno.</p>
 </section>
 <section class="page" id="simulador"><span class="label">LENTES · DEMOSTRACIÓN</span><h1>Simulación del perfil óptico</h1><div class="cols"><div class="card form"><h2>Parámetros</h2><label>Esfera <strong id="potencia-label">−2.00 D</strong><input id="potencia" type="range" min="-10" max="10" step=".25" value="-2"></label><label>Índice<select id="indice"><option>1.50</option><option>1.60</option><option>1.67</option><option>1.74</option></select></label><label>Diámetro <strong id="diametro-label">65 mm</strong><input id="diametro" type="range" min="50" max="80" value="65"></label><p class="muted">Representación conceptual sin escala. No predice espesores ni reemplaza los cálculos de laboratorio.</p></div><div class="card visual"><h2>Vista ilustrativa</h2><svg viewBox="0 0 360 235" role="img" aria-label="Sección esquemática de lente"><defs><linearGradient id="g"><stop stop-color="#b4c4d5"/><stop offset=".5" stop-color="#e7f0f6"/><stop offset="1" stop-color="#718aa7"/></linearGradient></defs><line x1="30" x2="330" y1="115" y2="115" stroke="#BFBFBF" stroke-dasharray="4 5"/><path id="perfil" fill="url(#g)" stroke="#585F73" stroke-width="2.5"/></svg><p id="tipo-lente" class="muted"></p></div></div></section>
 <footer style="margin-top:35px;color:#9099a7;font-size:11px">TsysOptics · Trendy Optics · Piloto aislado de la página clínica</footer></main></div></div></div>
@@ -264,7 +321,7 @@ const $=id=>document.getElementById(id),cop=n=>new Intl.NumberFormat("es-CO",{st
 const node=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;return e};
 const save=()=>{try{localStorage.setItem(key,JSON.stringify(data));toast("Guardado localmente como prueba.")}catch{toast("No se pudo guardar en este navegador.")}};
 let timer;function toast(s){$("notice").textContent=s;$("notice").hidden=false;clearTimeout(timer);timer=setTimeout(()=>$("notice").hidden=true,3000)}
-function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas"].includes(page)}
+function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas","caja"].includes(page)}
 function navigate(p){if(!canNavigate(p)){toast("Módulo reservado al administrador.");return;}document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===p));document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===p));scrollTo({top:0,behavior:"instant"})}
 document.querySelectorAll("[data-page]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.page)));
 document.querySelectorAll("[data-go]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.go)));
@@ -286,7 +343,7 @@ function applyDashboardRole(role){
  currentRole=role;
  const limited=role!=="administrador";
  const details=document.getElementById("access-details");
- if(details)details.textContent=limited?"Inventario y ventas bloqueados. Agenda de prueba y simulador disponibles.":"Acceso administrativo. Agenda, inventario y ventas de prueba centralizados en Supabase.";
+ if(details)details.textContent=limited?"Inventario, ventas y caja bloqueados. Agenda de prueba y simulador disponibles.":"Acceso administrativo a agenda, inventario, ventas y caja de prueba en Supabase.";
  const ventasOrigin=document.getElementById("metric-ventas-origen");
  if(ventasOrigin)ventasOrigin.textContent=limited?"Demo local":"Supabase";
  const inventarioOrigin=document.getElementById("metric-productos-origen");
@@ -303,7 +360,7 @@ function applyDashboardRole(role){
    ?"Abre el formulario optométrico completo, con todos los parámetros del original. Es una copia de prueba sin ventas ni envíos a Google Sheets. No ingresar datos reales."
    :"Accede al formulario optométrico original de Trendy Optics, conectado a Supabase y con historial de consultas.";
  if(cardLink)cardLink.textContent=limited?"Abrir formulario completo ↗":"Abrir clínica ↗";
- for(const p of ["ventas","inventario"]){
+ for(const p of ["ventas","inventario","caja"]){
   document.querySelectorAll(".tile").forEach(t=>{const txt=t.querySelector("span")?.textContent.trim().toLowerCase();if(txt===p || txt===(p==="inventario"?"referencias":"ventas"))t.classList.toggle("access-tile-locked",limited)});
  }
  const allowed=canNavigate(document.querySelector(".page.active")?.id||"inicio");
@@ -314,7 +371,7 @@ window.addEventListener("tsys:role",e=>applyDashboardRole(e.detail.role));
 window.addEventListener("tsys:locked",()=>{currentRole=null;});
 render();lens();
 })();
-</script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js"></script><script type="module" src="./ventas.js"></script><script type="module" src="./auth.js"></script><div id="venta-comprobante" hidden role="dialog" aria-modal="true" aria-labelledby="venta-recibo-titulo">
+</script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js"></script><script type="module" src="./ventas.js"></script><script type="module" src="./caja.js"></script><script type="module" src="./auth.js"></script><div id="venta-comprobante" hidden role="dialog" aria-modal="true" aria-labelledby="venta-recibo-titulo">
  <div class="recibo">
   <div class="recibo-acciones">
    <button class="btn alt" id="venta-cerrar-comprobante" type="button">Cerrar</button>
