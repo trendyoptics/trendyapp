@@ -10,7 +10,7 @@ const money=n=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",ma
 const date=n=>new Date(n).toLocaleString("es-CO",{timeZone:"America/Bogota"});
 const labels={efectivo:"Efectivo",nequi:"Nequi",daviplata:"Daviplata",transferencia:"Transferencia",tarjeta:"Tarjeta",otro:"Otros"};
 let admin=false,initializing=false,loading=false;
-let snapshot=null,requestGeneration=0,doing=null;
+let snapshot=null,requestGeneration=0,doing=null,stateKnown=false;
 let movementToken=crypto.randomUUID();
 function status(id,msg){
  const field=$(id);
@@ -33,8 +33,8 @@ function el(tag,value,cls){
  return node;
 }
 function setControls(){
- const open=Boolean(admin&&snapshot?.estado==="abierta");
- const canOpen=Boolean(admin&&!open);
+ const open=Boolean(admin&&stateKnown&&snapshot?.estado==="abierta");
+ const canOpen=Boolean(admin&&stateKnown&&!open);
  $("caja-abrir-btn").disabled=!canOpen||doing!==null;
  $("caja-movimiento-btn").disabled=!open||doing!==null;
  $("caja-cierre-btn").disabled=!open||doing!==null;
@@ -102,14 +102,16 @@ async function refresh(){
   if(!admin||mine!==requestGeneration)return;
   if(r.error){
    console.warn("Caja: consulta del resumen",r.error.code||"RPC",r.error.message);
-   snapshot=null;setControls();notify();
+   snapshot=null;stateKnown=false;setControls();notify();
    state("Caja no pudo consultar los valores del turno. Pulsa Actualizar. (Consulta C1)");
    return;
   }
   snapshot=Array.isArray(r.data)&&r.data.length?r.data[0]:null;
+  stateKnown=true;
   try{
    renderSummary();
   }catch(error){
+   stateKnown=false;
    console.error("Caja: fallo al presentar el resumen",error);
    // Intentar recuperar el estado, incluso si un detalle visual falló.
    state(snapshot?.estado==="abierta"
@@ -172,7 +174,7 @@ async function refresh(){
  }catch(error){
   // Únicamente los problemas del resumen hacen que la caja deje de ser operable.
   console.error("Caja: problema de conexión o carga inicial",error);
-  snapshot=null;setControls();notify();
+  snapshot=null;stateKnown=false;setControls();notify();
   state("No se pudo consultar Caja. Revisa la conexión e intenta actualizar. (Consulta C3)");
  }finally{loading=false}
 }
@@ -244,7 +246,7 @@ $("caja-cierre-form").addEventListener("submit",async e=>{
 });
 function reset(){
  admin=false;initializing=false;requestGeneration++;
- snapshot=null;doing=null;
+ snapshot=null;doing=null;stateKnown=false;
  $("caja-turnos").replaceChildren();$("caja-movimientos").replaceChildren();
  for(const id of ["caja-abrir-status","caja-movimiento-status","caja-cierre-status"])status(id,"");
  status("caja-estado-mensaje","Caja disponible solo para administradores autorizados.");
