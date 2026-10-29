@@ -1,5 +1,6 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+import "./inventario-movil.js?v=20261029a";
 
 // Módulo centralizado: el navegador nunca guarda ni modifica inventario local.
 // La base de datos valida permisos, cantidades y registra movimientos en un trigger.
@@ -13,6 +14,7 @@ const list=$("lista-productos");
 const movements=$("inventario-movimientos");
 const select=$("inventario-ajuste-producto");
 let products=[];
+let serverCount=0,mobileStockFilter="todos";
 let adminReady=false,initializing=false,busy=false,adjusting=false;
 let generation=0;
 const money=value=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(Number(value)||0);
@@ -60,43 +62,103 @@ function beginEdit(product){
  $("inventario-aviso-edicion").hidden=false;
  $("inventario-cancelar-edicion").hidden=false;
  status("inventario-form-status","Edición de ficha: las existencias se ajustan por separado.");
+ window.tsysInventarioMobileTab?.("nuevo");
  form.scrollIntoView({behavior:"smooth",block:"start"});
 }
 $("inventario-cancelar-edicion").addEventListener("click",()=>{
  clearEdit();status("inventario-form-status","");
 });
-function render(){
- if(!adminReady)return;
- const query=$("inventario-buscar").value.trim().toLocaleUpperCase("es-CO");
- const visible=products.filter(p=>!query || (p.codigo+" "+p.nombre).toLocaleUpperCase("es-CO").includes(query));
- list.replaceChildren();
- if(!visible.length){list.append(element("p","No hay referencias para este filtro."));return}
- for(const p of visible){
-  const row=element("div",undefined,"item");
-  const info=document.createElement("div");
-  info.append(
-   element("strong",p.codigo+" · "+p.nombre),
-   element("small",p.tipo+" · Precio "+money(p.precio_venta)+" · Existencias: "+p.cantidad),
-  );
-  const low=p.cantidad<=p.stock_minimo;
-  info.append(element("small",(p.activo?"Activa":"Inactiva")+" · "+(low?"Stock mínimo alcanzado":"Stock disponible"),low?"stock-danger":"stock-ok"));
-  row.append(info);
-  const actions=element("div",undefined,"inv-actions");
-  const edit=element("button","Editar");edit.type="button";
-  edit.addEventListener("click",()=>beginEdit(p));
-  const adjust=element("button","Ajustar stock");adjust.type="button";
-  adjust.addEventListener("click",()=>{
-   select.value=p.id;
-   $("inventario-ajuste-cantidad").value=String(p.cantidad);
-   adjustForm.scrollIntoView({behavior:"smooth",block:"start"});
-  });
-  const active=element("button",p.activo?"Desactivar":"Reactivar");active.type="button";
-  active.addEventListener("click",()=>toggleActive(p,active));
-  actions.append(edit,adjust,active);
-  row.append(actions);
-  list.append(row);
+function normalizeFilter(text){
+ return String(text||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+  .toLocaleUpperCase("es-CO");
+}
+function matchingStock(p,which){
+ switch(which){
+  case "alerta":return p.activo&&p.cantidad<=p.stock_minimo;
+  case "agotadas":return p.activo&&p.cantidad===0;
+  case "inactivas":return !p.activo;
+  default:return true;
  }
 }
+function notifyInventoryMetrics(){
+ const active=products.filter(p=>p.activo);
+ window.dispatchEvent(new CustomEvent("tsys:inventario-resumen",{
+  detail:{
+   total:products.length,
+   alert:active.filter(p=>p.cantidad<=p.stock_minimo).length,
+   empty:active.filter(p=>p.cantidad===0).length,
+   inactive:products.length-active.length
+  }
+ }));
+}
+function render(){
+ if(!adminReady)return;
+ const query=normalizeFilter($("inventario-buscar").value.trim());
+ const mobile=window.matchMedia("(max-width: 850px)").matches;
+ const filter=mobile?mobileStockFilter:"todos";
+ const visible=products.filter(p=>
+  (!query||normalizeFilter(p.codigo+" "+p.nombre).includes(query))
+  &&matchingStock(p,filter)
+ );
+ list.replaceChildren();
+ if(!visible.length){
+  list.append(element("p","No hay referencias que coincidan con estos filtros.","muted"));
+ }else{
+  for(const p of visible){
+   const row=element("div",undefined,"item");
+   const info=document.createElement("div");
+   const low=p.activo&&p.cantidad<=p.stock_minimo;
+   const empty=p.activo&&p.cantidad===0;
+   if(!p.activo)row.classList.add("tsys-inv-row-inactive");
+   else if(empty)row.classList.add("tsys-inv-row-empty");
+   else if(low)row.classList.add("tsys-inv-row-low");
+   info.append(
+    element("strong",p.codigo+" · "+p.nombre),
+    element("small",p.tipo+" · Precio "+money(p.precio_venta)+
+     " · Existencias: "+p.cantidad+" · Mínimo: "+p.stock_minimo)
+   );
+   const label= !p.activo?"Inactiva":empty?"Sin existencias":
+    low?"Stock mínimo alcanzado":"Stock disponible";
+   info.append(element("small",label,low?"stock-danger":"stock-ok"));
+   const tag=element("span","Stock: "+p.cantidad+
+    " · Mínimo: "+p.stock_minimo,"tsys-inv-stock-label");
+   tag.setAttribute("aria-label","Existencias: "+p.cantidad+
+    ". Nivel mínimo configurado: "+p.stock_minimo);
+   info.append(tag);
+   row.append(info);
+   const actions=element("div",undefined,"inv-actions");
+   const edit=element("button","Editar");edit.type="button";
+   edit.addEventListener("click",()=>beginEdit(p));
+   const adjust=element("button","Ajustar stock");adjust.type="button";
+   adjust.addEventListener("click",()=>{
+    select.value=p.id;
+    $("inventario-ajuste-cantidad").value=String(p.cantidad);
+    status("inventario-ajuste-status",
+     "Existencias actuales: "+p.cantidad+". Indica la cantidad real y justifica el ajuste.");
+    window.tsysInventarioMobileTab?.("ajustar");
+    adjustForm.scrollIntoView({behavior:"smooth",block:"start"});
+   });
+   const active=element("button",p.activo?"Desactivar":"Reactivar");active.type="button";
+   active.addEventListener("click",()=>toggleActive(p,active));
+   actions.append(edit,adjust,active);
+   row.append(actions);
+   list.append(row);
+  }
+ }
+ const limit=serverCount>products.length
+  ?" Solo se cargaron las primeras "+products.length+" referencias por orden alfabético. Hay más registros en el servidor." : "";
+ status("inventario-list-status",visible.length+" de "+products.length+
+  " referencias cargadas mostradas."+limit);
+ notifyInventoryMetrics();
+ window.dispatchEvent(new CustomEvent("tsys:inventario-buscar",{
+  detail:{visible:visible.length,total:products.length,filter}
+ }));
+}
+window.tsysInventarioMobileFilter=filter=>{
+ if(!["todos","alerta","agotadas","inactivas"].includes(filter))return;
+ mobileStockFilter=filter;
+ render();
+};
 function fillAdjustList(){
  const previous=select.value;
  select.replaceChildren(new Option("Seleccionar referencia",""));
@@ -116,10 +178,10 @@ async function loadProducts(){
  if(!adminReady||mine!==generation)return;
  if(error){status("inventario-list-status","No se pudo consultar el inventario en Supabase.");return}
  products=data||[];
- if(typeof window.tsysInventarioSetCount==="function")window.tsysInventarioSetCount(count||0);
+ serverCount=count||products.length;
+ if(typeof window.tsysInventarioSetCount==="function")window.tsysInventarioSetCount(serverCount);
  fillAdjustList();
  render();
- status("inventario-list-status",products.length+" referencias mostradas"+((count||0)>250?" (máximo 250; requiere paginación)":"")+".");
 }
 async function loadMovements(){
  if(!adminReady)return;
@@ -182,7 +244,11 @@ form.addEventListener("submit",async e=>{
 });
 select.addEventListener("change",()=>{
  const p=products.find(x=>x.id===select.value);
- if(p)$("inventario-ajuste-cantidad").value=String(p.cantidad);
+ if(p){
+  $("inventario-ajuste-cantidad").value=String(p.cantidad);
+  status("inventario-ajuste-status","Existencias actuales: "+p.cantidad+
+   ". Ingresa la cantidad real y explica el ajuste.");
+ }
 });
 adjustForm.addEventListener("submit",async e=>{
  e.preventDefault();
@@ -224,6 +290,9 @@ async function toggleActive(p,button){
 }
 $("inventario-actualizar").addEventListener("click",refresh);
 $("inventario-buscar").addEventListener("input",render);
+window.matchMedia("(max-width: 850px)").addEventListener("change",()=>{
+ if(adminReady)render();
+});
 async function activate(){
  if(adminReady||initializing)return;
  initializing=true;
@@ -237,7 +306,10 @@ async function activate(){
 }
 function reset(){
  adminReady=false;initializing=false;generation++;
- products=[];list.replaceChildren();movements.replaceChildren();
+ products=[];serverCount=0;mobileStockFilter="todos";
+ list.replaceChildren();movements.replaceChildren();
+ window.tsysInventarioMobileReset?.();
+ notifyInventoryMetrics();
  clearEdit();adjustForm.reset();
  status("inventario-list-status","");status("inventario-form-status","");status("inventario-ajuste-status","");
 }
