@@ -629,8 +629,8 @@
         <h3 class="font-bold text-base">Historias clínicas guardadas en Supabase</h3>
         <button onclick="closeHistoryModal()" class="text-slate-500 hover:text-black font-bold px-2">✕</button>
       </div>
-      <div class="flex-1 overflow-y-auto py-2">
-        <table class="w-full text-xs text-left">
+      <div class="flex-1 overflow-auto py-2" role="region" aria-label="Tabla de historias clínicas: desplázate horizontalmente para ver todos los campos" tabindex="0">
+        <table class="w-full min-w-[760px] text-xs text-left">
           <thead>
             <tr class="border-b text-slate-500 uppercase">
               <th class="py-2">Fecha</th>
@@ -1104,6 +1104,30 @@ function formatDate(value) {
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString("es-CO");
 }
+
+// Normalización SOLO VISUAL de prescripciones. No modifica el valor guardado
+// ni inventa mediciones ausentes en las historias importadas.
+function formatOpticalPower(value) {
+  if (value === null || value === undefined) return "";
+  const raw = String(value).trim();
+  if (!raw) return "";
+  const normalized = raw.replace(",", ".");
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(normalized)) return raw;
+  const n = Number(normalized);
+  if (!Number.isFinite(n)) return raw;
+  return (n > 0 ? "+" : "") + n.toFixed(2);
+}
+function formatOpticalAxis(value) {
+  if (value === null || value === undefined) return "";
+  const raw = String(value).trim().replace(/^[xX×]\s*/, "").replace(/°\s*$/, "").trim();
+  return raw ? "× " + raw + "°" : "";
+}
+function formatOpticalRx(datos, eye) {
+  const sphere = formatOpticalPower(datos[eye + "Esfera"]);
+  const cylinder = formatOpticalPower(datos[eye + "Cilindro"]);
+  const axis = formatOpticalAxis(datos[eye + "Eje"]);
+  return [sphere, cylinder, axis].filter(Boolean).join(" ") || "Sin fórmula registrada";
+}
 function appendCell(row, value, className) {
   const cell = document.createElement("td");
   cell.className = className || "py-2";
@@ -1124,6 +1148,10 @@ function fillClinicalForm(record) {
     "dp","tipoLente","montura","biomicroscopia","oftalmoscopia","motilidad","cie1","cie2","cie3","cie4","cie5","notas","optometra","metodoPago"
   ];
   for (const key of keys) setField(key, d[key]);
+  // Los campos de Rx son de texto: mostramos -1.00 en vez de -1 sin reescribir Supabase.
+  for (const key of ["odEsfera", "odCilindro", "oiEsfera", "oiCilindro"]) {
+    setField(key, formatOpticalPower(d[key]));
+  }
   setDocumentType(d.tipoDoc);
   setDateTimeFromHistory(d, record.fecha_consulta);
   setField("telefono", String(d.telefono || "").replace(/^\+?57\s*/, ""));
@@ -1170,7 +1198,7 @@ async function openHistoryModal(patientId = null) {
       appendCell(tr, formatDate(r.fecha_consulta));
       appendCell(tr, patient.nombre_completo || d.nombre || "Sin nombre", "py-2 font-bold");
       appendCell(tr, [patient.tipo_documento || d.tipoDoc, patient.documento || d.documento].filter(Boolean).join(" · "));
-      appendCell(tr, "OD: " + [d.odEsfera,d.odCilindro,d.odEje].filter(v=>v!==undefined&&v!=="").join(" ") + " | OI: " + [d.oiEsfera,d.oiCilindro,d.oiEje].filter(v=>v!==undefined&&v!=="").join(" "));
+      appendCell(tr, "OD: " + formatOpticalRx(d, "od") + "  |  OI: " + formatOpticalRx(d, "oi"), "py-2 font-mono whitespace-nowrap");
       const finance = appendCell(tr, (typeof window.formatoCOP === "function" ? window.formatoCOP(d.precioTotal || 0) : "$ " + Number(d.precioTotal||0).toLocaleString("es-CO")), "py-2");
       const small = document.createElement("div"); small.className = "text-amber-700";
       small.textContent = "Saldo: " + (typeof window.formatoCOP === "function" ? window.formatoCOP(d.saldoPendiente || 0) : "$ " + Number(d.saldoPendiente||0).toLocaleString("es-CO"));
