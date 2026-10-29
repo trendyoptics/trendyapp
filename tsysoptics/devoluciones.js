@@ -55,6 +55,37 @@ function chooseSale(sale){
  $("edit").hidden=false;
  $("edit").scrollIntoView({behavior:"smooth",block:"start"});
 }
+function showNote(note){
+ $("nota-codigo").textContent="Nota NCI-"+name(note.numero_venta)+" · Operación completa";
+ $("nota-fecha").textContent="Fecha de registro: "+new Date(note.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"});
+ $("nota-motivo").textContent="Motivo: "+note.motivo;
+ $("nota-importe").textContent="Valor reembolsado: "+money(note.monto_reembolsado)+
+  " · Saldo pendiente cancelado: "+money(note.saldo_condonado);
+ $("nota-detalle").textContent="Medios registrados: "+(note.medios||[]).map(x=>
+  (labels[x.medio]||x.medio)+" "+money(x.monto)).join(" | ");
+ $("nota-stock").textContent=note.reintegro_stock
+  ?"Inventario reintegrado: "+(note.detalle_inventario||[]).map(x=>x.codigo+" × "+x.cantidad).join(", ")
+  :"Mercancía no reintegrada al inventario.";
+ $("nota-vista").hidden=false;
+ $("nota-vista").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("nota-cerrar").addEventListener("click",()=>{$("nota-vista").hidden=true});
+$("nota-imprimir").addEventListener("click",()=>window.print());
+function renderNotes(items){
+ const root=$("notas");root.replaceChildren();
+ if(!items?.length){root.append(make("p","Todavía no hay devoluciones registradas."));return}
+ for(const item of items){
+  const row=make("div");row.className="item";
+  const info=make("div");
+  info.append(make("strong","NCI-"+name(item.numero_venta)+" · "+money(item.monto_reembolsado)));
+  const desc=make("p",new Date(item.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+
+   (item.reintegro_stock?"Con reintegro de inventario":"Sin reintegro de inventario"));
+  desc.className="muted";info.append(desc);
+  const button=make("button","Ver nota");
+  button.className="secondary";button.addEventListener("click",()=>showNote(item));
+  row.append(info,button);root.append(row);
+ }
+}
 function render(list,open){
  const root=$("ventas");root.replaceChildren();
  const available=(list||[]).filter(x=>x.estado==="emitida"&&Number(x.abonado)>0);
@@ -76,18 +107,24 @@ async function load(){
  if(!admin||loading)return;
  loading=true;msg("Consultando ventas y turno de caja…");
  try{
-  const [sales,shift]=await Promise.all([
+  const [sales,shift,notes]=await Promise.all([
    db.from("ventas_tsysoptics")
     .select("id,numero,total,abonado,saldo,estado,pagos:pagos_ventas_tsysoptics(medio,monto),lineas:detalle_ventas_tsysoptics(codigo_snapshot,cantidad)")
     .eq("estado","emitida").gt("abonado",0).order("fecha",{ascending:false}).limit(100),
-   db.rpc("resumen_turno_caja_tsysoptics")
+   db.rpc("resumen_turno_caja_tsysoptics"),
+   db.from("devoluciones_ventas_tsysoptics")
+    .select("id,numero_venta,fecha,motivo,monto_reembolsado,saldo_condonado,reintegro_stock,detalle_inventario,medios:reembolsos_medios_tsysoptics(medio,monto)")
+    .order("fecha",{ascending:false}).limit(40)
   ]);
-  if(sales.error||shift.error){msg("No fue posible consultar las ventas o Caja.");return}
+  if(sales.error||shift.error||notes.error){
+   msg("No fue posible consultar las ventas, Caja o el historial de devoluciones.");return;
+  }
   const open=cashOpen(shift);
   msg(open
    ?"Turno de caja abierto. Puedes registrar una devolución manual ya realizada."
    :"Caja cerrada. Abre un turno en Caja antes de documentar devoluciones.");
   render(sales.data||[],open);
+  renderNotes(notes.data||[]);
   if(!open)closeForm();
  }catch{msg("Error de conexión. Comprueba tu sesión y vuelve a cargar la página.")}
  finally{loading=false}
