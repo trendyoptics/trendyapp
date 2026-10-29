@@ -324,7 +324,7 @@
  #ventas .venta-fila-controles{grid-template-columns:1fr}
  #ventas .venta-fila-controles .venta-fila-info{grid-column:auto}
 }
-@media(print){
+@media print{
  #tsys-ventas-nav,#tsys-ventas-product-search,#tsys-ventas-history-search{display:none!important}
  #ventas .tsys-sales-disclosure{display:contents!important}
  #ventas .tsys-sales-disclosure summary{display:none!important}
