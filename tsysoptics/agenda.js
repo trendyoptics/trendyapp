@@ -1,7 +1,7 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
 
-// Agenda administrativa de TsysOptics. Los datos reales NO se almacenan
+// Agenda administrativa de TsysOptics. Calendario táctil en desarrollo. Los datos reales NO se almacenan
 // en el navegador; únicamente se leen/escriben a través de Supabase con RLS.
 const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
   auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
