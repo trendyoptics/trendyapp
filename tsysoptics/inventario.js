@@ -36,7 +36,7 @@ async function isAdmin(){
  return !pe && p?.rol==="administrador" && p?.activo===true;
 }
 function clearEdit(){
- form.reset();
+ form.reset();window.tsysFormatCOPInputs(form);
  $("inventario-editar-id").value="";
  $("inventario-form-title").textContent="Nueva referencia";
  $("inventario-guardar").textContent="Agregar referencia";
@@ -51,6 +51,7 @@ function beginEdit(product){
  form.elements.tipo.value=product.tipo;
  form.elements.precio.value=product.precio_venta;
  form.elements.costo.value=product.costo_compra==null?"":product.costo_compra;
+ window.tsysFormatCOPInputs(form);
  form.elements.cantidad.value=product.cantidad;
  form.elements.stock_minimo.value=product.stock_minimo;
  $("inventario-form-title").textContent="Editar referencia";
@@ -153,9 +154,9 @@ form.addEventListener("submit",async e=>{
  const codigo=String(values.get("codigo")||"").trim().toUpperCase();
  const nombre=String(values.get("nombre")||"").trim();
  const tipo=String(values.get("tipo")||"");
- const precio=Number(values.get("precio"));
+ const precio=window.tsysParseCOP(values.get("precio"));
  const rawCost=String(values.get("costo")||"").trim();
- const cost=rawCost===""?null:Number(rawCost);
+ const cost=rawCost===""?null:window.tsysParseCOP(rawCost);
  const inicial=Number(values.get("cantidad"));
  const minimo=Number(values.get("stock_minimo"));
  if(codigo.length<3||codigo.length>40||nombre.length<2||nombre.length>120||!Number.isFinite(precio)||precio<0||
