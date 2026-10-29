@@ -5,7 +5,7 @@
  if(!app)return;
  const stylesheet=document.createElement("link");
  stylesheet.rel="stylesheet";
- stylesheet.href=new URL("./movil.css?v=20261029g",import.meta.url).href;
+ stylesheet.href=new URL("./movil.css?v=20261029h",import.meta.url).href;
  document.head.append(stylesheet);
  const ico={
   inicio:'<path d="m3 10 9-7 9 7v11H3z"/><path d="M9 21v-7h6v7"/>',

@@ -1,7 +1,7 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
 
-// Agenda administrativa de TsysOptics. Los datos reales NO se almacenan
+// Agenda administrativa de TsysOptics. Calendario táctil en desarrollo. Los datos reales NO se almacenan
 // en el navegador; únicamente se leen/escriben a través de Supabase con RLS.
 const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
   auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
@@ -34,6 +34,7 @@ function resetAdministrativeView(){
  status("agenda-save-status","");
  status("agenda-list-status","");
  $("agenda-filtro-fecha").value="";
+ window.tsysAgendaMobileReset?.();
  $("agenda-filtro-estado").value="";
  patientSelect.replaceChildren(new Option("Sin paciente registrado",""));
 }
@@ -94,14 +95,17 @@ async function loadCitas(){
  if(typeof window.tsysAgendaSetCount==="function")window.tsysAgendaSetCount(totals.count||0);
  list.replaceChildren();
  const items=rows.data||[];
+ window.tsysAgendaMobileSync?.(items);
  status("agenda-list-status",items.length+" citas mostradas"+(items.length===150?" (límite de 150; usa los filtros para buscar otras fechas)":"")+".");
  if(!items.length){list.append(textNode("p","Sin citas para los filtros seleccionados."));return}
  for(const item of items){
   const row=textNode("div","","item");
+  row.classList.add("agenda-mobile-state-"+item.estado);
   const info=document.createElement("div");
   info.append(
     textNode("strong",item.referencia),
-    textNode("small",item.fecha+" · "+String(item.hora).slice(0,5)+" · "+item.tipo+" · "+(STATE_LABELS[item.estado]||item.estado)),
+    textNode("small",item.fecha+" · "+String(item.hora).slice(0,5)+" · "+item.tipo),
+    textNode("span",STATE_LABELS[item.estado]||item.estado,"agenda-mobile-chip"),
   );
   if(item.paciente?.nombre_completo){
     info.append(textNode("small","Paciente asociado: "+item.paciente.nombre_completo));
@@ -127,7 +131,7 @@ async function loadCitas(){
 }
 async function changeState(id,newState,button){
  if(!adminReady)return;
- if(["cancelada","no_asistio"].includes(newState)){
+ if(["cancelada","no_asistio","atendida"].includes(newState)){
   if(!window.confirm("¿Confirmas cambiar el estado de esta cita?"))return;
  }
  button.disabled=true;
@@ -167,6 +171,7 @@ form.addEventListener("submit",async event=>{
   });
   if(error){status("agenda-save-status",showError(error,"guardar"));return}
   form.reset();
+  window.tsysAgendaMobileAfterCreate?.(fecha);
   status("agenda-save-status","Cita guardada correctamente en Supabase.");
   await loadCitas();
  }catch{
@@ -191,6 +196,122 @@ async function activate(){
   status("agenda-list-status","No fue posible iniciar el módulo de agenda.");
  }finally{initializing=false}
 }
+
+function setupMobileAgenda(){
+ const page=$("agenda"),dateInput=$("agenda-filtro-fecha"),listCard=list.closest(".card");
+ const columns=page?.querySelector(".cols");
+ if(!page||!columns||!listCard)return;
+ const media=window.matchMedia("(max-width: 850px)");
+ const make=(tag,cls,txt)=>{
+  const e=document.createElement(tag);if(cls)e.className=cls;
+  if(txt!==undefined)e.textContent=txt;return e;
+ };
+ form.classList.add("agenda-mobile-create");
+ listCard.classList.add("agenda-mobile-list");
+ const tabs=make("div","agenda-mobile-tabs");
+ const tabButtons=new Map();
+ for(const [key,label] of [["citas","Ver citas"],["nueva","Nueva cita"]]){
+  const b=make("button","agenda-mobile-tab",label);
+  b.type="button";b.addEventListener("click",()=>show(key));
+  tabButtons.set(key,b);tabs.append(b);
+ }
+ function localDate(date){
+  const m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(date||"");
+  if(!m)return null;
+  const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12);
+  return d.getFullYear()===Number(m[1])&&d.getMonth()+1===Number(m[2])&&d.getDate()===Number(m[3])?d:null;
+ }
+ const dateText=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),
+  String(d.getDate()).padStart(2,"0")].join("-");
+ const move=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n,12);
+ const monday=d=>move(d,-((d.getDay()+6)%7));
+ function show(tab){
+  page.dataset.agendaMobileView=tab;
+  for(const [key,b] of tabButtons){
+   b.classList.toggle("active",key===tab);
+   b.setAttribute("aria-pressed",String(key===tab));
+  }
+  if(tab==="nueva"&&media.matches&&!form.elements.fecha.value)
+   form.elements.fecha.value=dateInput.value||dateText(new Date());
+ }
+ const calendar=make("div","agenda-mobile-calendar");
+ const tools=make("div","agenda-mobile-calendar-tools");
+ const prev=make("button","agenda-mobile-arrow","‹");
+ const label=make("strong","agenda-mobile-week-label");
+ const next=make("button","agenda-mobile-arrow","›");
+ const today=make("button","agenda-mobile-shortcut","Hoy");
+ const all=make("button","agenda-mobile-shortcut","Todas");
+ for(const b of [prev,next,today,all])b.type="button";
+ prev.setAttribute("aria-label","Semana anterior");
+ next.setAttribute("aria-label","Semana siguiente");
+ tools.append(prev,label,next,today,all);
+ const strip=make("div","agenda-mobile-week-strip");
+ calendar.append(tools,strip);
+ const summary=make("div","agenda-mobile-summary","Selecciona un día para ver las citas.");
+ summary.setAttribute("role","status");
+ columns.before(tabs);
+ tabs.after(calendar);calendar.after(summary);
+ let start=monday(localDate(dateInput.value)||new Date());
+ function renderWeek(){
+  strip.replaceChildren();
+  const fmt=new Intl.DateTimeFormat("es-CO",{day:"numeric",month:"short"});
+  const wd=new Intl.DateTimeFormat("es-CO",{weekday:"short"});
+  label.textContent=fmt.format(start)+" – "+fmt.format(move(start,6));
+  for(let n=0;n<7;n++){
+   const d=move(start,n),v=dateText(d),b=make("button","agenda-mobile-day");
+   b.type="button";b.setAttribute("aria-pressed",String(dateInput.value===v));
+   if(dateInput.value===v)b.classList.add("selected");
+   if(dateText(new Date())===v)b.classList.add("today");
+   b.append(make("small",null,wd.format(d).replace(".","")),
+    make("strong",null,String(d.getDate())));
+   b.setAttribute("aria-label",v);
+   b.addEventListener("click",()=>selectDate(v));
+   strip.append(b);
+  }
+  all.classList.toggle("active",!dateInput.value);
+  today.classList.toggle("active",dateInput.value===dateText(new Date()));
+ }
+ function selectDate(value,refresh=true){
+  dateInput.value=value;
+  if(value)start=monday(localDate(value)||new Date());
+  renderWeek();
+  if(refresh)dateInput.dispatchEvent(new Event("change",{bubbles:true}));
+ }
+ prev.addEventListener("click",()=>selectDate(dateText(move(start,-7))));
+ next.addEventListener("click",()=>selectDate(dateText(move(start,7))));
+ today.addEventListener("click",()=>selectDate(dateText(new Date())));
+ all.addEventListener("click",()=>selectDate(""));
+ dateInput.addEventListener("change",()=>{
+  if(dateInput.value)start=monday(localDate(dateInput.value)||new Date());
+  renderWeek();
+ });
+ show("citas");renderWeek();
+ window.tsysAgendaMobileSync=items=>{
+  const counts=key=>items.filter(x=>x.estado===key).length;
+  summary.textContent=items.length+" "+(items.length===1?"cita":"citas")+" mostradas · "+
+   counts("programada")+" programadas · "+counts("confirmada")+" confirmadas · "+
+   counts("atendida")+" atendidas";
+ };
+ window.tsysAgendaMobileAfterCreate=fecha=>{
+  if(!media.matches)return;
+  if(localDate(fecha))selectDate(fecha,false);
+  show("citas");tabs.scrollIntoView({behavior:"smooth",block:"start"});
+ };
+ window.tsysAgendaMobileReset=()=>{
+  dateInput.value="";start=monday(new Date());renderWeek();show("citas");
+  summary.textContent="Selecciona un día para ver las citas.";
+ };
+ window.addEventListener("tsys:role",e=>{
+  if(e.detail?.role==="administrador"&&media.matches&&!dateInput.value)
+   selectDate(dateText(new Date()),false);
+ });
+ window.addEventListener("tsys:locked",()=>window.tsysAgendaMobileReset());
+ media.addEventListener("change",()=>{if(!media.matches)show("citas");renderWeek()});
+ if($("tsys-app")?.dataset.role==="administrador"&&media.matches&&!dateInput.value)
+  selectDate(dateText(new Date()),false);
+}
+
+setupMobileAgenda();
 window.addEventListener("tsys:role",event=>{
  if(event.detail?.role==="administrador")void activate();
  else resetAdministrativeView();
