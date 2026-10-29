@@ -222,8 +222,9 @@
             <label class="clinical-label">Teléfono Celular (Col)</label>
             <div class="flex">
               <span class="inline-flex items-center px-2 text-xs font-bold bg-slate-100 border border-r-0 border-slate-300 rounded-l-lg">🇨🇴 +57</span>
-              <input type="tel" id="telefono" placeholder="3003391055" maxlength="15" class="clinical-input rounded-l-none font-semibold" />
+              <input type="tel" id="telefono" placeholder="3003391055" maxlength="15" class="clinical-input rounded-l-none font-semibold" aria-describedby="tsys-telefono-aviso" />
             </div>
+            <p id="tsys-telefono-aviso" class="mt-1 text-[10px] font-semibold text-amber-700" hidden>Teléfono no disponible o inválido en la hoja de origen; verifica antes de contactar.</p>
           </div>
         </div>
 
@@ -1090,6 +1091,43 @@ function setDocumentType(code) {
   const option = Array.from(el.options).find(o => o.value.split(" - ",1)[0].toUpperCase() === normalized);
   if (option) el.value = option.value;
 }
+// En la hoja antigua la adición se registró como "2.25", mientras que
+// el selector utiliza "+2.25". Se muestra el valor equivalente sin editar
+// el JSON histórico de la consulta.
+function restoreHistoricalAddition(id, value) {
+  const select = field(id);
+  if (!select) return;
+  const historical = select.querySelector('[data-tsys-historical]');
+  if (historical) historical.remove();
+  const raw = value === null || value === undefined ? "" : String(value).trim();
+  if (!raw) { select.value = ""; return; }
+  const normalized = raw.replace(",", ".");
+  const numeric = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(normalized) ? Number(normalized) : NaN;
+  const match = Array.from(select.options).find(o =>
+    o.value.toUpperCase() === raw.toUpperCase()
+    || (Number.isFinite(numeric) && /^[+-]?\d+(?:\.\d+)?$/.test(o.value) && Number(o.value) === numeric)
+  );
+  if (match) {
+    select.value = match.value;
+    return;
+  }
+  // Nunca sustituir una adición histórica desconocida por una opción falsa.
+  const option = document.createElement("option");
+  option.value = raw;
+  option.textContent = raw + " (valor histórico)";
+  option.dataset.tsysHistorical = "true";
+  select.append(option);
+  select.value = raw;
+}
+function restoreHistoricalPhone(value) {
+  const raw = value === null || value === undefined ? "" : String(value).trim();
+  const invalid = raw === "57" || raw === "+57" || /^#(?:ERROR!|REF!|VALUE!|N\/A|DIV\/0!|NUM!|NAME\?|NULL!)$/i.test(raw);
+  const warning = field("tsys-telefono-aviso");
+  if (warning) warning.hidden = !invalid;
+  // Se mantiene el dato defectuoso en Supabase; solo se evita presentarlo
+  // como si fuera un número válido para contactar al paciente.
+  setField("telefono", invalid ? "" : raw.replace(/^\+?57\s*/, ""));
+}
 function setDateTimeFromHistory(d, fechaConsulta) {
   if (!d.fechaConsulta && fechaConsulta) {
     const date = new Date(fechaConsulta);
@@ -1153,8 +1191,10 @@ function fillClinicalForm(record) {
     setField(key, formatOpticalPower(d[key]));
   }
   setDocumentType(d.tipoDoc);
+  restoreHistoricalAddition("odAdicion", d.odAdicion);
+  restoreHistoricalAddition("oiAdicion", d.oiAdicion);
   setDateTimeFromHistory(d, record.fecha_consulta);
-  setField("telefono", String(d.telefono || "").replace(/^\+?57\s*/, ""));
+  restoreHistoricalPhone(d.telefono);
   const total = Number(d.precioTotal || 0);
   const paid = Number(d.valorAbonado || 0);
   const balance = d.saldoPendiente == null ? Math.max(0, total-paid) : Number(d.saldoPendiente || 0);
@@ -1168,7 +1208,17 @@ async function updateHistoryCount() {
   if (!error && field("savedCountBadge")) field("savedCountBadge").textContent = String(count ?? 0);
 }
 window.tsysActualizarContador = updateHistoryCount;
-window.tsysResetHistoriaActual = () => { currentHistoryId = null; currentPatientId = null; currentHistoryIsFinalized = false; };
+window.tsysResetHistoriaActual = () => {
+  currentHistoryId = null;
+  currentPatientId = null;
+  currentHistoryIsFinalized = false;
+  const warning = field("tsys-telefono-aviso");
+  if (warning) warning.hidden = true;
+  for (const id of ["odAdicion","oiAdicion"]) {
+    const option = field(id)?.querySelector('[data-tsys-historical]');
+    if (option) option.remove();
+  }
+};
 
 async function openHistoryModal(patientId = null) {
   const tbody = field("tablaHistorialBody");
