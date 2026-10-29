@@ -278,7 +278,12 @@ async function loadPatientHistories(patientId){
    state.textContent=row.estado==="finalizada"?"Finalizada":row.estado==="borrador"?"Borrador":String(row.estado||"Sin estado");
    const professional=document.createElement("small");
    professional.textContent="Profesional: "+(row.optometra_nombre||"No registrado");
-   div.append(date,state,professional);place.append(div);
+   const open=document.createElement("a");
+   open.className="patient-link-clinical";
+   open.textContent="Ver consulta";
+   open.href="../index.html?paciente="+encodeURIComponent(patientId)+"&historia="+encodeURIComponent(row.id);
+   open.setAttribute("aria-label","Ver consulta del "+formatDate(row.fecha_consulta));
+   div.append(date,state,professional,open);place.append(div);
   }
  }catch{
   if(generation===historyRequest&&selectedId===patientId)
