@@ -5,7 +5,7 @@
  if(!app)return;
  const stylesheet=document.createElement("link");
  stylesheet.rel="stylesheet";
- stylesheet.href=new URL("./movil.css?v=20261029f",import.meta.url).href;
+ stylesheet.href=new URL("./movil.css?v=20261029g",import.meta.url).href;
  document.head.append(stylesheet);
  const ico={
   inicio:'<path d="m3 10 9-7 9 7v11H3z"/><path d="M9 21v-7h6v7"/>',
@@ -24,8 +24,8 @@
  const dock=document.createElement("nav");dock.className="tsys-mobile-dock";dock.hidden=true;dock.setAttribute("aria-label","Navegación móvil");
  const shade=document.createElement("div");shade.className="tsys-mobile-backdrop";shade.hidden=true;
  const sheet=document.createElement("div");sheet.className="tsys-mobile-sheet";sheet.hidden=true;
- sheet.setAttribute("role","dialog");sheet.setAttribute("aria-label","Más módulos");
- sheet.innerHTML='<h2>Más módulos</h2><div class="tsys-mobile-options"></div>';
+ sheet.setAttribute("role","dialog");sheet.setAttribute("aria-label","Más módulos");sheet.setAttribute("aria-modal","true");
+ sheet.innerHTML='<div class="tsys-mobile-sheet-header"><h2>Más módulos</h2><button type="button" class="tsys-mobile-close" aria-label="Cerrar menú">×</button></div><div class="tsys-mobile-options"></div>';
  document.body.append(dock,shade,sheet);
  const all=[
   ["inicio","Inicio"],["pacientes","Pacientes"],["agenda","Agenda"],
@@ -35,6 +35,7 @@
  ];
  let role=null,moreButton=null;
  function closeMore(){shade.hidden=true;sheet.hidden=true;if(moreButton)moreButton.setAttribute("aria-expanded","false")}
+ sheet.querySelector(".tsys-mobile-close").addEventListener("click",closeMore);
  function navigate(destination){
   closeMore();
   if(["pacientes","clinica"].includes(destination)){

@@ -33,7 +33,7 @@ html[data-tsys-theme] .agenda-action,html[data-tsys-theme] .inv-actions button{c
 html[data-tsys-theme] body:has(#panel){background:var(--tsys-bg);color:var(--tsys-dark)}
 html[data-tsys-theme] body:has(#panel) header{background:var(--tsys-dark)}
 html[data-tsys-theme] body:has(#panel) h1,html[data-tsys-theme] body:has(#panel) h2{color:var(--tsys-primary)}
-html[data-tsys-theme] body:has(#panel) button:not(.alt){background:var(--tsys-primary)}
+html[data-tsys-theme] body:has(#panel) #panel button:not(.alt){background:var(--tsys-primary)}
 html[data-tsys-theme] body:has(#panel) .alt{color:var(--tsys-primary)}
 html[data-tsys-theme] body:has(#send-form){background:linear-gradient(135deg,var(--tsys-dark),var(--tsys-primary),var(--tsys-accent))}
 html[data-tsys-theme] body:has(#send-form) button{background:var(--tsys-primary)}

@@ -10,7 +10,7 @@ const currentPage=location.pathname.endsWith("/pacientes.html")?"pacientes":
 if(currentPage){
  const css=document.createElement("link");
  css.rel="stylesheet";
- css.href=new URL("./movil.css?v=20261029f",import.meta.url).href;
+ css.href=new URL("./movil.css?v=20261029g",import.meta.url).href;
  document.head.append(css);
  document.body.classList.add("tsys-mobile-subpage");
  const icons={
@@ -39,13 +39,19 @@ if(currentPage){
  shade.className="tsys-mobile-backdrop";shade.hidden=true;
  const sheet=document.createElement("section");
  sheet.className="tsys-mobile-sheet";sheet.hidden=true;
- sheet.setAttribute("role","dialog");sheet.setAttribute("aria-label","Más módulos");
+ sheet.setAttribute("role","dialog");sheet.setAttribute("aria-label","Más módulos");sheet.setAttribute("aria-modal","true");
  const heading=document.createElement("h2");heading.textContent="Más módulos";
+ const sheetHeader=document.createElement("div");sheetHeader.className="tsys-mobile-sheet-header";
+ const closeButton=document.createElement("button");
+ closeButton.type="button";closeButton.className="tsys-mobile-close";
+ closeButton.setAttribute("aria-label","Cerrar menú");closeButton.textContent="×";
+ sheetHeader.append(heading,closeButton);
  const options=document.createElement("div");options.className="tsys-mobile-options";
- sheet.append(heading,options);
+ sheet.append(sheetHeader,options);
  document.body.append(dock,shade,sheet);
  let more=null,role=null;
  function close(){sheet.hidden=true;shade.hidden=true;if(more)more.setAttribute("aria-expanded","false")}
+ closeButton.addEventListener("click",close);
  function route(id){
   close();
   if(id===currentPage){window.scrollTo(0,0);return}
