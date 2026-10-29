@@ -298,3 +298,148 @@ body:has(#tsys-app:not([hidden])){padding-bottom:calc(78px + env(safe-area-inset
   .tsys-mobile-dock button,
   .tsys-mobile-sheet .tsys-mobile-options button{transition:none!important}
 }
+
+
+/* ===== Agenda táctil ===== */
+#agenda .agenda-mobile-tabs,#agenda .agenda-mobile-calendar,
+#agenda .agenda-mobile-summary{display:none}
+#agenda .agenda-mobile-chip{display:inline-block;font-size:11px;font-weight:700;margin-top:5px}
+@media(max-width:850px){
+ #agenda{min-width:0}
+ #agenda>h1{font-size:27px;line-height:1.2}
+ #agenda>p.muted{font-size:12px;line-height:1.5;margin-bottom:10px}
+ #agenda .agenda-mobile-tabs{
+  position:sticky;top:57px;z-index:35;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;
+  padding:6px 4px;margin:11px -4px 10px;border-radius:12px;
+  background:var(--tsys-bg,#f2f2f2);box-shadow:0 2px 11px #0812260e;
+  scroll-margin-top:68px
+ }
+ #agenda .agenda-mobile-tab{
+  min-height:50px;padding:10px 6px;border-radius:10px;
+  border:1px solid #d6deeb!important;background:#fff!important;
+  color:#344867!important;-webkit-text-fill-color:#344867!important;
+  font:750 13px/1.2 system-ui,-apple-system,sans-serif!important
+ }
+ #agenda .agenda-mobile-tab.active{
+  background:var(--tsys-primary,#0B1C40)!important;
+  border-color:var(--tsys-primary,#0B1C40)!important;
+  color:#fff!important;-webkit-text-fill-color:#fff!important
+ }
+ #agenda .agenda-mobile-calendar{
+  display:block;background:#fff;border:1px solid #dbe2ed;
+  border-radius:13px;padding:10px 9px;margin:8px 0;
+  box-shadow:0 3px 10px #0812260b
+ }
+ #agenda .agenda-mobile-calendar-tools,
+ #agenda .agenda-mobile-toolbar,
+ #agenda .agenda-mobile-calendar .agenda-mobile-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:5px
+ }
+ #agenda .agenda-mobile-calendar .agenda-mobile-week-label{
+  font-weight:750;font-size:12px;color:var(--tsys-primary,#0B1C40);
+  text-align:center;flex:1;min-width:0
+ }
+ #agenda .agenda-mobile-calendar-tools>button,
+ #agenda .agenda-mobile-calendar .agenda-mobile-toolbar>button{
+  flex:none;min-height:40px;border:1px solid #d7dfeb!important;
+  border-radius:9px;padding:8px;
+  background:#f4f7fb!important;color:#203754!important;
+  -webkit-text-fill-color:#203754!important;
+  font:750 12px/1 system-ui!important
+ }
+ #agenda .agenda-mobile-calendar .agenda-mobile-arrow{
+  font-size:21px!important;min-width:35px;padding:5px!important
+ }
+ #agenda .agenda-mobile-calendar .agenda-mobile-shortcut.active{
+  background:var(--tsys-primary,#0B1C40)!important;
+  color:#fff!important;-webkit-text-fill-color:#fff!important
+ }
+ #agenda .agenda-mobile-week-strip{
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:3px;margin-top:10px
+ }
+ #agenda .agenda-mobile-day{
+  min-width:0;min-height:56px;border-radius:9px;
+  border:1px solid transparent!important;
+  background:#f2f5fa!important;color:#314561!important;
+  -webkit-text-fill-color:#314561!important;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:6px 2px!important
+ }
+ #agenda .agenda-mobile-day small{font-size:10px;font-weight:650;line-height:1.2}
+ #agenda .agenda-mobile-day strong{font-size:16px;line-height:1.15}
+ #agenda .agenda-mobile-day.today{border-color:#7b97c8!important}
+ #agenda .agenda-mobile-day.selected{
+  background:var(--tsys-primary,#0B1C40)!important;
+  color:#fff!important;-webkit-text-fill-color:#fff!important
+ }
+ #agenda .agenda-mobile-summary{
+  display:block;padding:9px 12px;margin:9px 0 12px;
+  border-radius:10px;background:#e9eef7;color:#263b5d;
+  line-height:1.45;font-size:11.5px;font-weight:650
+ }
+ #agenda .cols{display:block!important;margin-top:0!important}
+ #agenda .cols>.card{min-width:0;width:100%;margin:0 0 12px}
+ #agenda[data-agenda-mobile-view="citas"] .agenda-mobile-create,
+ #agenda[data-agenda-mobile-view="nueva"] .agenda-mobile-list{display:none!important}
+ #agenda[data-agenda-mobile-view="nueva"] .agenda-mobile-calendar,
+ #agenda[data-agenda-mobile-view="nueva"] .agenda-mobile-summary{display:none!important}
+ #agenda .card h2{font-size:19px;color:var(--tsys-primary,#0B1C40);margin-bottom:12px}
+ #agenda .form label{font-size:13px;line-height:1.45;color:#354865}
+ #agenda .form :is(input,select,textarea){
+  width:100%;min-height:49px;border:1px solid #c7d3e3;
+  border-radius:10px;background:#fff;color:#142545;
+  -webkit-text-fill-color:#142545;font-size:16px;padding:10px 12px
+ }
+ #agenda #agenda-submit,#agenda #agenda-refresh{width:100%;min-height:50px;font-size:14px}
+ #agenda .agenda-mobile-list .form{gap:10px!important;margin-bottom:12px!important}
+ #agenda #lista-citas{gap:10px}
+ #agenda #lista-citas .item{
+  display:flex;flex-direction:column;align-items:stretch;gap:10px;
+  padding:14px;border:1px solid #dce3ed;border-radius:12px;
+  background:#fbfcfe;min-width:0
+ }
+ #agenda #lista-citas .item>div:first-child{min-width:0;overflow-wrap:anywhere}
+ #agenda #lista-citas .item strong{font-size:14px;color:var(--tsys-primary,#0B1C40)}
+ #agenda #lista-citas .item small{
+  display:block;font-size:12px;color:#536781;margin-top:5px;
+  line-height:1.4;overflow-wrap:anywhere
+ }
+ #agenda #lista-citas .agenda-mobile-chip{
+  padding:5px 9px;border-radius:999px;color:#4e5c78;background:#e9edf4;
+  font-weight:750;font-size:11px
+ }
+ #agenda #lista-citas .agenda-mobile-state-programada{border-left:4px solid #6986bc}
+ #agenda #lista-citas .agenda-mobile-state-programada .agenda-mobile-chip{background:#e8eefb;color:#254e8b}
+ #agenda #lista-citas .agenda-mobile-state-confirmada{border-left:4px solid #16846b}
+ #agenda #lista-citas .agenda-mobile-state-confirmada .agenda-mobile-chip{background:#dff4ec;color:#146752}
+ #agenda #lista-citas .agenda-mobile-state-atendida{border-left:4px solid #6c8396}
+ #agenda #lista-citas .agenda-mobile-state-cancelada,
+ #agenda #lista-citas .agenda-mobile-state-no_asistio{border-left:4px solid #bc6c72}
+ #agenda #lista-citas .agenda-actions{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));
+  width:100%;gap:7px
+ }
+ #agenda #lista-citas .agenda-actions button{
+  min-height:45px;width:100%;border:1px solid #ccd7e7!important;
+  border-radius:9px;background:#eef2f8!important;color:#203657!important;
+  -webkit-text-fill-color:#203657!important;
+  font:750 12px/1.25 system-ui!important;padding:9px 7px
+ }
+ #agenda #lista-citas .agenda-actions .agenda-action-cancel{
+  background:#fff2f2!important;color:#8c3441!important;
+  -webkit-text-fill-color:#8c3441!important;border-color:#f0d2d6!important
+ }
+ #agenda #lista-citas .agenda-actions button:disabled{opacity:.55!important}
+ #agenda :is(.agenda-mobile-tab,.agenda-mobile-calendar button,.agenda-actions button):focus-visible{
+  outline:3px solid var(--tsys-accent,#0077B6);outline-offset:2px
+ }
+ #agenda #form-cita{scroll-margin-top:126px}
+}
+@media(max-width:370px){
+ #agenda .agenda-mobile-calendar .agenda-mobile-week-label{font-size:11px}
+ #agenda .agenda-mobile-calendar .agenda-mobile-shortcut{padding:7px 5px!important}
+ #agenda .agenda-mobile-day{min-height:52px}
+ #agenda #lista-citas .agenda-actions{grid-template-columns:1fr}
+}
