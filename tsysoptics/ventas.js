@@ -1,5 +1,6 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+import "./ventas-movil.js?v=20261029a";
 
 const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
  auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
@@ -19,6 +20,7 @@ let isActive=false,isStarting=false,registering=false,collecting=false,voiding=f
 let cajaAbierta=false;
 let generation=0;
 let products=[],patients=[],sales=[],cart=[];
+let mobileProductFilter="";
 let saleToken=crypto.randomUUID();
 let paymentToken=crypto.randomUUID();
 let voidToken=crypto.randomUUID();
@@ -143,20 +145,35 @@ function renderCart(){
  const paid=window.tsysParseCOP(form.elements.abono.value||"0");
  $("total-preview").textContent=money(total);
  $("saldo-preview").textContent=money(Math.max(0,total-(Number.isFinite(paid)?paid:0)));
+ window.dispatchEvent(new CustomEvent("tsys:ventas-carrito",{
+  detail:{unidades:cart.reduce((sum,item)=>sum+item.cantidad,0),total}
+ }));
+}
+function normalizeProductSearch(text){
+ return String(text||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("es-CO");
 }
 function fillOptions(){
  const previously=productSelect.value;
+ const query=window.matchMedia("(max-width: 850px)").matches
+  ?normalizeProductSearch(mobileProductFilter.trim()):"";
+ const available=products.filter(p=>p.activo&&p.cantidad>0&&
+  (!query||normalizeProductSearch(p.codigo+" "+p.nombre).includes(query)));
  productSelect.replaceChildren(new Option("Seleccionar referencia",""));
- for(const p of products.filter(p=>p.activo&&p.cantidad>0)){
+ for(const p of available){
   const opt=new Option(p.codigo+" · "+p.nombre+" · "+money(p.precio_venta)+" ("+p.cantidad+" uds)",p.id);
   productSelect.append(opt);
  }
  if(Array.from(productSelect.options).some(o=>o.value===previously))productSelect.value=previously;
+ window.dispatchEvent(new CustomEvent("tsys:ventas-busqueda",{detail:{cantidad:available.length}}));
  const current=patientSelect.value;
  patientSelect.replaceChildren(new Option("Consumidor final",""));
  for(const p of patients)patientSelect.append(new Option(p.nombre_completo+" · "+p.tipo_documento+" "+p.documento,p.id));
  if(Array.from(patientSelect.options).some(o=>o.value===current))patientSelect.value=current;
 }
+window.tsysVentasMobileFiltrar=value=>{
+ mobileProductFilter=String(value||"").slice(0,100);
+ fillOptions();
+};
 async function refreshCatalog(){
  if(!isActive)return;
  const [r,p]=await Promise.all([
@@ -260,6 +277,7 @@ function renderSales(){
     paymentSaleSelect.value=sale.id;
     $("ventas-abono-monto").value=String(sale.saldo);
     window.tsysFormatCOPInput($("ventas-abono-monto"));
+    window.tsysVentasMobileTab?.("abonos");
     paymentsForm.scrollIntoView({behavior:"smooth",block:"start"});
    });
    actions.append(payBtn);
@@ -305,6 +323,7 @@ async function refreshSales(){
  sales=data||[];
  const selected=paymentSaleSelect.value;
  renderSales();
+ window.dispatchEvent(new CustomEvent("tsys:ventas-lista"));
  if(Array.from(paymentSaleSelect.options).some(o=>o.value===selected))paymentSaleSelect.value=selected;
  const anuladas=sales.filter(s=>s.estado==="anulada").length;
  const devueltas=sales.filter(s=>s.estado==="devuelta").length;
@@ -334,7 +353,7 @@ $("venta-agregar-producto").addEventListener("click",()=>{
  }
  if(existing)existing.cantidad=sum;
  else cart.push({producto_id:id,cantidad:qty});
- displayStatus("venta-form-status","");
+ displayStatus("venta-form-status",p.codigo+" agregado al carrito.");
  renderCart();
 });
 $("venta-abono").addEventListener("input",renderCart);
@@ -374,7 +393,7 @@ form.addEventListener("submit",async e=>{
  }catch{
   displayStatus("venta-form-status","No se pudo confirmar el registro. Actualiza el historial antes de reintentar.");
  }finally{
-  registering=false;$("venta-guardar").disabled=false;renderCart();
+  registering=false;setCajaEstado(cajaAbierta);renderCart();
  }
 });
 paymentsForm.addEventListener("submit",async e=>{
@@ -404,17 +423,20 @@ paymentsForm.addEventListener("submit",async e=>{
  }catch{
   displayStatus("ventas-abono-status","No se pudo confirmar el abono. Actualiza el historial antes de repetir.");
  }finally{
-  collecting=false;$("ventas-registrar-abono").disabled=false;
+  collecting=false;setCajaEstado(cajaAbierta);
  }
 });
 function reset(){
  isActive=false;isStarting=false;generation++;
  voiding=false;voidModal.hidden=true;saleToVoid=null;voidToken=crypto.randomUUID();voidForm.reset();
  setCajaEstado(false);
- products=[];patients=[];sales=[];cart=[];
+ products=[];patients=[];sales=[];cart=[];mobileProductFilter="";
+ window.tsysVentasMobileReset?.();
  receiptClose();
  saleList.replaceChildren();cartRoot.replaceChildren();
  productSelect.replaceChildren(new Option("Seleccionar referencia",""));
+ window.dispatchEvent(new CustomEvent("tsys:ventas-carrito",{detail:{unidades:0,total:0}}));
+ window.dispatchEvent(new CustomEvent("tsys:ventas-lista"));
  patientSelect.replaceChildren(new Option("Consumidor final",""));
  paymentSaleSelect.replaceChildren(new Option("Seleccionar venta con saldo",""));
  displayStatus("venta-form-status","");
