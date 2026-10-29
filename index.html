@@ -150,6 +150,7 @@
         </button>
         
         
+        <button type="button" id="tsys-nueva-consulta-paciente" class="flex items-center gap-1.5 text-xs font-semibold bg-sky-700 hover:bg-sky-600 text-white px-2.5 py-2 rounded-lg border border-sky-600" title="Nueva consulta sin modificar la historia anterior" hidden>Nueva consulta del paciente</button>
         <a id="tsys-volver-paciente" href="./tsysoptics/pacientes.html" class="flex items-center gap-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-2 rounded-lg border border-slate-700" title="Regresar a la ficha del paciente">
           <span>← Ficha del paciente</span>
         </a>
@@ -1228,6 +1229,7 @@ function fillClinicalForm(record) {
   field("hcForm").dataset.tsysHistoriaFinalizada = String(currentHistoryIsFinalized);
   currentHistoricalData = currentHistoryIsFinalized ? { ...d } : null;
   currentPatientId = record.paciente_id || null;
+  updateNewConsultationButton();
   field("hcConsecutivo").textContent = d.id || ("HC-" + record.id.slice(0,8).toUpperCase());
   const keys = [
     "fechaConsulta","horaConsulta","tipoDoc","documento","nombre","fechaNacimiento","edad","direccion","eps","ocupacion","acompanante",
@@ -1395,6 +1397,7 @@ async function saveClinicalHistory() {
     const { data: patientRow } = await supabase.from("pacientes_tsysoptics")
       .select("id").eq("tipo_documento", type).eq("documento", documentNumber).maybeSingle();
     currentPatientId = patientRow?.id || currentPatientId;
+    updateNewConsultationButton();
     await updateHistoryCount();
     clinicalMessage("Historia clínica guardada en Supabase.");
   } catch {
@@ -1406,6 +1409,33 @@ async function saveClinicalHistory() {
   }
 }
 window.guardarHistoriaClinica = saveClinicalHistory;
+// Nueva atención: conservar únicamente identidad y contacto, nunca datos clínicos previos.
+const newPatientConsultationButton = document.getElementById("tsys-nueva-consulta-paciente");
+function updateNewConsultationButton(){
+ if(newPatientConsultationButton) newPatientConsultationButton.hidden = !currentPatientId;
+}
+newPatientConsultationButton?.addEventListener("click",()=>{
+ if(!currentPatientId || saveBusy) return;
+ if(!window.confirm("¿Iniciar una consulta nueva para este paciente? Los cambios sin guardar del formulario actual se perderán; las historias guardadas se conservarán.")) return;
+ const id=currentPatientId;
+ const keep={};
+ for(const key of ["tipoDoc","documento","nombre","fechaNacimiento","telefono","direccion","eps"]){
+  keep[key]=field(key)?.value || "";
+ }
+ if(typeof window.limpiarFormulario !== "function"){
+  clinicalMessage("No se pudo preparar una nueva consulta.");return;
+ }
+ window.limpiarFormulario();
+ currentPatientId=id;
+ for(const [key,value] of Object.entries(keep)) setField(key,value);
+ currentHistoryId=null;
+ currentHistoryIsFinalized=false;
+ currentHistoricalData=null;
+ field("hcForm").dataset.tsysHistoriaFinalizada="false";
+ clinicalMessage("Nueva consulta preparada para el paciente. La historia anterior permanece guardada.");
+ updateNewConsultationButton();
+});
+
 
 try {
   const { data: userResult, error: authError } = await supabase.auth.getUser();
@@ -1435,6 +1465,7 @@ try {
     } else {
       const fillRequestedPatient = async () => {
         currentPatientId = patientRow.id;
+        updateNewConsultationButton();
         setDocumentType(patientRow.tipo_documento);
         setField("documento", patientRow.documento);
         setField("nombre", patientRow.nombre_completo);
