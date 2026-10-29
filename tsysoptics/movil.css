@@ -1,0 +1,43 @@
+
+.tsys-mobile-dock,.tsys-mobile-sheet,.tsys-mobile-backdrop,.tsys-caja-quick{display:none}
+.tsys-mobile-dock[hidden],.tsys-mobile-sheet[hidden],.tsys-mobile-backdrop[hidden]{display:none!important}
+@media(max-width:850px){
+body:has(#tsys-app:not([hidden])){padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+#tsys-app .mobile-nav{display:none!important}
+#tsys-app .top{position:sticky;top:0;z-index:36;min-height:58px;padding:10px 14px;box-shadow:0 3px 12px #08122613}
+#tsys-app .top strong{flex:1;min-width:0;max-width:65vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+#tsys-app main{padding:13px 12px 25px}
+#tsys-app .card{padding:15px;border-radius:14px}
+#tsys-app .cols{gap:12px}
+#tsys-app .venta-resumen{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#tsys-app .venta-resumen .card{padding:12px}
+#tsys-app .venta-resumen strong{font-size:21px;overflow-wrap:anywhere}
+#tsys-app .venta-resumen .label{font-size:10px;line-height:1.35;letter-spacing:.5px}
+#tsys-app .form input,#tsys-app .form select,#tsys-app .form textarea{font-size:16px;min-height:48px;padding:11px}
+#tsys-app .form .btn{min-height:48px}
+#tsys-app .item{flex-wrap:wrap;align-items:flex-start}
+#tsys-app .item>div{min-width:0;overflow-wrap:anywhere}
+#tsys-app .access-banner{gap:6px;font-size:11px;margin-bottom:11px}
+#tsys-app .access-banner #access-details{flex-basis:100%}
+#tsys-app .tsys-pilot-details{border:1px solid #d4dbe6;background:#e9edf4;border-radius:10px;margin-bottom:12px;padding:10px 13px}
+#tsys-app .tsys-pilot-details summary{font-size:12px;font-weight:700;cursor:pointer}
+#tsys-app .tsys-pilot-details .warning{border:0;background:none;padding:8px 0 0;margin:0}
+#caja .tsys-caja-details summary{background:#edf1f7;border:1px solid #d4deeb;border-radius:9px;padding:12px;font-weight:700;cursor:pointer;margin:12px 0}
+#caja .tsys-caja-details #caja-medios .item>div{flex:0 1 60%;text-align:right}
+.tsys-caja-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.tsys-caja-quick button{background:#fff;border:1px solid #dce2ec;border-radius:12px;color:var(--tsys-primary,#0B1C40);padding:11px 4px;min-height:64px;font:650 12px system-ui}
+.tsys-caja-quick button span{display:block;font-size:20px}
+.tsys-mobile-dock{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;z-index:70;background:white;border-top:1px solid #dae0e9;box-shadow:0 -5px 20px #08122620;padding:5px 3px calc(6px + env(safe-area-inset-bottom,0px))}
+.tsys-mobile-dock button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;min-width:0;border:0;border-radius:10px;background:transparent;color:#66738b;font:650 10px system-ui;padding:3px}
+.tsys-mobile-dock button svg{width:23px;height:23px;stroke-width:1.9}
+.tsys-mobile-dock button.active{background:color-mix(in srgb,var(--tsys-primary,#0B1C40) 10%,white);color:var(--tsys-primary,#0B1C40)}
+.tsys-mobile-backdrop{display:block;position:fixed;inset:0;z-index:71;background:#08122688}
+.tsys-mobile-sheet{display:block;position:fixed;left:8px;right:8px;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:72;max-height:65vh;overflow:auto;padding:17px;background:white;border:1px solid #dce2e9;border-radius:16px;box-shadow:0 -12px 40px #08122630}
+.tsys-mobile-sheet h2{font-size:17px;margin:0 0 10px}
+.tsys-mobile-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tsys-mobile-options button{border:1px solid #e0e5ec;border-radius:10px;background:#f7f9fc;color:#182a48;min-height:52px;padding:10px;text-align:left;font:650 13px system-ui}
+.tsys-mobile-options button:disabled{opacity:.5}
+.tsys-mobile-options button svg{width:19px;height:19px;vertical-align:middle;margin-right:6px}
+#notice{bottom:calc(83px + env(safe-area-inset-bottom,0px));left:9px;right:9px}
+}
+@media(min-width:851px){.tsys-mobile-dock,.tsys-mobile-sheet,.tsys-mobile-backdrop,.tsys-caja-quick{display:none!important}.tsys-pilot-details{display:contents}.tsys-pilot-details summary,.tsys-caja-details summary{display:none}}
