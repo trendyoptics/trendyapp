@@ -1276,15 +1276,22 @@ try {
     if (patientError || !patientRow) {
       clinicalMessage("No se encontró el paciente solicitado.");
     } else {
-      currentPatientId = patientRow.id;
-      setField("tipoDoc", patientRow.tipo_documento);
-      setField("documento", patientRow.documento);
-      setField("nombre", patientRow.nombre_completo);
-      setField("fechaNacimiento", patientRow.fecha_nacimiento || "");
-      setField("telefono", String(patientRow.telefono || "").replace(/^\+?57\s*/, ""));
-      setField("direccion", patientRow.direccion || "");
-      setField("eps", patientRow.eps || "");
-      await openHistoryModal(patientRow.id);
+      const fillRequestedPatient = async () => {
+        currentPatientId = patientRow.id;
+        setField("tipoDoc", patientRow.tipo_documento);
+        setField("documento", patientRow.documento);
+        setField("nombre", patientRow.nombre_completo);
+        setField("fechaNacimiento", patientRow.fecha_nacimiento || "");
+        setField("telefono", String(patientRow.telefono || "").replace(/^\+?57\s*/, ""));
+        setField("direccion", patientRow.direccion || "");
+        setField("eps", patientRow.eps || "");
+        await openHistoryModal(patientRow.id);
+      };
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => { void fillRequestedPatient(); }, {once:true});
+      } else {
+        await fillRequestedPatient();
+      }
     }
   }
 } catch (error) {
