@@ -49,9 +49,12 @@ async function verify(){
  return !pe&&p?.rol==="administrador"&&p?.activo===true;
 }
 function notify(){
- window.dispatchEvent(new CustomEvent("tsys:caja",{
-  detail:{abierta:admin&&snapshot?.estado==="abierta",turno_id:snapshot?.turno_id||null}
- }));
+ // Otros módulos no pueden impedir que se visualice Caja.
+ try{
+  window.dispatchEvent(new CustomEvent("tsys:caja",{
+   detail:{abierta:admin&&snapshot?.estado==="abierta",turno_id:snapshot?.turno_id||null}
+  }));
+ }catch(error){console.warn("Aviso de Caja a otros módulos",error)}
 }
 function renderSummary(){
  const s=snapshot;
@@ -87,7 +90,9 @@ async function refresh(){
  if(!admin||loading)return;
  loading=true;
  const mine=++requestGeneration;
+ const state=(text)=>status("caja-estado-mensaje",text);
  try{
+  // El resumen principal debe funcionar aunque falle el historial o los detalles.
   const [r,turnos]=await Promise.all([
    db.rpc("resumen_turno_caja_tsysoptics"),
    db.from("turnos_caja_tsysoptics")
@@ -95,45 +100,80 @@ async function refresh(){
     .order("abierta_en",{ascending:false}).limit(12)
   ]);
   if(!admin||mine!==requestGeneration)return;
-  if(r.error||turnos.error){
-   console.warn("Error consultando Caja:",r.error?.code||turnos.error?.code||"Consulta");
-   snapshot=null;
-   setControls();notify();
-   status("caja-estado-mensaje","No se pudieron consultar los datos de Caja. Revisa la conexión y pulsa Actualizar.");
+  if(r.error){
+   console.warn("Caja: consulta del resumen",r.error.code||"RPC",r.error.message);
+   snapshot=null;setControls();notify();
+   state("Caja no pudo consultar los valores del turno. Pulsa Actualizar. (Consulta C1)");
    return;
   }
   snapshot=Array.isArray(r.data)&&r.data.length?r.data[0]:null;
-  renderSummary();
-  const turnoRows=$("caja-turnos");turnoRows.replaceChildren();
-  if(!(turnos.data||[]).length)turnoRows.append(el("p","Todavía no hay turnos registrados.","muted"));
-  for(const t of turnos.data||[]){
-   const li=el("div",undefined,"item");
-   const info=el("div");
-   info.append(el("strong",(t.estado==="abierta"?"Abierta":"Cerrada")+" · "+date(t.abierta_en)));
-   info.append(el("small","Fondo: "+money(t.fondo_inicial)
-    +(t.estado==="cerrada"?" · Efectivo: "+money(t.efectivo_contado)+" · Diferencia: "+money(t.diferencia):"")));
-   li.append(info);turnoRows.append(li);
+  try{
+   renderSummary();
+  }catch(error){
+   console.error("Caja: fallo al presentar el resumen",error);
+   // Intentar recuperar el estado, incluso si un detalle visual falló.
+   state(snapshot?.estado==="abierta"
+    ?"Caja abierta. Algunos indicadores no pudieron mostrarse. Actualiza la página. (Vista C2)"
+    :"No se pudo mostrar el resumen de Caja. Actualiza la página. (Vista C2)");
+   setControls();
+   return;
   }
-  const moves=$("caja-movimientos");moves.replaceChildren();
-  if(snapshot?.turno_id){
-   const result=await db.from("movimientos_caja_tsysoptics")
-    .select("id,tipo,monto,motivo,fecha").eq("turno_id",snapshot.turno_id)
-    .order("fecha",{ascending:false}).limit(40);
-   if(!admin||mine!==requestGeneration)return;
-   if(result.error)moves.append(el("p","No se pudieron consultar los movimientos."));
-   else if(!result.data?.length)moves.append(el("p","No hay movimientos manuales en este turno."));
-   else for(const m of result.data){
-    const li=el("div",undefined,"item"),info=el("div");
-    info.append(el("strong",(m.tipo==="ingreso"?"Ingreso +":"Egreso −")+money(m.monto)));
-    info.append(el("small",m.motivo+" · "+date(m.fecha)));
-    li.append(info);moves.append(li);
+
+  // Fallar al mostrar el historial NO debe borrar ni inutilizar el turno válido.
+  const turnoRows=$("caja-turnos");
+  try{
+   if(!turnos.error){
+    const fragment=document.createDocumentFragment();
+    if(!(turnos.data||[]).length)fragment.append(el("p","Todavía no hay turnos registrados.","muted"));
+    for(const t of turnos.data||[]){
+     const li=el("div",undefined,"item"),info=el("div");
+     info.append(el("strong",(t.estado==="abierta"?"Abierta":"Cerrada")+" · "+date(t.abierta_en)));
+     info.append(el("small","Fondo: "+money(t.fondo_inicial)+
+      (t.estado==="cerrada"?" · Efectivo: "+money(t.efectivo_contado)+" · Diferencia: "+money(t.diferencia):"")));
+     li.append(info);fragment.append(li);
+    }
+    turnoRows?.replaceChildren(fragment);
+   }else{
+    console.warn("Caja: historial",turnos.error.code||"QUERY");
+    turnoRows?.replaceChildren(el("p","No se pudo cargar el historial. El resumen del turno sigue disponible.","muted"));
    }
-  }else moves.append(el("p","Sin movimientos todavía."));
+  }catch(error){
+   console.warn("Caja: presentación del historial",error);
+   turnoRows?.replaceChildren(el("p","Historial temporalmente no disponible.","muted"));
+  }
+
+  const moves=$("caja-movimientos");
+  if(!moves)return;
+  try{
+   if(snapshot?.turno_id){
+    const result=await db.from("movimientos_caja_tsysoptics")
+     .select("id,tipo,monto,motivo,fecha").eq("turno_id",snapshot.turno_id)
+     .order("fecha",{ascending:false}).limit(40);
+    if(!admin||mine!==requestGeneration)return;
+    if(result.error){
+     console.warn("Caja: movimientos",result.error.code||"QUERY");
+     moves.replaceChildren(el("p","No se pudieron consultar los movimientos manuales.","muted"));
+    }else{
+     const fragment=document.createDocumentFragment();
+     if(!result.data?.length)fragment.append(el("p","No hay movimientos manuales en este turno.","muted"));
+     for(const m of result.data||[]){
+      const li=el("div",undefined,"item"),info=el("div");
+      info.append(el("strong",(m.tipo==="ingreso"?"Ingreso +":"Egreso −")+money(m.monto)));
+      info.append(el("small",m.motivo+" · "+date(m.fecha)));
+      li.append(info);fragment.append(li);
+     }
+     moves.replaceChildren(fragment);
+    }
+   }else moves.replaceChildren(el("p","Sin movimientos todavía.","muted"));
+  }catch(error){
+   console.warn("Caja: presentación de movimientos",error);
+   moves.replaceChildren(el("p","Movimientos temporalmente no disponibles.","muted"));
+  }
  }catch(error){
-  console.warn("Caja: error al actualizar interfaz",error);
-  snapshot=null;
-  setControls();notify();
-  status("caja-estado-mensaje","Error al presentar Caja. Pulsa Actualizar. Si continúa, recarga la página.");
+  // Únicamente los problemas del resumen hacen que la caja deje de ser operable.
+  console.error("Caja: problema de conexión o carga inicial",error);
+  snapshot=null;setControls();notify();
+  state("No se pudo consultar Caja. Revisa la conexión e intenta actualizar. (Consulta C3)");
  }finally{loading=false}
 }
 async function operation(name,work,statusId,success){
