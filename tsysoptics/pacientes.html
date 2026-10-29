@@ -33,7 +33,7 @@
 #panel .patient-clinical-summary h3{font-size:17px;margin:0 0 7px;color:var(--tsys-primary,#0B1C40)}
 #panel .patient-history-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}
 #panel .patient-history-entry{display:flex;flex-direction:column;gap:5px;border:1px solid #dce4ef;border-radius:10px;padding:12px;background:#f9fbfd}
-#panel .patient-history-entry strong{font-size:13px;color:#233857}
+#panel .patient-link-clinical{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 12px;border-radius:8px;background:#0B1C40;color:#fff!important;font-size:13px;font-weight:700;text-decoration:none;align-self:flex-start}\n#panel .patient-link-clinical:focus-visible,#panel .patient-history-more:focus-visible{outline:3px solid #4e83c4;outline-offset:2px}\n#panel .patient-history-more{grid-column:1/-1;border:1px solid #0B1C40;background:#fff;color:#0B1C40;border-radius:9px;min-height:44px;font-weight:700;cursor:pointer}\n#panel .patient-history-entry strong{font-size:13px;color:#233857}
 #panel .patient-history-entry small{font-size:11px;color:#52657f}
 #panel .patient-history-state{display:inline-block;align-self:flex-start;border-radius:20px;padding:4px 8px;font-size:11px;font-weight:800;background:#e8eef8;color:#294d79}
 #panel .patient-history-state.finalizada{background:#e5f4ec;color:#23654b}
@@ -249,16 +249,18 @@ function formatDate(value){
 function setText(id,value){
  $(id).textContent=String(value||"Sin registrar");
 }
-async function loadPatientHistories(patientId){
+async function loadPatientHistories(patientId,offset=0){
  const generation=++historyRequest;
  $("patient-history-status").textContent="Consultando fechas de atención…";
- const place=$("patient-history-list");place.replaceChildren();
+ const place=$("patient-history-list");
+ if(offset===0)place.replaceChildren();
+ else place.querySelector(".patient-history-more")?.remove();
  try{
   const {data,error,count}=await sb.from("historias_clinicas_tsysoptics")
    .select("id,fecha_consulta,estado,optometra_nombre",{count:"exact"})
    .eq("paciente_id",patientId)
    .order("fecha_consulta",{ascending:false})
-   .limit(25);
+   .range(offset,offset+24);
   if(!authorized||selectedId!==patientId||generation!==historyRequest)return;
   if(error){
    $("patient-history-status").textContent="No fue posible consultar las historias clínicas. Revisa los permisos.";
@@ -267,7 +269,7 @@ async function loadPatientHistories(patientId){
   const rows=data||[];
   const total=count==null?rows.length:count;
   $("patient-history-status").textContent=total
-   ?total+" consulta(s) registradas. Se muestran hasta 25 fechas y estados."
+   ?total+" consulta(s) registradas. Mostrando "+Math.min(offset+rows.length,total)+" de "+total+"."
    :"Todavía no hay historias clínicas asociadas a este paciente.";
   for(const row of rows){
    const div=document.createElement("div");div.className="patient-history-entry";
@@ -284,6 +286,13 @@ async function loadPatientHistories(patientId){
    open.href="../index.html?paciente="+encodeURIComponent(patientId)+"&historia="+encodeURIComponent(row.id);
    open.setAttribute("aria-label","Ver consulta del "+formatDate(row.fecha_consulta));
    div.append(date,state,professional,open);place.append(div);
+  }
+  if(offset+rows.length<total){
+   const more=document.createElement("button");
+   more.type="button";more.className="patient-history-more";
+   more.textContent="Cargar 25 consultas más";
+   more.addEventListener("click",()=>loadPatientHistories(patientId,offset+rows.length));
+   place.append(more);
   }
  }catch{
   if(generation===historyRequest&&selectedId===patientId)
