@@ -198,6 +198,11 @@ function receiptOpen(sale){
   new Date(p.registrado_en).toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+money(p.monto)+" · "+(paymentLabel[p.medio]||p.medio)
  );
  $("venta-recibo-pagos").textContent=paymentText.length?"Pagos: "+paymentText.join(" | "):"Sin pagos registrados";
+ const canceledInfo=$("venta-recibo-anulacion");
+ canceledInfo.hidden=sale.estado!=="anulada";
+ canceledInfo.textContent=sale.estado==="anulada"?
+  "ANULACIÓN REGISTRADA · "+new Date(sale.anulada_en).toLocaleString("es-CO",{timeZone:"America/Bogota"})+
+  " · Motivo: "+(sale.motivo_anulacion||"No disponible"):"";
  receipt.hidden=false;
 }
 function receiptClose(){
@@ -287,7 +292,9 @@ async function refreshSales(){
  const selected=paymentSaleSelect.value;
  renderSales();
  if(Array.from(paymentSaleSelect.options).some(o=>o.value===selected))paymentSaleSelect.value=selected;
- displayStatus("ventas-list-status",sales.length+" ventas mostradas"+(Number(count)>100?" (máximo 100 recientes)":"")+".");
+ const anuladas=sales.filter(s=>s.estado==="anulada").length;
+ displayStatus("ventas-list-status",sales.length+" ventas mostradas: "+(sales.length-anuladas)+
+  " vigentes y "+anuladas+" anuladas"+(Number(count)>100?" (máximo 100 recientes)":"")+".");
  await refreshSummary();
 }
 async function refresh(){
