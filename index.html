@@ -1394,6 +1394,15 @@ async function saveClinicalHistory() {
     }
     currentHistoryId = data;
     currentHistoryIsFinalized = true;
+    field("hcForm").dataset.tsysHistoriaFinalizada = "true";
+    currentHistoricalData = null;
+    const confirmed = await supabase.from("historias_clinicas_tsysoptics")
+      .select("id,paciente_id,fecha_consulta,datos_clinicos,estado").eq("id",data).maybeSingle();
+    if (!confirmed.error && confirmed.data && confirmed.data.estado === "finalizada") {
+      fillClinicalForm(confirmed.data);
+    } else {
+      clinicalMessage("Historia guardada. Abre la consulta desde el historial para confirmar los datos antes de imprimir.");
+    }
     const { data: patientRow } = await supabase.from("pacientes_tsysoptics")
       .select("id").eq("tipo_documento", type).eq("documento", documentNumber).maybeSingle();
     currentPatientId = patientRow?.id || currentPatientId;
