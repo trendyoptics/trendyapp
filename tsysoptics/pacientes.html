@@ -444,6 +444,17 @@ $("search").addEventListener("input",()=>{
 if(await requireAdmin()){
  authorized=true;$("loading").hidden=true;$("panel").hidden=false;
  await searchPatients();
+ // Al regresar desde Clínica, recuperar la ficha por ID con lectura autorizada.
+ const requestedId=new URLSearchParams(location.search).get("paciente");
+ if(requestedId && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(requestedId)){
+  const {data:returnedPatient,error:returnedError}=await sb.from("pacientes_tsysoptics")
+   .select("id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps")
+   .eq("id",requestedId).maybeSingle();
+  if(authorized&&!returnedError&&returnedPatient){
+   choosePatient(returnedPatient);
+   history.replaceState(null,"",location.pathname);
+  }else if(authorized){status("No fue posible recuperar la ficha solicitada.");}
+ }
 }else showDenied("Acceso denegado. Inicia sesión con un administrador activo en TsysOptics y vuelve a abrir este módulo.");
 document.addEventListener("visibilitychange",async()=>{
  if(document.hidden||!authorized)return;
