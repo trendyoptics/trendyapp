@@ -416,6 +416,8 @@ $("search").addEventListener("keydown",e=>{
 });
 let searchTimer=null;
 $("search").addEventListener("input",()=>{
+ // Una búsqueda previa no puede sobreescribir el resultado de la entrada nueva.
+ searchRequest++;
  clearTimeout(searchTimer);
  searchTimer=setTimeout(()=>{if(authorized&&!busy)void searchPatients()},380);
 });
@@ -428,5 +430,14 @@ document.addEventListener("visibilitychange",async()=>{
  if(!(await requireAdmin())){
   showDenied("Tu acceso ya no está autorizado. Vuelve al panel e inicia sesión de nuevo.");
  }
+});
+window.addEventListener("pageshow",async event=>{
+ if(!event.persisted||!authorized)return;
+ // Safari puede restaurar la pantalla desde memoria al volver de Clínica.
+ if(!(await requireAdmin())){
+  showDenied("Tu sesión ya no está autorizada. Accede nuevamente desde el panel.");
+  return;
+ }
+ void searchPatients();
 });
 </script></body></html>
