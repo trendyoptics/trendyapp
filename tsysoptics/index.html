@@ -471,7 +471,14 @@ function applyDashboardRole(role){
 window.addEventListener("tsys:role",e=>applyDashboardRole(e.detail.role));
 window.addEventListener("tsys:locked",()=>{currentRole=null;});
 render();lens();
-if(new URLSearchParams(location.search).get("vista")==="apariencia")navigate("apariencia");
+// Respetar el módulo solicitado desde la navegación inferior de las subpáginas.
+// No se permite activar páginas inexistentes ni eludir los permisos por URL.
+const params=new URLSearchParams(location.search);
+const requestedModule=params.get("modulo") || (params.get("vista")==="apariencia"?"apariencia":null);
+if(requestedModule && ["inicio","agenda","inventario","ventas","caja","simulador","apariencia"].includes(requestedModule)) {
+ if(canNavigate(requestedModule)) navigate(requestedModule);
+ else navigate("inicio");
+}
 })();
 </script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js?v=20261029a"></script><script type="module" src="./ventas.js?v=20261029a"></script><script type="module" src="./caja.js?v=20261029g"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
