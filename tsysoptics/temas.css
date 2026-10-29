@@ -33,7 +33,7 @@ html[data-tsys-theme] .agenda-action,html[data-tsys-theme] .inv-actions button{c
 html[data-tsys-theme] body:has(#panel){background:var(--tsys-bg);color:var(--tsys-dark)}
 html[data-tsys-theme] body:has(#panel) header{background:var(--tsys-dark)}
 html[data-tsys-theme] body:has(#panel) h1,html[data-tsys-theme] body:has(#panel) h2{color:var(--tsys-primary)}
-html[data-tsys-theme] body:has(#panel) #panel button:not(.alt){background:var(--tsys-primary)}
+html[data-tsys-theme] body:has(#panel) #panel button:not(.alt):not(.item){background:var(--tsys-primary)}
 html[data-tsys-theme] body:has(#panel) .alt{color:var(--tsys-primary)}
 html[data-tsys-theme] body:has(#send-form){background:linear-gradient(135deg,var(--tsys-dark),var(--tsys-primary),var(--tsys-accent))}
 html[data-tsys-theme] body:has(#send-form) button{background:var(--tsys-primary)}
@@ -51,32 +51,3 @@ html[data-tsys-theme] body:has(#send-form) button{background:var(--tsys-primary)
 .theme-palette-choice[aria-pressed="true"]{border-color:var(--tsys-primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--tsys-primary) 13%,transparent)}
 .theme-palette-choice[aria-pressed="true"] .theme-meta:after{content:"✓ Seleccionado";font-size:11px;color:var(--tsys-primary);font-weight:700}
 @media print{.theme-palette-grid,.theme-palette-choice,.tsys-theme-link{display:none!important}}
-
-/* Pacientes: las tarjetas de resultados son botones, pero deben conservar
-   fondo claro y texto legible independientemente de la paleta seleccionada. */
-html[data-tsys-theme] body:has(#panel) #results button.item,
-html[data-tsys-theme] body:has(#panel) #results button.item:not(.alt){
- background:#f8f9fb!important;
- background-color:#f8f9fb!important;
- color:#081226!important;
- -webkit-text-fill-color:#081226!important;
- border:1px solid #cbd5e3!important;
-}
-html[data-tsys-theme] body:has(#panel) #results button.item b,
-html[data-tsys-theme] body:has(#panel) #results button.item .patient-name{
- color:#081226!important;
- -webkit-text-fill-color:#081226!important;
-}
-html[data-tsys-theme] body:has(#panel) #results button.item small{
- color:#465671!important;
- -webkit-text-fill-color:#465671!important;
-}
-html[data-tsys-theme] body:has(#panel) #results button.item.is-current{
- background:#e9f0fb!important;
- background-color:#e9f0fb!important;
- border:2px solid var(--tsys-primary,#0B1C40)!important;
-}
-html[data-tsys-theme] body:has(#panel) #results button.item:focus-visible{
- outline:3px solid var(--tsys-accent,#585F73)!important;
- outline-offset:2px;
-}
