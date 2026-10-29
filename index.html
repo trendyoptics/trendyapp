@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>TrendyOptics | Historia Clínica Optométrica</title>
+  <link rel="stylesheet" href="./tsysoptics/temas.css">
+  <script src="./tsysoptics/preferencias.js" defer></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -148,6 +150,9 @@
         </button>
         
         
+        <a href="./tsysoptics/?vista=apariencia" class="tsys-theme-link flex items-center gap-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-2 rounded-lg border border-slate-700" title="Cambiar los colores de TsysOptics">
+          <i data-lucide="palette" class="w-4 h-4"></i><span class="hidden sm:inline">Apariencia</span>
+        </a>
         <button type="button" onclick="limpiarFormulario()" class="flex items-center gap-1 text-xs font-semibold bg-rose-950/60 hover:bg-rose-900/80 text-rose-200 px-2.5 py-2 rounded-lg border border-rose-800/50">
           <i data-lucide="file-plus-2" class="w-4 h-4 text-rose-400"></i>
           <span class="hidden md:inline">Nueva</span>
@@ -1045,6 +1050,7 @@
 
     function limpiarFormulario() {
       window.tsysResetHistoriaActual?.();
+      document.getElementById('hcForm').dataset.tsysHistoriaFinalizada = "false";
       document.getElementById('hcForm').reset();
       setTodayDate();
       poblarMenus();
@@ -1216,6 +1222,7 @@ function fillClinicalForm(record) {
   const d = record.datos_clinicos || {};
   currentHistoryId = record.id;
   currentHistoryIsFinalized = record.estado === "finalizada";
+  field("hcForm").dataset.tsysHistoriaFinalizada = String(currentHistoryIsFinalized);
   currentHistoricalData = currentHistoryIsFinalized ? { ...d } : null;
   currentPatientId = record.paciente_id || null;
   field("hcConsecutivo").textContent = d.id || ("HC-" + record.id.slice(0,8).toUpperCase());
@@ -1253,6 +1260,8 @@ window.tsysActualizarContador = updateHistoryCount;
 window.tsysDatosImpresion = () => currentHistoryIsFinalized && currentHistoricalData
   ? { ...currentHistoricalData } : null;
 window.tsysResetHistoriaActual = () => {
+  const clinicalForm = field("hcForm");
+  if (clinicalForm) clinicalForm.dataset.tsysHistoriaFinalizada = "false";
   currentHistoryId = null;
   currentPatientId = null;
   currentHistoryIsFinalized = false;
