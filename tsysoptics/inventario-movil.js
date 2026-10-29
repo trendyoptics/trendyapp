@@ -106,7 +106,7 @@
  tabs.before(dashboard);
  window.addEventListener("tsys:inventario-resumen",event=>{
   const d=event.detail||{};
-  for(const [key,v] of valueNodes)value.textContent=String(Math.max(0,Number(d[key])||0));
+  for(const [key,value] of valueNodes)value.textContent=String(Math.max(0,Number(d[key])||0));
  });
 
  const filterWrap=el("div","tsys-inv-filters");
