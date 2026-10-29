@@ -6,6 +6,19 @@ const app = document.getElementById("tsys-app");
 const notice = document.getElementById("auth-message");
 const form = document.getElementById("auth-form");
 const passwordField = document.getElementById("auth-password");
+const passwordToggle = document.getElementById("auth-toggle-password");
+const passwordStrike = document.getElementById("auth-password-strike");
+function setPasswordVisibility(visible) {
+  passwordField.type = visible ? "text" : "password";
+  passwordToggle.setAttribute("aria-pressed", String(visible));
+  passwordToggle.setAttribute("aria-label", visible ? "Ocultar contraseña" : "Mostrar contraseña");
+  passwordToggle.title = visible ? "Ocultar contraseña" : "Mostrar contraseña";
+  if (passwordStrike) passwordStrike.hidden = !visible;
+}
+passwordToggle.addEventListener("click", () => {
+  setPasswordVisibility(passwordField.type === "password");
+  passwordField.focus({ preventScroll: true });
+});
 const emailField = document.getElementById("auth-email");
 const submit = document.getElementById("auth-submit");
 const recover = document.getElementById("auth-recover");
@@ -83,6 +96,7 @@ function setMode(next) {
   change.hidden = next !== "reset";
   passwordField.autocomplete = next === "reset" ? "new-password" : "current-password";
   passwordField.value = "";
+  setPasswordVisibility(false);
   message(next === "reset" ? "Define una nueva contraseña de al menos 12 caracteres." : "");
 }
 async function verifyUser() {
@@ -128,6 +142,7 @@ form.addEventListener("submit", async (event) => {
       const { error } = await client.auth.signInWithPassword({ email: loginEmail, password });
       if (error) throw error;
       passwordField.value = "";
+      setPasswordVisibility(false);
       await verifyUser();
     }
   } catch (e) { message("No se pudo completar la operación. Verifica tus credenciales y prueba de nuevo."); }
