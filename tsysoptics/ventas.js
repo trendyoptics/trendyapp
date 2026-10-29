@@ -16,6 +16,7 @@ const paymentSaleSelect=$("ventas-abono-venta");
 const money=n=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:2}).format(Number(n)||0);
 const paymentLabel={efectivo:"Efectivo",transferencia:"Transferencia",nequi:"Nequi",daviplata:"Daviplata",tarjeta:"Tarjeta",otro:"Otro"};
 let isActive=false,isStarting=false,registering=false,collecting=false;
+let cajaAbierta=false;
 let generation=0;
 let products=[],patients=[],sales=[],cart=[];
 let saleToken=crypto.randomUUID();
@@ -28,6 +29,23 @@ function element(tag,text,cls){
  return n;
 }
 function salesNumber(num){return "V-"+String(num).padStart(6,"0")}
+function setCajaEstado(abierta) {
+ cajaAbierta=Boolean(abierta);
+ const msg=cajaAbierta?"Caja abierta: puedes registrar ventas y abonos.":"Caja cerrada: abre turno en Caja para registrar nuevas ventas o cobros.";
+ $("venta-turno-estado").textContent=msg;
+ $("ventas-abono-turno").textContent=msg;
+ $("venta-guardar").disabled=!cajaAbierta||registering;
+ $("ventas-registrar-abono").disabled=!cajaAbierta||collecting;
+}
+async function refreshCaja(){
+ if(!isActive)return false;
+ const {data,error}=await sb.rpc("resumen_turno_caja_tsysoptics");
+ if(error){setCajaEstado(false);return false}
+ const abierta=Array.isArray(data)&&data[0]?.estado==="abierta";
+ setCajaEstado(abierta);
+ return abierta;
+}
+window.addEventListener("tsys:caja",event=>{if(isActive)setCajaEstado(event.detail?.abierta===true)});
 function saleError(err){
  const message=String(err?.message||"");
  if(err?.code==="22023" && message.includes("Existencias insuficientes"))return "Existencias insuficientes. Actualiza el inventario y revisa el carrito.";
@@ -234,6 +252,7 @@ form.addEventListener("submit",async e=>{
  e.preventDefault();
  if(!isActive){displayStatus("venta-form-status","Inicia sesión para registrar una venta.");return}
  if(registering)return;
+ if(!(await refreshCaja())){displayStatus("venta-form-status","Abre Caja antes de registrar la venta.");return}
  const total=cartTotal();
  const abono=Number(form.elements.abono.value);
  const metodo=String(form.elements.medio.value||"");
@@ -271,6 +290,7 @@ paymentsForm.addEventListener("submit",async e=>{
  e.preventDefault();
  if(!isActive){displayStatus("ventas-abono-status","Inicia sesión para registrar cobros.");return}
  if(collecting)return;
+ if(!(await refreshCaja())){displayStatus("ventas-abono-status","Abre Caja antes de registrar un abono.");return}
  const sale=sales.find(x=>x.id===paymentSaleSelect.value);
  const monto=Number(paymentsForm.elements.monto.value);
  const medio=String(paymentsForm.elements.medio.value||"");
@@ -298,6 +318,7 @@ paymentsForm.addEventListener("submit",async e=>{
 });
 function reset(){
  isActive=false;isStarting=false;generation++;
+ setCajaEstado(false);
  products=[];patients=[];sales=[];cart=[];
  receiptClose();
  saleList.replaceChildren();cartRoot.replaceChildren();
@@ -316,7 +337,7 @@ async function activate(){
    displayStatus("ventas-list-status","No tienes permiso para consultar ventas.");
    return;
   }
-  isActive=true;await refresh();
+  isActive=true;await Promise.all([refresh(),refreshCaja()]);
  }catch{
   displayStatus("ventas-list-status","No fue posible iniciar el módulo de ventas.");
  }finally{isStarting=false}
