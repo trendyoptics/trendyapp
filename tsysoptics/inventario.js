@@ -146,7 +146,7 @@ function render(){
   }
  }
  const limit=serverCount>products.length
-  ?" Se consultaron las "+products.length+" más recientes por nombre; hay más referencias en el servidor." : "";
+  ?" Solo se cargaron las primeras "+products.length+" referencias por orden alfabético. Hay más registros en el servidor." : "";
  status("inventario-list-status",visible.length+" de "+products.length+
   " referencias cargadas mostradas."+limit);
  notifyInventoryMetrics();
