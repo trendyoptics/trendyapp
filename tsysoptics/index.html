@@ -72,11 +72,25 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 #caja .card .item{display:flex;justify-content:space-between;gap:10px;align-items:start}
 #caja .card .item small{display:block;margin-top:4px}
 #caja .card .item strong{font-size:13px}
+
+.brand-attribution{font-size:10px!important;color:#cbd5e1!important;letter-spacing:.1px}
+.firma-producto{font-size:11px!important;font-weight:700;color:var(--slate)!important;margin-top:-9px!important}
+.identidad-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(240px,1fr);gap:22px;margin-top:12px}
+.identidad-fieldset{border:0;padding:0;margin:0;min-width:0;display:grid;gap:14px}
+.identidad-fieldset:disabled{opacity:.8}
+.identidad-fieldset input[type=file]{cursor:pointer;background:white}
+.identidad-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.identidad-actions .btn{width:auto;flex:1 1 auto}
+.identidad-preview{border:1px solid #dce2eb;border-radius:13px;background:linear-gradient(155deg,var(--tsys-bg,#f5f5f8),white);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px;text-align:center;min-height:230px}
+.identidad-preview img{width:100px;height:100px;object-fit:contain;background:#fff;border-radius:13px;padding:6px;border:1px solid #e2e6ed}
+.identidad-preview strong{font-size:20px;color:var(--tsys-dark,#081226);overflow-wrap:anywhere}
+.identidad-preview small{font-size:12px;font-weight:700;color:var(--tsys-primary,#0B1C40)}
+@media(max-width:850px){.identidad-layout{grid-template-columns:1fr}.identidad-preview{min-height:210px}}
 </style></head><body>
 <section id="auth-root" class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
-  <img src="./logo.svg" alt="Logotipo de Óptica Trendy Optics">
-  <h1>TsysOptics</h1><p>Gestión óptica inteligente · acceso privado</p>
+  <img src="./logo.svg" data-tsys-logo alt="Logotipo de Trendy Optics">
+  <h1>TsysOptics</h1><p><strong data-tsys-business>Trendy Optics</strong></p><p>Gestión óptica inteligente · acceso privado</p><p class="firma-producto">TsysOptics · by TrendyOptics</p>
   <form id="auth-form">
    <label>Correo o usuario<input id="auth-email" type="text" autocomplete="username" placeholder="Correo personal o externo" required></label>
    <label for="auth-password">Contraseña</label>
@@ -99,9 +113,9 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  </div>
 </section>
 <div id="tsys-app" hidden><div class="layout">
-<aside class="sidebar"><div class="brand"><img src="logo.svg" alt="Logo Trendy Optics"><span><b>TsysOptics</b><small>Trendy Optics · Gestión</small></span></div><nav aria-label="Módulos">
+<aside class="sidebar"><div class="brand"><img src="logo.svg" data-tsys-logo alt="Logo de la óptica"><span><b>TsysOptics</b><small data-tsys-business>Trendy Optics</small><small class="brand-attribution">by TrendyOptics</small></span></div><nav aria-label="Módulos">
 <button class="active" data-page="inicio">▦ &nbsp; Inicio</button><a data-access-target="pacientes" href="./pacientes.html">♙ &nbsp; Pacientes</a><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
-<div class="main"><header class="top"><strong>TsysOptics <span style="font-size:12px;color:#585F73">| Óptica Trendy Optics</span></strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
+<div class="main"><header class="top"><strong data-tsys-page-title>TsysOptics | Trendy Optics</strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
 <div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><a data-access-target="pacientes" href="./pacientes.html">Pacientes</a><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html">Clínica ↗</a></div>
 <main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda, Inventario, Ventas y Caja de prueba utilizan Supabase. <strong>Simulador óptico sigue siendo un esquema de demostración.</strong> Caja dispone de apertura, arqueo y cierre de turnos en modalidad de prueba. No incluye facturación electrónica DIAN ni autorización para uso en producción.</div>
 <section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historias, agenda, inventario y ventas de prueba centralizados en Supabase.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small id="metric-ventas-origen">Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase) ↗</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="caja">▣ &nbsp; Abrir Caja</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
@@ -331,7 +345,38 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <p class="muted">La paleta <strong>Trendy institucional</strong> reproduce los colores oficiales de tu imagen: #BFBFBF, #585F73, #0B1C40, #081226 y #F2F2F2.</p>
   <p class="muted">Tu elección se conserva en este navegador. No cambia los colores de los documentos clínicos ni los datos almacenados en Supabase.</p>
  </div>
- <div class="card" style="margin-top:16px">
+ <div class="card" style="margin-top:16px" id="identidad-seccion">
+ <h2>Identidad de la óptica</h2>
+ <p class="muted">Personaliza el nombre y el logo que aparecerán en el acceso y en el panel. La firma <strong>TsysOptics · by TrendyOptics</strong> siempre será visible y no se puede cambiar.</p>
+ <div class="identidad-layout">
+  <form id="identidad-form" class="form" autocomplete="off">
+   <fieldset id="identidad-editor" disabled class="identidad-fieldset">
+    <label for="identidad-nombre">Nombre comercial de la óptica
+     <input id="identidad-nombre" name="nombre_optica" type="text" minlength="2" maxlength="80" placeholder="Ej. Óptica Visión Central" required>
+    </label>
+    <label for="identidad-archivo">Logo de la óptica (PNG, JPG o WebP; máximo 3 MB)
+     <input id="identidad-archivo" type="file" accept="image/png,image/jpeg,image/webp">
+    </label>
+    <p class="muted" id="identidad-archivo-actual">Logo predeterminado</p>
+    <div class="identidad-actions">
+     <button class="btn alt" id="identidad-quitar-logo" type="button">Usar logo predeterminado</button>
+     <button class="btn alt" id="identidad-cancelar" type="button">Descartar cambios</button>
+     <button class="btn" id="identidad-guardar" type="submit">Guardar identidad</button>
+    </div>
+   </fieldset>
+   <p class="muted" id="identidad-permisos">Solo el administrador puede modificar la identidad.</p>
+   <p id="identidad-status" role="status" aria-live="polite" class="muted"></p>
+  </form>
+  <div class="identidad-preview" aria-label="Vista previa de marca">
+   <img id="identidad-preview-logo" src="./logo.svg" alt="Vista previa de logo">
+   <strong id="identidad-preview-nombre">Trendy Optics</strong>
+   <small id="identidad-preview-firma">TsysOptics · by TrendyOptics</small>
+   <span class="muted">Vista previa antes de guardar</span>
+  </div>
+ </div>
+ <p class="muted" style="margin-top:16px"><strong>Alcance actual:</strong> esta personalización es para una instalación de TsysOptics. El sistema todavía no separa los datos de varias ópticas en un mismo Supabase; la razón social, el NIT y los encabezados clínicos existentes requieren configuración independiente antes de usarlo en otra óptica.</p>
+</div>
+<div class="card" style="margin-top:16px">
   <h2>Escritura rápida</h2>
   <p>En los campos editables con valor inicial <strong>0</strong> o <strong>0.00</strong>, al hacer clic se despeja el cero para escribir directamente. Si sales sin escribir, reaparece el cero original.</p>
   <p class="muted">Los valores de las historias clínicas ya finalizadas no se modifican.</p>
@@ -416,7 +461,7 @@ window.addEventListener("tsys:locked",()=>{currentRole=null;});
 render();lens();
 if(new URLSearchParams(location.search).get("vista")==="apariencia")navigate("apariencia");
 })();
-</script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js"></script><script type="module" src="./ventas.js"></script><script type="module" src="./caja.js"></script><script type="module" src="./auth.js"></script><div id="venta-comprobante" hidden role="dialog" aria-modal="true" aria-labelledby="venta-recibo-titulo">
+</script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js"></script><script type="module" src="./ventas.js"></script><script type="module" src="./caja.js"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-comprobante" hidden role="dialog" aria-modal="true" aria-labelledby="venta-recibo-titulo">
  <div class="recibo">
   <div class="recibo-acciones">
    <button class="btn alt" id="venta-cerrar-comprobante" type="button">Cerrar</button>
