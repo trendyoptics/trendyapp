@@ -57,3 +57,244 @@ body:has(#tsys-app:not([hidden])){padding-bottom:calc(78px + env(safe-area-inset
  body.tsys-mobile-subpage .identidad-pacientes-marca strong{font-size:12px}
  body.tsys-mobile-subpage .identidad-pacientes-marca img{width:38px;height:38px}
 }
+
+/* Accesibilidad y contraste móvil · pacientes, devoluciones y menú global.
+   La identidad de cada óptica se conserva a través de variables del tema. */
+@media (max-width:850px) {
+  .tsys-mobile-dock {
+    background:#fff !important;
+    color:#142545;
+    border-top:1px solid #dbe2ed;
+    isolation:isolate;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .tsys-mobile-dock button,
+  body.tsys-mobile-subpage .tsys-mobile-dock button {
+    background:transparent !important;
+    background-color:transparent !important;
+    color:#5b6881 !important;
+    -webkit-text-fill-color:#5b6881 !important;
+    border:0 !important;
+    box-shadow:none !important;
+    border-radius:11px;
+    padding:6px 2px !important;
+    min-height:58px;
+    width:auto !important;
+    flex:1 1 0;
+    text-align:center !important;
+    font:650 11px/1.2 system-ui,-apple-system,sans-serif !important;
+    opacity:1 !important;
+    transition:background-color .15s,color .15s;
+  }
+  .tsys-mobile-dock button.active,
+  body.tsys-mobile-subpage .tsys-mobile-dock button.active {
+    background:color-mix(in srgb,var(--tsys-primary,#0B1C40) 12%,white) !important;
+    background-color:color-mix(in srgb,var(--tsys-primary,#0B1C40) 12%,white) !important;
+    color:var(--tsys-primary,#0B1C40) !important;
+    -webkit-text-fill-color:var(--tsys-primary,#0B1C40) !important;
+  }
+  .tsys-mobile-dock button span,
+  .tsys-mobile-dock button svg {
+    color:inherit !important;
+    opacity:1 !important;
+  }
+  .tsys-mobile-dock button svg {
+    stroke:currentColor !important;
+    fill:none !important;
+  }
+
+  .tsys-mobile-backdrop {
+    background:rgba(8,18,38,.42);
+    -webkit-backdrop-filter:blur(2px);
+    backdrop-filter:blur(2px);
+  }
+  .tsys-mobile-sheet {
+    background:#fff !important;
+    color:#142545 !important;
+    border:1px solid #d9e1ed;
+    border-radius:22px 22px 12px 12px;
+    box-shadow:0 -12px 40px rgba(8,18,38,.22);
+    padding:17px 16px calc(15px + env(safe-area-inset-bottom,0px));
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  .tsys-mobile-sheet-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .tsys-mobile-sheet h2 {
+    color:var(--tsys-primary,#0B1C40) !important;
+    font-size:19px;
+    line-height:1.25;
+    margin:0;
+  }
+  .tsys-mobile-sheet .tsys-mobile-close {
+    flex:none;
+    width:38px !important;
+    height:38px;
+    min-height:38px !important;
+    border-radius:50%;
+    border:1px solid #d9e1ed !important;
+    background:#f4f6fa !important;
+    background-color:#f4f6fa !important;
+    color:#263757 !important;
+    -webkit-text-fill-color:#263757 !important;
+    font-size:21px !important;
+    line-height:1;
+    padding:0 !important;
+    text-align:center;
+    display:grid;
+    place-items:center;
+  }
+  .tsys-mobile-options {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+  .tsys-mobile-sheet .tsys-mobile-options button {
+    display:flex !important;
+    align-items:center;
+    justify-content:flex-start;
+    gap:9px;
+    width:100% !important;
+    min-height:66px;
+    text-align:left !important;
+    padding:13px 11px !important;
+    border:1px solid #d6dfeb !important;
+    border-radius:13px;
+    box-shadow:none !important;
+    background:#f6f8fc !important;
+    background-color:#f6f8fc !important;
+    color:#132745 !important;
+    -webkit-text-fill-color:#132745 !important;
+    font:650 13px/1.25 system-ui,-apple-system,sans-serif !important;
+    opacity:1 !important;
+    white-space:normal !important;
+  }
+  .tsys-mobile-sheet .tsys-mobile-options button svg {
+    flex:0 0 20px;
+    width:20px;
+    height:20px;
+    margin:0;
+    stroke:var(--tsys-primary,#0B1C40) !important;
+    fill:none !important;
+    color:var(--tsys-primary,#0B1C40) !important;
+    opacity:1 !important;
+  }
+  .tsys-mobile-sheet .tsys-mobile-options button span {
+    color:#132745 !important;
+    -webkit-text-fill-color:#132745 !important;
+    min-width:0;
+    overflow-wrap:anywhere;
+    opacity:1 !important;
+  }
+  .tsys-mobile-sheet .tsys-mobile-options button:active {
+    background:#e9eef8 !important;
+    transform:scale(.98);
+  }
+  .tsys-mobile-sheet .tsys-mobile-options button:disabled {
+    background:#edf0f5 !important;
+    color:#697890 !important;
+    opacity:.7 !important;
+  }
+  .tsys-mobile-sheet .tsys-mobile-options button:disabled span {
+    color:#697890 !important;
+    -webkit-text-fill-color:#697890 !important;
+  }
+  .tsys-mobile-sheet button:focus-visible,
+  .tsys-mobile-dock button:focus-visible {
+    outline:3px solid var(--tsys-accent,#0077B6) !important;
+    outline-offset:2px;
+  }
+
+  /* Formularios: evitar el zoom automático de Safari y herencias de contraste. */
+  body.tsys-mobile-subpage #panel label,
+  body.tsys-mobile-subpage #app label {
+    color:#273a56;
+    line-height:1.45;
+  }
+  body.tsys-mobile-subpage #panel input:not([type="checkbox"]):not([type="radio"]),
+  body.tsys-mobile-subpage #panel select,
+  body.tsys-mobile-subpage #panel textarea,
+  body.tsys-mobile-subpage #app input:not([type="checkbox"]):not([type="radio"]),
+  body.tsys-mobile-subpage #app select,
+  body.tsys-mobile-subpage #app textarea {
+    background-color:#fff !important;
+    color:#142545 !important;
+    -webkit-text-fill-color:#142545 !important;
+    border:1px solid #bbc9db;
+    border-radius:10px;
+    font-size:16px;
+    min-height:47px;
+    max-width:100%;
+    opacity:1;
+  }
+  body.tsys-mobile-subpage #panel input::placeholder,
+  body.tsys-mobile-subpage #panel textarea::placeholder,
+  body.tsys-mobile-subpage #app input::placeholder,
+  body.tsys-mobile-subpage #app textarea::placeholder {
+    color:#66758e !important;
+    -webkit-text-fill-color:#66758e !important;
+    opacity:1;
+  }
+  body.tsys-mobile-subpage #panel :is(input,select,textarea):focus-visible,
+  body.tsys-mobile-subpage #app :is(input,select,textarea):focus-visible {
+    outline:2px solid var(--tsys-accent,#0077B6);
+    outline-offset:2px;
+  }
+  body.tsys-mobile-subpage #panel :is(input,select,textarea):disabled,
+  body.tsys-mobile-subpage #app :is(input,select,textarea):disabled {
+    background:#edf1f6 !important;
+    color:#586981 !important;
+    -webkit-text-fill-color:#586981 !important;
+  }
+  body.tsys-mobile-subpage #panel .inline {
+    display:flex;
+    flex-wrap:nowrap;
+    align-items:center;
+    min-width:0;
+  }
+  body.tsys-mobile-subpage #panel .inline input {
+    flex:1 1 auto;
+    min-width:0;
+    margin:0;
+  }
+  body.tsys-mobile-subpage #panel .inline button {
+    flex:none;
+    min-height:47px;
+    white-space:nowrap;
+  }
+  body.tsys-mobile-subpage #panel .card,
+  body.tsys-mobile-subpage #app .card {
+    background:#fff;
+    border-color:#dde4ee;
+    box-shadow:0 4px 14px rgba(8,18,38,.045);
+  }
+  body.tsys-mobile-subpage .identidad-pacientes-marca {
+    flex:1 1 auto;
+    min-width:0;
+  }
+  body.tsys-mobile-subpage .identidad-pacientes-marca strong {
+    color:#fff;
+    font-size:12px;
+    line-height:1.3;
+  }
+  body.tsys-mobile-subpage header a {
+    color:#fff;
+    flex-shrink:0;
+  }
+}
+@media (max-width:370px){
+  .tsys-mobile-sheet .tsys-mobile-options{gap:7px}
+  .tsys-mobile-sheet .tsys-mobile-options button{
+    font-size:12px !important;
+    padding:11px 8px !important;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .tsys-mobile-dock button,
+  .tsys-mobile-sheet .tsys-mobile-options button{transition:none!important}
+}
