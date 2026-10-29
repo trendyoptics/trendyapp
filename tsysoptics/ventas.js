@@ -15,12 +15,70 @@ const patientSelect=$("venta-paciente");
 const paymentSaleSelect=$("ventas-abono-venta");
 const money=n=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:2}).format(Number(n)||0);
 const paymentLabel={efectivo:"Efectivo",transferencia:"Transferencia",nequi:"Nequi",daviplata:"Daviplata",tarjeta:"Tarjeta",otro:"Otro"};
-let isActive=false,isStarting=false,registering=false,collecting=false;
+let isActive=false,isStarting=false,registering=false,collecting=false,voiding=false;
 let cajaAbierta=false;
 let generation=0;
 let products=[],patients=[],sales=[],cart=[];
 let saleToken=crypto.randomUUID();
 let paymentToken=crypto.randomUUID();
+let voidToken=crypto.randomUUID();
+let saleToVoid=null;
+const voidModal=$("venta-anular-modal");
+const voidForm=$("venta-anular-form");
+const voidMessage=$("venta-anular-status");
+function canVoid(sale){
+ return sale.estado==="emitida"&&Number(sale.abonado)===0&&!(sale.pagos||[]).length;
+}
+function closeVoid(){
+ if(voiding)return;
+ voidModal.hidden=true;saleToVoid=null;voidForm.reset();voidMessage.textContent="";
+}
+function openVoid(sale){
+ if(!isActive||!canVoid(sale))return;
+ saleToVoid=sale;voidToken=crypto.randomUUID();
+ $("venta-anular-info").textContent="Venta "+salesNumber(sale.numero)+
+  " por "+money(sale.total)+". Sin pagos. Al confirmar se reintegran "+
+  (sale.lineas||[]).map(x=>x.codigo_snapshot+" × "+x.cantidad).join(", ")+
+  " al inventario y queda un registro de auditoría.";
+ voidModal.hidden=false;voidMessage.textContent="";
+ $("venta-anular-motivo").focus();
+}
+$("venta-anular-cancelar").addEventListener("click",closeVoid);
+voidModal.addEventListener("click",e=>{if(e.target===voidModal)closeVoid()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!voidModal.hidden)closeVoid()});
+voidForm.addEventListener("submit",async e=>{
+ e.preventDefault();
+ if(!isActive||voiding||!saleToVoid)return;
+ const motivo=String($("venta-anular-motivo").value||"").trim();
+ if(motivo.length<10||motivo.length>300){
+  voidMessage.textContent="Escribe una justificación de 10 a 300 caracteres.";return;
+ }
+ const id=saleToVoid.id;
+ if(!window.confirm("¿Anular "+salesNumber(saleToVoid.numero)+
+  " y reintegrar el inventario? Esta acción no se puede deshacer."))return;
+ voiding=true;$("venta-anular-confirmar").disabled=true;$("venta-anular-cancelar").disabled=true;
+ voidMessage.textContent="Anulando venta y reintegrando existencias…";
+ try{
+  const {data,error}=await sb.rpc("anular_venta_sin_pago_tsysoptics",{
+   p_venta_id:id,p_motivo:motivo,p_operacion_id:voidToken
+  });
+  if(error||!data){
+   const message=String(error?.message||"");
+   voidMessage.textContent=message.includes("requiere devolución financiera")
+    ?"Esta venta tiene cobros y requiere una devolución financiera."
+    :message.includes("ya fue anulada")?"Esta venta ya fue anulada. Actualiza el historial."
+    :"No se pudo confirmar la anulación. Revisa el historial antes de reintentar.";
+   return;
+  }
+  voidToken=crypto.randomUUID();voidModal.hidden=true;voidForm.reset();saleToVoid=null;
+  await refresh();
+  displayStatus("ventas-list-status","Anulación confirmada en Supabase: existencias reintegradas con auditoría.");
+ }catch{
+  voidMessage.textContent="No se confirmó la operación. Actualiza el historial antes de repetirla.";
+ }finally{
+  voiding=false;$("venta-anular-confirmar").disabled=false;$("venta-anular-cancelar").disabled=false;
+ }
+});
 function displayStatus(id,text){$(id).textContent=text}
 function element(tag,text,cls){
  const n=document.createElement(tag);
@@ -124,7 +182,7 @@ function appendCell(row,value){
 }
 function receiptOpen(sale){
  if(!sale)return;
- $("venta-recibo-meta").textContent="Comprobante "+salesNumber(sale.numero)+" · "+new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"});
+ $("venta-recibo-meta").textContent=(sale.estado==="anulada"?"ANULADA · Documento histórico · ":"Comprobante ")+salesNumber(sale.numero)+" · "+new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"});
  $("venta-recibo-paciente").textContent="Paciente/cliente: "+(sale.paciente?.nombre_completo||"Consumidor final");
  const tbody=$("venta-recibo-lineas");tbody.replaceChildren();
  for(const line of sale.lineas||[]){
@@ -135,11 +193,16 @@ function receiptOpen(sale){
   appendCell(tr,money(line.total_linea));
   tbody.append(tr);
  }
- $("venta-recibo-totales").textContent="Total: "+money(sale.total)+" · Abonado: "+money(sale.abonado)+" · Saldo: "+money(sale.saldo);
+ $("venta-recibo-totales").textContent=(sale.estado==="anulada"?"VENTA ANULADA · Sin saldo exigible · Total histórico: ":"Total: ")+money(sale.total)+" · Abonado: "+money(sale.abonado)+" · Saldo: "+money(sale.saldo);
  const paymentText=(sale.pagos||[]).map(p=>
   new Date(p.registrado_en).toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+money(p.monto)+" · "+(paymentLabel[p.medio]||p.medio)
  );
  $("venta-recibo-pagos").textContent=paymentText.length?"Pagos: "+paymentText.join(" | "):"Sin pagos registrados";
+ const canceledInfo=$("venta-recibo-anulacion");
+ canceledInfo.hidden=sale.estado!=="anulada";
+ canceledInfo.textContent=sale.estado==="anulada"?
+  "ANULACIÓN REGISTRADA · "+new Date(sale.anulada_en).toLocaleString("es-CO",{timeZone:"America/Bogota"})+
+  " · Motivo: "+(sale.motivo_anulacion||"No disponible"):"";
  receipt.hidden=false;
 }
 function receiptClose(){
@@ -164,22 +227,24 @@ function renderSales(){
   return;
  }
  for(const sale of sales){
-  if(Number(sale.saldo)>0) paymentSaleSelect.append(
+  if(sale.estado==="emitida"&&Number(sale.saldo)>0) paymentSaleSelect.append(
     new Option(salesNumber(sale.numero)+" · Saldo "+money(sale.saldo),sale.id)
   );
-  const row=element("div",undefined,"item");
+  const row=element("div",undefined,sale.estado==="anulada"?"item venta-anulada":"item");
   const info=element("div");
   const labels=(sale.lineas||[]).map(x=>x.codigo_snapshot+" × "+x.cantidad).join(", ");
-  info.append(element("strong",salesNumber(sale.numero)+" · "+money(sale.total)),
+  info.append(element("strong",salesNumber(sale.numero)+" · "+money(sale.total)+(sale.estado==="anulada"?" · ANULADA":"")),
    element("small",new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+(sale.paciente?.nombre_completo||"Consumidor final")),
    element("small",labels),
-   element("small","Abonado "+money(sale.abonado)+" · Saldo "+money(sale.saldo)));
+   element("small",sale.estado==="anulada"
+    ?"Sin saldo exigible · Motivo: "+(sale.motivo_anulacion||"Auditoría registrada")
+    :"Abonado "+money(sale.abonado)+" · Saldo "+money(sale.saldo)));
   const actions=element("div",undefined,"venta-fila-controles");
   const receiptBtn=element("button","Comprobante");
   receiptBtn.type="button";
   receiptBtn.addEventListener("click",()=>receiptOpen(sale));
   actions.append(receiptBtn);
-  if(Number(sale.saldo)>0){
+  if(sale.estado==="emitida"&&Number(sale.saldo)>0){
    const payBtn=element("button","Abonar");
    payBtn.type="button";
    payBtn.addEventListener("click",()=>{
@@ -188,6 +253,13 @@ function renderSales(){
     paymentsForm.scrollIntoView({behavior:"smooth",block:"start"});
    });
    actions.append(payBtn);
+  }
+  if(canVoid(sale)){
+   const voidBtn=element("button","Anular venta");voidBtn.type="button";
+   voidBtn.className="anular-venta-btn";voidBtn.addEventListener("click",()=>openVoid(sale));
+   actions.append(voidBtn);
+  }else if(sale.estado==="emitida"&&Number(sale.abonado)>0){
+   actions.append(element("span","Requiere devolución financiera","venta-fila-info"));
   }
   row.append(info,actions);saleList.append(row);
  }
@@ -212,7 +284,7 @@ async function refreshSales(){
  const mine=++generation;
  displayStatus("ventas-list-status","Consultando ventas…");
  const {data,error,count}=await sb.from("ventas_tsysoptics")
-  .select("id,numero,solicitud_id,fecha,paciente_id,total,abonado,saldo,estado,paciente:pacientes_tsysoptics(nombre_completo),lineas:detalle_ventas_tsysoptics(codigo_snapshot,nombre_snapshot,cantidad,precio_unitario,total_linea),pagos:pagos_ventas_tsysoptics(monto,medio,registrado_en)",{count:"exact"})
+  .select("id,numero,solicitud_id,fecha,paciente_id,total,abonado,saldo,estado,motivo_anulacion,anulada_en,paciente:pacientes_tsysoptics(nombre_completo),lineas:detalle_ventas_tsysoptics(codigo_snapshot,nombre_snapshot,cantidad,precio_unitario,total_linea),pagos:pagos_ventas_tsysoptics(monto,medio,registrado_en)",{count:"exact"})
   .order("fecha",{ascending:false}).limit(100);
  if(!isActive||mine!==generation)return;
  if(error){displayStatus("ventas-list-status","No se pudieron cargar las ventas. Verifica la conexión y los permisos.");return}
@@ -220,7 +292,9 @@ async function refreshSales(){
  const selected=paymentSaleSelect.value;
  renderSales();
  if(Array.from(paymentSaleSelect.options).some(o=>o.value===selected))paymentSaleSelect.value=selected;
- displayStatus("ventas-list-status",sales.length+" ventas mostradas"+(Number(count)>100?" (máximo 100 recientes)":"")+".");
+ const anuladas=sales.filter(s=>s.estado==="anulada").length;
+ displayStatus("ventas-list-status",sales.length+" ventas mostradas: "+(sales.length-anuladas)+
+  " vigentes y "+anuladas+" anuladas"+(Number(count)>100?" (máximo 100 recientes)":"")+".");
  await refreshSummary();
 }
 async function refresh(){
@@ -294,7 +368,7 @@ paymentsForm.addEventListener("submit",async e=>{
  const sale=sales.find(x=>x.id===paymentSaleSelect.value);
  const monto=Number(paymentsForm.elements.monto.value);
  const medio=String(paymentsForm.elements.medio.value||"");
- if(!sale||!Number.isFinite(monto)||monto<=0||monto>Number(sale.saldo)||!paymentLabel[medio]){
+ if(!sale||sale.estado!=="emitida"||!Number.isFinite(monto)||monto<=0||monto>Number(sale.saldo)||!paymentLabel[medio]){
   displayStatus("ventas-abono-status","Elige una venta y un abono válido, sin superar su saldo.");
   return;
  }
@@ -318,6 +392,7 @@ paymentsForm.addEventListener("submit",async e=>{
 });
 function reset(){
  isActive=false;isStarting=false;generation++;
+ voiding=false;voidModal.hidden=true;saleToVoid=null;voidToken=crypto.randomUUID();voidForm.reset();
  setCajaEstado(false);
  products=[];patients=[];sales=[];cart=[];
  receiptClose();

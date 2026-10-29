@@ -87,6 +87,17 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 .identidad-preview strong{font-size:20px;color:var(--tsys-dark,#081226);overflow-wrap:anywhere}
 .identidad-preview small{font-size:12px;font-weight:700;color:var(--tsys-primary,#0B1C40)}
 @media(max-width:850px){.identidad-layout{grid-template-columns:1fr}.identidad-preview{min-height:210px}}
+
+#venta-anular-modal[hidden]{display:none!important}
+#venta-anular-modal{position:fixed;inset:0;z-index:1100;display:grid;place-items:center;overflow:auto;padding:18px;background:#081226b0}
+#venta-anular-modal .venta-anular-panel{width:100%;max-width:535px;max-height:90vh;overflow:auto;padding:24px;background:white;color:#081226;border-radius:13px;box-shadow:0 16px 50px #0003}
+#venta-anular-modal .venta-anular-confirmar{background:#972f40;color:white}
+#ventas .venta-anulada{border-left:4px solid #a8505d;background:#fff9f9}
+#ventas .venta-anulada strong{color:#7c2d39}
+#ventas .venta-etiqueta-anulada{color:#9a2837;font-size:12px;font-weight:700}
+#ventas .venta-fila-controles button.anular-venta-btn{color:#972f40;border-color:#dfb2ba;background:#fff0f1}
+#ventas .venta-fila-controles .venta-fila-info{color:#64748b;font-size:11px;max-width:160px}
+@media print{#venta-anular-modal{display:none!important}}
 </style></head><body>
 <section id="auth-root" class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
@@ -195,12 +206,12 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 <span class="label">VENTAS Y COBROS · PILOTO SUPABASE</span>
 <h1>Ventas y cobros</h1>
 <p class="muted">Registra ventas con descuento de existencias y cobros parciales. Debes abrir un turno en Caja antes de realizar nuevas operaciones. El comprobante no sustituye la factura electrónica DIAN.</p>
-<p class="muted" style="margin-bottom:0"><strong>Acumulado histórico de ventas:</strong> estas cifras incluyen operaciones de turnos anteriores o anteriores a la implementación de Caja. Para ver los recaudos del turno actual, consulta <strong>Caja</strong>.</p>
+<p class="muted" style="margin-bottom:0"><strong>Acumulado histórico de ventas vigentes:</strong> estas cifras excluyen las ventas anuladas y pueden incluir turnos anteriores. El historial conserva las anulaciones para auditoría. Para los cobros del turno actual, consulta <strong>Caja</strong>.</p>
 <div class="venta-resumen">
- <div class="card"><span class="label">VENTAS EMITIDAS · HISTÓRICO</span><strong id="ventas-cantidad">0</strong></div>
- <div class="card"><span class="label">TOTAL VENDIDO · HISTÓRICO</span><strong id="ventas-total">$ 0</strong></div>
+ <div class="card"><span class="label">VENTAS VIGENTES · HISTÓRICO</span><strong id="ventas-cantidad">0</strong></div>
+ <div class="card"><span class="label">TOTAL VIGENTE · HISTÓRICO</span><strong id="ventas-total">$ 0</strong></div>
  <div class="card"><span class="label">COBROS RECIBIDOS · HISTÓRICO</span><strong id="ventas-abonado">$ 0</strong></div>
- <div class="card"><span class="label">SALDOS PENDIENTES · HISTÓRICO</span><strong id="ventas-pendiente">$ 0</strong></div>
+ <div class="card"><span class="label">SALDOS VIGENTES · HISTÓRICO</span><strong id="ventas-pendiente">$ 0</strong></div>
 </div>
 <div class="cols">
  <form class="card form" id="form-venta">
@@ -229,7 +240,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  </form>
  <div class="card">
   <h2>Historial de ventas</h2>
-  <p class="muted">Puedes consultar comprobantes internos y registrar abonos sin modificar el precio ni la venta original.</p>
+  <p class="muted">Consulta comprobantes, registra abonos y anula ventas sin pagos. Las anulaciones requieren motivo y reintegran las existencias con auditoría. Si hay pagos registrados, se necesita un proceso separado de devolución financiera.</p>
   <button class="btn alt" id="ventas-actualizar" type="button">Actualizar ventas</button>
   <p class="muted" id="ventas-list-status" role="status" aria-live="polite"></p>
   <div class="list" id="lista-ventas"></div>
@@ -462,7 +473,24 @@ window.addEventListener("tsys:locked",()=>{currentRole=null;});
 render();lens();
 if(new URLSearchParams(location.search).get("vista")==="apariencia")navigate("apariencia");
 })();
-</script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js"></script><script type="module" src="./ventas.js"></script><script type="module" src="./caja.js"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-comprobante" hidden role="dialog" aria-modal="true" aria-labelledby="venta-recibo-titulo">
+</script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js"></script><script type="module" src="./ventas.js"></script><script type="module" src="./caja.js"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+ <div class="venta-anular-panel">
+  <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
+  <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
+  <form id="venta-anular-form" class="form">
+   <label for="venta-anular-motivo">Motivo obligatorio (10 a 300 caracteres)
+    <textarea id="venta-anular-motivo" name="motivo" rows="4" minlength="10" maxlength="300" required placeholder="Ej. Venta registrada por error antes de recibir el pago"></textarea>
+   </label>
+   <p class="muted">Esta operación es irreversible. No reemplaza una devolución de dinero.</p>
+   <div class="identidad-actions">
+    <button type="button" class="btn alt" id="venta-anular-cancelar">Volver sin anular</button>
+    <button type="submit" class="btn venta-anular-confirmar" id="venta-anular-confirmar">Confirmar anulación</button>
+   </div>
+   <p class="muted" id="venta-anular-status" role="status" aria-live="polite"></p>
+  </form>
+ </div>
+</div>
+<div id="venta-comprobante" hidden role="dialog" aria-modal="true" aria-labelledby="venta-recibo-titulo">
  <div class="recibo">
   <div class="recibo-acciones">
    <button class="btn alt" id="venta-cerrar-comprobante" type="button">Cerrar</button>
@@ -475,6 +503,7 @@ if(new URLSearchParams(location.search).get("vista")==="apariencia")navigate("ap
    <tbody id="venta-recibo-lineas"></tbody></table>
   <p id="venta-recibo-totales"></p>
   <p id="venta-recibo-pagos"></p>
+  <p id="venta-recibo-anulacion" hidden></p>
   <p><strong>Comprobante interno de prueba. No equivale a factura electrónica DIAN.</strong></p>
  </div>
 </div>
