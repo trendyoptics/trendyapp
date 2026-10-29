@@ -1,0 +1,329 @@
+import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+
+const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+ auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+});
+const $=id=>document.getElementById(id);
+const form=$("form-venta");
+const paymentsForm=$("ventas-form-abono");
+const receipt=$("venta-comprobante");
+const cartRoot=$("venta-carrito");
+const saleList=$("lista-ventas");
+const productSelect=$("venta-producto");
+const patientSelect=$("venta-paciente");
+const paymentSaleSelect=$("ventas-abono-venta");
+const money=n=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:2}).format(Number(n)||0);
+const paymentLabel={efectivo:"Efectivo",transferencia:"Transferencia",nequi:"Nequi",daviplata:"Daviplata",tarjeta:"Tarjeta",otro:"Otro"};
+let isActive=false,isStarting=false,registering=false,collecting=false;
+let generation=0;
+let products=[],patients=[],sales=[],cart=[];
+let saleToken=crypto.randomUUID();
+let paymentToken=crypto.randomUUID();
+function displayStatus(id,text){$(id).textContent=text}
+function element(tag,text,cls){
+ const n=document.createElement(tag);
+ if(text!==undefined&&text!==null)n.textContent=String(text);
+ if(cls)n.className=cls;
+ return n;
+}
+function salesNumber(num){return "V-"+String(num).padStart(6,"0")}
+function saleError(err){
+ const message=String(err?.message||"");
+ if(err?.code==="22023" && message.includes("Existencias insuficientes"))return "Existencias insuficientes. Actualiza el inventario y revisa el carrito.";
+ if(err?.code==="22023" && message.includes("abono"))return "El pago inicial supera el valor real de la venta.";
+ if(err?.code==="22023" && message.includes("repet"))return "La referencia está repetida en el carrito.";
+ if(err?.code==="23505")return "La operación podría haberse registrado. Actualiza el historial antes de repetirla.";
+ if(err?.code==="42501")return "No tienes permiso para realizar esta operación.";
+ return "No se pudo registrar. Comprueba los datos, el stock y la conexión.";
+}
+async function authorized(){
+ const {data,error}=await sb.auth.getUser();
+ if(error||!data?.user)return false;
+ const {data:profile,error:pe}=await sb.from("usuarios_tsysoptics").select("rol,activo").eq("id",data.user.id).maybeSingle();
+ return !pe && profile?.activo===true && profile?.rol==="administrador";
+}
+function cartTotal(){
+ return cart.reduce((sum,item)=>{
+  const p=products.find(x=>x.id===item.producto_id);
+  return sum+(Number(p?.precio_venta)||0)*item.cantidad;
+ },0);
+}
+function renderCart(){
+ cartRoot.replaceChildren();
+ for(const item of cart){
+  const p=products.find(x=>x.id===item.producto_id);
+  const row=element("div",undefined,"item");
+  const info=element("div");
+  info.append(element("strong",(p?.codigo||"Referencia")+" × "+item.cantidad),
+   element("small",(p?.nombre||"Referencia")+" · "+money((p?.precio_venta||0)*item.cantidad)));
+  const rm=element("button","Quitar","btn alt");
+  rm.type="button";
+  rm.addEventListener("click",()=>{cart=cart.filter(x=>x.producto_id!==item.producto_id);renderCart()});
+  row.append(info,rm);cartRoot.append(row);
+ }
+ if(!cart.length)cartRoot.append(element("p","Carrito vacío. Selecciona una referencia y agrégala.","muted"));
+ const total=cartTotal();
+ const paid=Number(form.elements.abono.value||0);
+ $("total-preview").textContent=money(total);
+ $("saldo-preview").textContent=money(Math.max(0,total-(Number.isFinite(paid)?paid:0)));
+}
+function fillOptions(){
+ const previously=productSelect.value;
+ productSelect.replaceChildren(new Option("Seleccionar referencia",""));
+ for(const p of products.filter(p=>p.activo&&p.cantidad>0)){
+  const opt=new Option(p.codigo+" · "+p.nombre+" · "+money(p.precio_venta)+" ("+p.cantidad+" uds)",p.id);
+  productSelect.append(opt);
+ }
+ if(Array.from(productSelect.options).some(o=>o.value===previously))productSelect.value=previously;
+ const current=patientSelect.value;
+ patientSelect.replaceChildren(new Option("Consumidor final",""));
+ for(const p of patients)patientSelect.append(new Option(p.nombre_completo+" · "+p.tipo_documento+" "+p.documento,p.id));
+ if(Array.from(patientSelect.options).some(o=>o.value===current))patientSelect.value=current;
+}
+async function refreshCatalog(){
+ if(!isActive)return;
+ const [r,p]=await Promise.all([
+  sb.from("productos_tsysoptics").select("id,codigo,nombre,precio_venta,cantidad,activo")
+   .eq("activo",true).order("nombre",{ascending:true}).limit(300),
+  sb.from("pacientes_tsysoptics").select("id,nombre_completo,tipo_documento,documento")
+   .order("nombre_completo",{ascending:true}).limit(300)
+ ]);
+ if(!isActive)return;
+ if(r.error||p.error){
+  displayStatus("venta-form-status","No se pudieron consultar productos o pacientes de Supabase.");
+  return;
+ }
+ products=r.data||[]; patients=p.data||[];
+ // El servidor valida otra vez el stock y el precio en el momento del cobro.
+ cart=cart.filter(x=>products.some(p=>p.id===x.producto_id&&p.activo));
+ fillOptions(); renderCart();
+}
+function appendCell(row,value){
+ const td=element("td",value);
+ row.append(td);
+ return td;
+}
+function receiptOpen(sale){
+ if(!sale)return;
+ $("venta-recibo-meta").textContent="Comprobante "+salesNumber(sale.numero)+" · "+new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"});
+ $("venta-recibo-paciente").textContent="Paciente/cliente: "+(sale.paciente?.nombre_completo||"Consumidor final");
+ const tbody=$("venta-recibo-lineas");tbody.replaceChildren();
+ for(const line of sale.lineas||[]){
+  const tr=document.createElement("tr");
+  appendCell(tr,line.codigo_snapshot+" · "+line.nombre_snapshot);
+  appendCell(tr,line.cantidad);
+  appendCell(tr,money(line.precio_unitario));
+  appendCell(tr,money(line.total_linea));
+  tbody.append(tr);
+ }
+ $("venta-recibo-totales").textContent="Total: "+money(sale.total)+" · Abonado: "+money(sale.abonado)+" · Saldo: "+money(sale.saldo);
+ const paymentText=(sale.pagos||[]).map(p=>
+  new Date(p.registrado_en).toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+money(p.monto)+" · "+(paymentLabel[p.medio]||p.medio)
+ );
+ $("venta-recibo-pagos").textContent=paymentText.length?"Pagos: "+paymentText.join(" | "):"Sin pagos registrados";
+ receipt.hidden=false;
+}
+function receiptClose(){
+ receipt.hidden=true;
+ document.body.classList.remove("venta-imprimiendo");
+}
+$("venta-cerrar-comprobante").addEventListener("click",receiptClose);
+$("venta-imprimir-comprobante").addEventListener("click",()=>{
+ document.body.classList.add("venta-imprimiendo");
+ window.print();
+});
+window.addEventListener("afterprint",()=>document.body.classList.remove("venta-imprimiendo"));
+receipt.addEventListener("click",e=>{if(e.target===receipt)receiptClose()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!receipt.hidden)receiptClose()});
+
+function renderSales(){
+ if(!isActive)return;
+ saleList.replaceChildren();
+ paymentSaleSelect.replaceChildren(new Option("Seleccionar venta con saldo",""));
+ if(!sales.length){
+  saleList.append(element("p","Todavía no hay ventas en Supabase.","muted"));
+  return;
+ }
+ for(const sale of sales){
+  if(Number(sale.saldo)>0) paymentSaleSelect.append(
+    new Option(salesNumber(sale.numero)+" · Saldo "+money(sale.saldo),sale.id)
+  );
+  const row=element("div",undefined,"item");
+  const info=element("div");
+  const labels=(sale.lineas||[]).map(x=>x.codigo_snapshot+" × "+x.cantidad).join(", ");
+  info.append(element("strong",salesNumber(sale.numero)+" · "+money(sale.total)),
+   element("small",new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+(sale.paciente?.nombre_completo||"Consumidor final")),
+   element("small",labels),
+   element("small","Abonado "+money(sale.abonado)+" · Saldo "+money(sale.saldo)));
+  const actions=element("div",undefined,"venta-fila-controles");
+  const receiptBtn=element("button","Comprobante");
+  receiptBtn.type="button";
+  receiptBtn.addEventListener("click",()=>receiptOpen(sale));
+  actions.append(receiptBtn);
+  if(Number(sale.saldo)>0){
+   const payBtn=element("button","Abonar");
+   payBtn.type="button";
+   payBtn.addEventListener("click",()=>{
+    paymentSaleSelect.value=sale.id;
+    $("ventas-abono-monto").value=Number(sale.saldo);
+    paymentsForm.scrollIntoView({behavior:"smooth",block:"start"});
+   });
+   actions.append(payBtn);
+  }
+  row.append(info,actions);saleList.append(row);
+ }
+}
+async function refreshSummary(){
+ if(!isActive)return;
+ const {data,error}=await sb.rpc("resumen_ventas_tsysoptics");
+ if(!isActive)return;
+ if(error||!Array.isArray(data)||!data[0]){
+  displayStatus("ventas-list-status","No se pudo consultar el resumen de ventas.");
+  return;
+ }
+ const r=data[0];
+ $("ventas-cantidad").textContent=String(r.cantidad);
+ $("ventas-total").textContent=money(r.total);
+ $("ventas-abonado").textContent=money(r.recibido);
+ $("ventas-pendiente").textContent=money(r.pendiente);
+ if(typeof window.tsysVentasSetTotal==="function")window.tsysVentasSetTotal(Number(r.total)||0);
+}
+async function refreshSales(){
+ if(!isActive)return;
+ const mine=++generation;
+ displayStatus("ventas-list-status","Consultando ventas…");
+ const {data,error,count}=await sb.from("ventas_tsysoptics")
+  .select("id,numero,solicitud_id,fecha,paciente_id,total,abonado,saldo,estado,paciente:pacientes_tsysoptics(nombre_completo),lineas:detalle_ventas_tsysoptics(codigo_snapshot,nombre_snapshot,cantidad,precio_unitario,total_linea),pagos:pagos_ventas_tsysoptics(monto,medio,registrado_en)",{count:"exact"})
+  .order("fecha",{ascending:false}).limit(100);
+ if(!isActive||mine!==generation)return;
+ if(error){displayStatus("ventas-list-status","No se pudieron cargar las ventas. Verifica la conexión y los permisos.");return}
+ sales=data||[];
+ const selected=paymentSaleSelect.value;
+ renderSales();
+ if(Array.from(paymentSaleSelect.options).some(o=>o.value===selected))paymentSaleSelect.value=selected;
+ displayStatus("ventas-list-status",sales.length+" ventas mostradas"+(Number(count)>100?" (máximo 100 recientes)":"")+".");
+ await refreshSummary();
+}
+async function refresh(){
+ await Promise.all([refreshCatalog(),refreshSales()]);
+}
+$("ventas-actualizar").addEventListener("click",refresh);
+$("venta-agregar-producto").addEventListener("click",()=>{
+ if(!isActive){displayStatus("venta-form-status","Inicia sesión como administrador.");return}
+ const id=productSelect.value;
+ const qty=Number(form.elements.cantidad.value);
+ const p=products.find(x=>x.id===id);
+ if(!p||!Number.isSafeInteger(qty)||qty<1){
+  displayStatus("venta-form-status","Selecciona una referencia y una cantidad entera válida.");
+  return;
+ }
+ const existing=cart.find(x=>x.producto_id===id);
+ const sum=qty+(existing?.cantidad||0);
+ if(sum>p.cantidad){
+  displayStatus("venta-form-status","No hay unidades suficientes para esa cantidad.");
+  return;
+ }
+ if(existing)existing.cantidad=sum;
+ else cart.push({producto_id:id,cantidad:qty});
+ displayStatus("venta-form-status","");
+ renderCart();
+});
+$("venta-abono").addEventListener("input",renderCart);
+form.addEventListener("submit",async e=>{
+ e.preventDefault();
+ if(!isActive){displayStatus("venta-form-status","Inicia sesión para registrar una venta.");return}
+ if(registering)return;
+ const total=cartTotal();
+ const abono=Number(form.elements.abono.value);
+ const metodo=String(form.elements.medio.value||"");
+ const paciente=patientSelect.value;
+ if(!cart.length){displayStatus("venta-form-status","Primero agrega productos al carrito.");return}
+ if(!Number.isFinite(abono)||abono<0||abono>total){
+  displayStatus("venta-form-status","El abono inicial debe estar entre cero y el total.");
+  return;
+ }
+ if(abono>0&&!metodo){displayStatus("venta-form-status","Selecciona el medio del pago inicial.");return}
+ if(abono===0&&metodo){displayStatus("venta-form-status","Sin pago inicial, el medio debe quedar vacío.");return}
+ if(!window.confirm("¿Registrar esta venta de prueba y descontar existencias en Supabase?"))return;
+ registering=true;$("venta-guardar").disabled=true;
+ displayStatus("venta-form-status","Registrando venta…");
+ try{
+  const {data,error}=await sb.rpc("crear_venta_tsysoptics",{
+   p_items:cart.map(x=>({producto_id:x.producto_id,cantidad:x.cantidad})),
+   p_paciente_id:paciente||null,
+   p_abono:abono,p_medio_pago:metodo||null,p_solicitud_id:saleToken
+  });
+  if(error||!data){displayStatus("venta-form-status",saleError(error));return}
+  saleToken=crypto.randomUUID();cart=[];
+  form.reset();form.elements.cantidad.value="1";form.elements.abono.value="0";
+  displayStatus("venta-form-status","Venta registrada y existencias descontadas en Supabase.");
+  await refresh();
+  const receiptSale=sales.find(s=>s.id===data);
+  if(receiptSale)receiptOpen(receiptSale);
+ }catch{
+  displayStatus("venta-form-status","No se pudo confirmar el registro. Actualiza el historial antes de reintentar.");
+ }finally{
+  registering=false;$("venta-guardar").disabled=false;renderCart();
+ }
+});
+paymentsForm.addEventListener("submit",async e=>{
+ e.preventDefault();
+ if(!isActive){displayStatus("ventas-abono-status","Inicia sesión para registrar cobros.");return}
+ if(collecting)return;
+ const sale=sales.find(x=>x.id===paymentSaleSelect.value);
+ const monto=Number(paymentsForm.elements.monto.value);
+ const medio=String(paymentsForm.elements.medio.value||"");
+ if(!sale||!Number.isFinite(monto)||monto<=0||monto>Number(sale.saldo)||!paymentLabel[medio]){
+  displayStatus("ventas-abono-status","Elige una venta y un abono válido, sin superar su saldo.");
+  return;
+ }
+ if(!window.confirm("¿Registrar este abono de prueba?"))return;
+ collecting=true;$("ventas-registrar-abono").disabled=true;
+ displayStatus("ventas-abono-status","Registrando cobro…");
+ try{
+  const {data,error}=await sb.rpc("registrar_abono_tsysoptics",{
+   p_venta_id:sale.id,p_monto:monto,p_medio:medio,p_operacion_id:paymentToken
+  });
+  if(error||!data){displayStatus("ventas-abono-status",saleError(error));return}
+  paymentToken=crypto.randomUUID();
+  paymentsForm.reset();
+  displayStatus("ventas-abono-status","Abono registrado correctamente en Supabase.");
+  await refreshSales();
+ }catch{
+  displayStatus("ventas-abono-status","No se pudo confirmar el abono. Actualiza el historial antes de repetir.");
+ }finally{
+  collecting=false;$("ventas-registrar-abono").disabled=false;
+ }
+});
+function reset(){
+ isActive=false;isStarting=false;generation++;
+ products=[];patients=[];sales=[];cart=[];
+ receiptClose();
+ saleList.replaceChildren();cartRoot.replaceChildren();
+ productSelect.replaceChildren(new Option("Seleccionar referencia",""));
+ patientSelect.replaceChildren(new Option("Consumidor final",""));
+ paymentSaleSelect.replaceChildren(new Option("Seleccionar venta con saldo",""));
+ displayStatus("venta-form-status","");
+ displayStatus("ventas-list-status","");
+ displayStatus("ventas-abono-status","");
+}
+async function activate(){
+ if(isActive||isStarting)return;
+ isStarting=true;
+ try{
+  if(!(await authorized())){
+   displayStatus("ventas-list-status","No tienes permiso para consultar ventas.");
+   return;
+  }
+  isActive=true;await refresh();
+ }catch{
+  displayStatus("ventas-list-status","No fue posible iniciar el módulo de ventas.");
+ }finally{isStarting=false}
+}
+window.addEventListener("tsys:role",e=>{
+ if(e.detail?.role==="administrador")void activate();
+ else reset();
+});
+window.addEventListener("tsys:locked",reset);
+if($("tsys-app")?.dataset.role==="administrador")void activate();
