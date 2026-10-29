@@ -5,7 +5,7 @@
  if(!app)return;
  const stylesheet=document.createElement("link");
  stylesheet.rel="stylesheet";
- stylesheet.href=new URL("./movil.css?v=20261029c",import.meta.url).href;
+ stylesheet.href=new URL("./movil.css?v=20261029f",import.meta.url).href;
  document.head.append(stylesheet);
  const ico={
   inicio:'<path d="m3 10 9-7 9 7v11H3z"/><path d="M9 21v-7h6v7"/>',
@@ -44,7 +44,11 @@
   }
   if(destination==="devoluciones"){if(role==="administrador")location.assign("./devoluciones.html");return}
   const source=document.querySelector('.sidebar button[data-page="'+destination+'"]');
-  if(source)source.click();
+  if(source){
+   source.click();
+   // Al cambiar de sección, mostrar la cabecera y no conservar un scroll de Caja.
+   window.scrollTo(0,0);
+  }
   sync();
  }
  function button(item,primary){
@@ -68,6 +72,20 @@
    if(b.dataset.page)b.setAttribute("aria-current",current?"page":"false");
   });
  }
+ function applyIncomingRoute(){
+  const url=new URL(window.location.href);
+  const selected=url.searchParams.get("modulo");
+  if(!selected)return;
+  const safe=new Set(["inicio","pacientes","agenda","inventario","ventas","caja","simulador","apariencia"]);
+  const allowed=role==="administrador"||!["inventario","ventas","caja"].includes(selected);
+  if(!safe.has(selected)||!allowed)return;
+  const source=document.querySelector('.sidebar button[data-page="'+selected+'"]');
+  if(!source)return;
+  source.click();
+  window.scrollTo(0,0);
+  url.searchParams.delete("modulo");
+  history.replaceState(history.state,"",url.pathname+url.search+url.hash);
+ }
  function renderRole(){
   const primary=role==="administrador"?
    ["inicio","pacientes","ventas","caja","mas"]:
@@ -83,7 +101,9 @@
    if(role!=="administrador"&&["ventas","caja","inventario","devoluciones"].includes(item[0]))continue;
    menu.append(button(item,false));
   }
-  dock.hidden=false;sync();
+  dock.hidden=false;
+  applyIncomingRoute();
+  sync();
  }
  shade.addEventListener("click",closeMore);
  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!sheet.hidden)closeMore()});
