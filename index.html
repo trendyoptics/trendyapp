@@ -1068,6 +1068,7 @@ const saveButton = document.getElementById("btnGuardarHistoria");
 const saveButtonText = document.getElementById("btnGuardarTexto");
 let currentHistoryId = null;
 let currentPatientId = null;
+let currentHistoryIsFinalized = false;
 let saveBusy = false;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -1081,6 +1082,13 @@ function field(id) { return document.getElementById(id); }
 function setField(id, value) {
   const el = field(id);
   if (el && value !== undefined && value !== null) el.value = String(value);
+}
+function setDocumentType(code) {
+  const el = field("tipoDoc");
+  if (!el || !code) return;
+  const normalized = String(code).split(" - ",1)[0].trim().toUpperCase();
+  const option = Array.from(el.options).find(o => o.value.split(" - ",1)[0].toUpperCase() === normalized);
+  if (option) el.value = option.value;
 }
 function setDateTimeFromHistory(d, fechaConsulta) {
   if (!d.fechaConsulta && fechaConsulta) {
@@ -1106,6 +1114,7 @@ function appendCell(row, value, className) {
 function fillClinicalForm(record) {
   const d = record.datos_clinicos || {};
   currentHistoryId = record.id;
+  currentHistoryIsFinalized = record.estado === "finalizada";
   currentPatientId = record.paciente_id || null;
   field("hcConsecutivo").textContent = d.id || ("HC-" + record.id.slice(0,8).toUpperCase());
   const keys = [
@@ -1115,6 +1124,7 @@ function fillClinicalForm(record) {
     "dp","tipoLente","montura","biomicroscopia","oftalmoscopia","motilidad","cie1","cie2","cie3","cie4","cie5","notas","optometra","metodoPago"
   ];
   for (const key of keys) setField(key, d[key]);
+  setDocumentType(d.tipoDoc);
   setDateTimeFromHistory(d, record.fecha_consulta);
   setField("telefono", String(d.telefono || "").replace(/^\+?57\s*/, ""));
   const total = Number(d.precioTotal || 0);
@@ -1130,7 +1140,7 @@ async function updateHistoryCount() {
   if (!error && field("savedCountBadge")) field("savedCountBadge").textContent = String(count ?? 0);
 }
 window.tsysActualizarContador = updateHistoryCount;
-window.tsysResetHistoriaActual = () => { currentHistoryId = null; currentPatientId = null; };
+window.tsysResetHistoriaActual = () => { currentHistoryId = null; currentPatientId = null; currentHistoryIsFinalized = false; };
 
 async function openHistoryModal(patientId = null) {
   const tbody = field("tablaHistorialBody");
@@ -1182,7 +1192,7 @@ window.openHistoryModal = openHistoryModal;
 async function loadHistory(id) {
   const { data, error } = await supabase
     .from("historias_clinicas_tsysoptics")
-    .select("id,paciente_id,fecha_consulta,datos_clinicos")
+    .select("id,paciente_id,fecha_consulta,datos_clinicos,estado")
     .eq("id", id).single();
   if (error || !data) { clinicalMessage("No se pudo cargar la historia clínica."); return; }
   fillClinicalForm(data);
@@ -1194,8 +1204,12 @@ window.cargarPaciente = loadHistory;
 
 async function saveClinicalHistory() {
   if (saveBusy) return;
+  if (currentHistoryIsFinalized) {
+    clinicalMessage("Esta historia está finalizada y no puede sobrescribirse. Para una nueva consulta, utiliza Limpiar.");
+    return;
+  }
   const d = window.obtenerDatos();
-  const type = String(d.tipoDoc || "").trim().toUpperCase();
+  const type = String(d.tipoDoc || "").split(" - ",1)[0].trim().toUpperCase();
   const documentNumber = String(d.documento || "").trim().toUpperCase();
   const name = String(d.nombre || "").trim().toUpperCase();
   if (!type || !documentNumber || !name) {
@@ -1239,6 +1253,7 @@ async function saveClinicalHistory() {
       return;
     }
     currentHistoryId = data;
+    currentHistoryIsFinalized = true;
     const { data: patientRow } = await supabase.from("pacientes_tsysoptics")
       .select("id").eq("tipo_documento", type).eq("documento", documentNumber).maybeSingle();
     currentPatientId = patientRow?.id || currentPatientId;
@@ -1278,7 +1293,7 @@ try {
     } else {
       const fillRequestedPatient = async () => {
         currentPatientId = patientRow.id;
-        setField("tipoDoc", patientRow.tipo_documento);
+        setDocumentType(patientRow.tipo_documento);
         setField("documento", patientRow.documento);
         setField("nombre", patientRow.nombre_completo);
         setField("fechaNacimiento", patientRow.fecha_nacimiento || "");
