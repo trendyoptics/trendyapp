@@ -47,6 +47,25 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 .inv-actions button{font:600 12px system-ui;background:#edf1f8;border:1px solid #c9d3e4;border-radius:6px;color:#0B1C40;padding:7px 9px;cursor:pointer}
 .inv-actions button:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:650px){#inventario .item{align-items:flex-start;flex-direction:column}.inv-actions{justify-content:start}}
+
+.venta-resumen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+.venta-resumen .card{padding:15px}.venta-resumen strong{display:block;font-size:20px;margin-top:4px;color:var(--navy)}
+#ventas .item{align-items:center;gap:10px}#ventas .item small{display:block;margin-top:3px}
+.venta-fila-controles{display:flex;flex-wrap:wrap;gap:6px}
+.venta-fila-controles button{padding:7px 10px;border:1px solid #ccd5e3;background:#edf1f9;color:var(--navy);font-weight:600;border-radius:7px;cursor:pointer}
+#venta-comprobante{position:fixed;inset:0;background:#08122688;z-index:1000;display:grid;place-items:center;padding:16px;overflow:auto}
+#venta-comprobante .recibo{width:100%;max-width:560px;max-height:calc(100vh - 40px);overflow:auto;background:white;color:#081226;padding:24px;border-radius:10px}
+.recibo h2{margin-bottom:4px}.recibo p{font-size:12px;margin:6px 0}
+.recibo table{border-collapse:collapse;width:100%;font-size:12px}.recibo th,.recibo td{padding:7px 5px;text-align:left;border-bottom:1px solid #e4e7ed}
+.recibo .recibo-acciones{display:flex;gap:8px;justify-content:end;margin-bottom:18px;flex-wrap:wrap}
+#venta-comprobante[hidden]{display:none!important}
+@media(max-width:850px){.venta-resumen{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media print{
+ body.venta-imprimiendo .layout,body.venta-imprimiendo #auth-root{display:none!important}
+ body.venta-imprimiendo #venta-comprobante{position:static;display:block!important;background:white!important;padding:0!important}
+ body.venta-imprimiendo #venta-comprobante .recibo{max-width:none;max-height:none;overflow:visible;padding:0;box-shadow:none}
+ body.venta-imprimiendo #venta-comprobante .recibo-acciones{display:none!important}
+}
 </style></head><body>
 <section id="auth-root" class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
@@ -78,8 +97,8 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 <button class="active" data-page="inicio">▦ &nbsp; Inicio</button><a data-access-target="pacientes" href="./pacientes.html">♙ &nbsp; Pacientes</a><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><a data-access-target="clinica" href="../index.html">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación. Agenda e inventario usan Supabase; ventas aún en demostración.</footer></aside>
 <div class="main"><header class="top"><strong>TsysOptics <span style="font-size:12px;color:#585F73">| Óptica Trendy Optics</span></strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
 <div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><a data-access-target="pacientes" href="./pacientes.html">Pacientes</a><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><a data-access-target="clinica" href="../index.html">Clínica ↗</a></div>
-<main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda e Inventario utilizan Supabase y permisos de acceso. <strong>Ventas y simulador continúan en modo demostración local.</strong> Aún faltan revisiones de seguridad y pruebas antes de utilizar TsysOptics como sistema clínico de producción.</div>
-<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historia clínica, citas e inventario centralizados. Ventas aún en demostración.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small>Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase) ↗</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
+<main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda, Inventario y Ventas de prueba utilizan Supabase. <strong>Simulador óptico sigue siendo un esquema de demostración.</strong> Ventas aún no incluye caja operativa ni facturación electrónica. No usar como sistema de producción.</div>
+<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historias, agenda, inventario y ventas de prueba centralizados en Supabase.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small id="metric-ventas-origen">Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase) ↗</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
 <section class="page" id="agenda"><span class="label">AGENDA · SUPABASE</span><h1>Agenda de citas</h1>
 <p class="muted">Organiza las citas por fecha, hora y tipo de atención. El administrador puede asociarlas a pacientes de TsysOptics.</p>
 <div class="cols">
@@ -151,7 +170,72 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </div>
 </div>
 </section>
-<section class="page" id="ventas"><span class="label">CAJA · DEMOSTRACIÓN LOCAL</span><h1>Ventas y abonos</h1><p class="muted">Este módulo todavía no está conectado al inventario ni registra movimientos comerciales reales. No utilizar para ventas reales.</p><div class="cols"><form class="card form" id="form-venta"><h2>Nueva venta ficticia</h2><label>Producto<select name="producto" id="venta-producto" required></select></label><label>Cantidad<input name="cantidad" type="number" value="1" min="1" step="1" required></label><label>Abono COP<input name="abono" type="number" value="0" min="0" step="100" required></label><div class="money">Total estimado <strong id="total-preview">$ 0</strong></div><div class="money">Saldo estimado <strong id="saldo-preview">$ 0</strong></div><button class="btn">Guardar venta de prueba</button></form><div class="card"><h2>Últimas ventas</h2><div class="list" id="lista-ventas"></div></div></div></section>
+<section class="page" id="ventas">
+<span class="label">VENTAS Y COBROS · PILOTO SUPABASE</span>
+<h1>Ventas y caja</h1>
+<p class="muted">Registra ventas con descuento automático de existencias y cobros parciales. Este módulo aún no incluye apertura, cierre ni arqueo de caja, ni facturación electrónica DIAN. Usa solo datos de prueba.</p>
+<div class="venta-resumen">
+ <div class="card"><span class="label">VENTAS EMITIDAS</span><strong id="ventas-cantidad">0</strong></div>
+ <div class="card"><span class="label">TOTAL VENDIDO</span><strong id="ventas-total">$ 0</strong></div>
+ <div class="card"><span class="label">COBROS RECIBIDOS</span><strong id="ventas-abonado">$ 0</strong></div>
+ <div class="card"><span class="label">SALDOS PENDIENTES</span><strong id="ventas-pendiente">$ 0</strong></div>
+</div>
+<div class="cols">
+ <form class="card form" id="form-venta">
+  <h2>Nueva venta de prueba</h2>
+  <label>Paciente registrado (opcional)<select name="paciente_id" id="venta-paciente"><option value="">Consumidor final</option></select></label>
+  <label>Producto del inventario
+   <select name="producto" id="venta-producto"><option value="">Seleccionar referencia</option></select>
+  </label>
+  <label>Cantidad <input name="cantidad" id="venta-cantidad" type="number" min="1" step="1" value="1" required></label>
+  <button class="btn alt" type="button" id="venta-agregar-producto">Agregar al carrito</button>
+  <div class="list" id="venta-carrito"></div>
+  <div class="money">Total calculado en Supabase (estimado) <strong id="total-preview">$ 0</strong></div>
+  <label>Pago inicial (COP) <input name="abono" id="venta-abono" type="number" min="0" step="0.01" value="0" required></label>
+  <label>Medio de pago<select name="medio" id="venta-medio">
+   <option value="">Sin pago inicial</option>
+   <option value="efectivo">Efectivo</option>
+   <option value="transferencia">Transferencia</option>
+   <option value="nequi">Nequi</option>
+   <option value="daviplata">Daviplata</option>
+   <option value="tarjeta">Tarjeta</option>
+   <option value="otro">Otro</option>
+  </select></label>
+  <div class="money">Saldo estimado <strong id="saldo-preview">$ 0</strong></div>
+  <button type="submit" class="btn" id="venta-guardar">Registrar venta</button>
+  <p class="muted" id="venta-form-status" role="status" aria-live="polite"></p>
+ </form>
+ <div class="card">
+  <h2>Historial de ventas</h2>
+  <p class="muted">Puedes consultar comprobantes internos y registrar abonos sin modificar el precio ni la venta original.</p>
+  <button class="btn alt" id="ventas-actualizar" type="button">Actualizar ventas</button>
+  <p class="muted" id="ventas-list-status" role="status" aria-live="polite"></p>
+  <div class="list" id="lista-ventas"></div>
+ </div>
+</div>
+<div class="cols" style="margin-top:16px">
+ <form class="card form" id="ventas-form-abono">
+  <h2>Registrar abono a una venta</h2>
+  <label>Venta con saldo pendiente <select id="ventas-abono-venta" name="venta_id" required><option value="">Seleccionar venta</option></select></label>
+  <label>Valor del abono (COP)<input name="monto" id="ventas-abono-monto" type="number" min="0.01" step="0.01" required></label>
+  <label>Medio de pago <select name="medio" id="ventas-abono-medio" required>
+   <option value="efectivo">Efectivo</option>
+   <option value="transferencia">Transferencia</option>
+   <option value="nequi">Nequi</option>
+   <option value="daviplata">Daviplata</option>
+   <option value="tarjeta">Tarjeta</option>
+   <option value="otro">Otro</option>
+  </select></label>
+  <button class="btn" id="ventas-registrar-abono" type="submit">Registrar abono</button>
+  <p class="muted" id="ventas-abono-status" role="status" aria-live="polite"></p>
+ </form>
+ <div class="card">
+  <h2>Estado de caja</h2>
+  <p>Los <strong>cobros</strong> se registran con su medio de pago y fecha. Las cifras de la parte superior provienen de Supabase.</p>
+  <p class="muted">La apertura de turno, el fondo inicial, los gastos, el arqueo y el cierre de caja se implementarán en la siguiente etapa. No utilices este piloto para una caja real.</p>
+ </div>
+</div>
+</section>
 <section class="page" id="simulador"><span class="label">LENTES · DEMOSTRACIÓN</span><h1>Simulación del perfil óptico</h1><div class="cols"><div class="card form"><h2>Parámetros</h2><label>Esfera <strong id="potencia-label">−2.00 D</strong><input id="potencia" type="range" min="-10" max="10" step=".25" value="-2"></label><label>Índice<select id="indice"><option>1.50</option><option>1.60</option><option>1.67</option><option>1.74</option></select></label><label>Diámetro <strong id="diametro-label">65 mm</strong><input id="diametro" type="range" min="50" max="80" value="65"></label><p class="muted">Representación conceptual sin escala. No predice espesores ni reemplaza los cálculos de laboratorio.</p></div><div class="card visual"><h2>Vista ilustrativa</h2><svg viewBox="0 0 360 235" role="img" aria-label="Sección esquemática de lente"><defs><linearGradient id="g"><stop stop-color="#b4c4d5"/><stop offset=".5" stop-color="#e7f0f6"/><stop offset="1" stop-color="#718aa7"/></linearGradient></defs><line x1="30" x2="330" y1="115" y2="115" stroke="#BFBFBF" stroke-dasharray="4 5"/><path id="perfil" fill="url(#g)" stroke="#585F73" stroke-width="2.5"/></svg><p id="tipo-lente" class="muted"></p></div></div></section>
 <footer style="margin-top:35px;color:#9099a7;font-size:11px">TsysOptics · Trendy Optics · Piloto aislado de la página clínica</footer></main></div></div></div>
 <div id="notice" hidden role="status" aria-live="polite"></div>
@@ -160,6 +244,11 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 "use strict";
 const key="tsysoptics_demo_piloto_v01";
 let currentRole=null;
+let ventasTotalRemoto=null;
+window.tsysVentasSetTotal=n=>{
+ ventasTotalRemoto=n;
+ if(currentRole==="administrador")document.getElementById("metric-ventas").textContent=cop(n);
+};
 let inventoryCount=null;
 window.tsysInventarioSetCount=n=>{
  inventoryCount=n;
@@ -183,21 +272,23 @@ function list(id,records,format,remove){const el=$(id);el.replaceChildren();if(!
 function render(){
  $("metric-citas").textContent=currentRole==="administrador"?(agendaCount===null?"…":String(agendaCount)):data.citas.length;
  $("metric-productos").textContent=currentRole==="administrador"?(inventoryCount===null?"…":String(inventoryCount)):"🔒";
- $("metric-ventas").textContent=currentRole==="administrador"?cop(data.ventas.reduce((a,x)=>a+x.total,0)):"🔒";if(currentRole!=="administrador")list("lista-citas",data.citas,r=>[r.referencia,r.fecha+" · "+r.hora+" · "+r.tipo],"citas");if(currentRole!=="administrador")list("lista-productos",[],r=>[r.nombre,r.tipo],null);list("lista-ventas",currentRole==="administrador"?data.ventas:[],r=>[r.producto+" × "+r.cantidad,"Total "+cop(r.total)+" · Abono "+cop(r.abono)+" · Saldo "+cop(r.saldo)],null);const old=$("venta-producto").value;$("venta-producto").replaceChildren();for(const p of (currentRole==="administrador"?data.productos:[])){const o=document.createElement("option");o.value=p.id;o.textContent=p.nombre+" · "+cop(p.precio)+" ("+p.cantidad+" uds)";$("venta-producto").add(o)}if(data.productos.some(x=>x.id===old))$("venta-producto").value=old;preview()}
+ $("metric-ventas").textContent=currentRole==="administrador"?(ventasTotalRemoto===null?"…":cop(ventasTotalRemoto)):"🔒";if(currentRole!=="administrador")list("lista-citas",data.citas,r=>[r.referencia,r.fecha+" · "+r.hora+" · "+r.tipo],"citas");if(currentRole!=="administrador"){list("lista-productos",[],r=>[r.nombre,r.tipo],null);list("lista-ventas",[],r=>[r.producto,r.total],null);}const old=$("venta-producto").value;$("venta-producto").replaceChildren();for(const p of (currentRole==="administrador"?data.productos:[])){const o=document.createElement("option");o.value=p.id;o.textContent=p.nombre+" · "+cop(p.precio)+" ("+p.cantidad+" uds)";$("venta-producto").add(o)}if(data.productos.some(x=>x.id===old))$("venta-producto").value=old;preview()}
 const uuid=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random();
 $("form-cita").addEventListener("submit",e=>{e.preventDefault();if(currentRole==="administrador")return;const f=new FormData(e.currentTarget);data.citas.push({id:uuid(),referencia:String(f.get("referencia")).trim(),fecha:String(f.get("fecha")),hora:String(f.get("hora")),tipo:String(f.get("tipo"))});save();e.currentTarget.reset();render()});
 $("form-producto").addEventListener("submit",e=>{if(currentRole==="administrador")return;e.preventDefault();if(currentRole!=="administrador"){toast("Acceso restringido.");return;}const f=new FormData(e.currentTarget),nombre=String(f.get("nombre")).trim(),precio=Number(f.get("precio")),cantidad=Number(f.get("cantidad"));if(!nombre||!Number.isFinite(precio)||precio<0||!Number.isSafeInteger(cantidad)||cantidad<0){toast("Revisa el precio y las existencias.");return}data.productos.push({id:uuid(),nombre,tipo:String(f.get("tipo")),precio,cantidad});save();e.currentTarget.reset();render()});
 function calc(){const f=new FormData($("form-venta"));const producto=data.productos.find(p=>p.id===f.get("producto"));const cantidad=Number(f.get("cantidad")),abono=Number(f.get("abono"));return {producto,cantidad,abono,total:producto&&cantidad>0?cantidad*producto.precio:0}}
-function preview(){const x=calc();$("total-preview").textContent=cop(x.total);$("saldo-preview").textContent=cop(Math.max(0,x.total-(x.abono||0)))}
+function preview(){if(currentRole==="administrador")return;const x=calc();$("total-preview").textContent=cop(x.total);$("saldo-preview").textContent=cop(Math.max(0,x.total-(x.abono||0)))}
 $("form-venta").addEventListener("input",preview);$("form-venta").addEventListener("change",preview);
-$("form-venta").addEventListener("submit",e=>{e.preventDefault();if(currentRole!=="administrador"){toast("Acceso restringido.");return;}const x=calc();if(!x.producto||!Number.isSafeInteger(x.cantidad)||x.cantidad<1||x.cantidad>x.producto.cantidad){toast("Revisa producto o existencias.");return}if(!Number.isFinite(x.abono)||x.abono<0||x.abono>x.total){toast("El abono supera el total o es inválido.");return}x.producto.cantidad-=x.cantidad;data.ventas.unshift({id:uuid(),producto:x.producto.nombre,cantidad:x.cantidad,total:x.total,abono:x.abono,saldo:x.total-x.abono});save();e.currentTarget.reset();render()});
+$("form-venta").addEventListener("submit",e=>{if(currentRole==="administrador")return;e.preventDefault();if(currentRole!=="administrador"){toast("Acceso restringido.");return;}const x=calc();if(!x.producto||!Number.isSafeInteger(x.cantidad)||x.cantidad<1||x.cantidad>x.producto.cantidad){toast("Revisa producto o existencias.");return}if(!Number.isFinite(x.abono)||x.abono<0||x.abono>x.total){toast("El abono supera el total o es inválido.");return}x.producto.cantidad-=x.cantidad;data.ventas.unshift({id:uuid(),producto:x.producto.nombre,cantidad:x.cantidad,total:x.total,abono:x.abono,saldo:x.total-x.abono});save();e.currentTarget.reset();render()});
 function lens(){const p=Number($("potencia").value),diam=Number($("diametro").value);$("potencia-label").textContent=(p>0?"+":"")+p.toFixed(2)+" D";$("diametro-label").textContent=diam+" mm";const a=165,b=195,w=12+Math.abs(p)*3;if(p>0)$("perfil").setAttribute("d",`M${a-15} 40 Q${a+w} 115 ${a-15} 190 L${a+5} 190 Q${a+w+24} 115 ${a+5} 40Z`);else if(p<0)$("perfil").setAttribute("d",`M${a-15} 40 Q${a+w+20} 115 ${a-15} 190 L${a+5} 190 Q${a+w} 115 ${a+5} 40Z`);else $("perfil").setAttribute("d",`M${a} 40H${a+20}V190H${a}Z`);$("tipo-lente").textContent=(p>0?"Positivo":p<0?"Negativo":"Plano")+" · Esquema no a escala · Índice "+$("indice").value}
 for(const id of ["potencia","indice","diametro"])$(id).addEventListener("input",lens);
 function applyDashboardRole(role){
  currentRole=role;
  const limited=role!=="administrador";
  const details=document.getElementById("access-details");
- if(details)details.textContent=limited?"Inventario y ventas bloqueados. Agenda de prueba y simulador disponibles.":"Acceso administrativo. Inventario y agenda centralizados; ventas aún en demostración.";
+ if(details)details.textContent=limited?"Inventario y ventas bloqueados. Agenda de prueba y simulador disponibles.":"Acceso administrativo. Agenda, inventario y ventas de prueba centralizados en Supabase.";
+ const ventasOrigin=document.getElementById("metric-ventas-origen");
+ if(ventasOrigin)ventasOrigin.textContent=limited?"Demo local":"Supabase";
  const inventarioOrigin=document.getElementById("metric-productos-origen");
  if(inventarioOrigin)inventarioOrigin.textContent=limited?"Demo local":"Supabase";
  const origin=document.getElementById("metric-citas-origin");
@@ -223,4 +314,20 @@ window.addEventListener("tsys:role",e=>applyDashboardRole(e.detail.role));
 window.addEventListener("tsys:locked",()=>{currentRole=null;});
 render();lens();
 })();
-</script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js"></script><script type="module" src="./auth.js"></script></body></html>
+</script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js"></script><script type="module" src="./ventas.js"></script><script type="module" src="./auth.js"></script><div id="venta-comprobante" hidden role="dialog" aria-modal="true" aria-labelledby="venta-recibo-titulo">
+ <div class="recibo">
+  <div class="recibo-acciones">
+   <button class="btn alt" id="venta-cerrar-comprobante" type="button">Cerrar</button>
+   <button class="btn" id="venta-imprimir-comprobante" type="button">Imprimir / guardar PDF</button>
+  </div>
+  <h2 id="venta-recibo-titulo">Trendy Optics · Comprobante interno</h2>
+  <p id="venta-recibo-meta"></p>
+  <p id="venta-recibo-paciente"></p>
+  <table><thead><tr><th>Referencia</th><th>Cant.</th><th>Valor</th><th>Total</th></tr></thead>
+   <tbody id="venta-recibo-lineas"></tbody></table>
+  <p id="venta-recibo-totales"></p>
+  <p id="venta-recibo-pagos"></p>
+  <p><strong>Comprobante interno de prueba. No equivale a factura electrónica DIAN.</strong></p>
+ </div>
+</div>
+</body></html>
