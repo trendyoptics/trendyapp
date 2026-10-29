@@ -145,8 +145,8 @@ async function refresh(){
  await loadMovements();
 }
 form.addEventListener("submit",async e=>{
- if(!adminReady)return;
  e.preventDefault();
+ if(!adminReady){status("inventario-form-status","El inventario requiere una sesión de administrador validada.");return;}
  if(busy)return;
  const values=new FormData(form);
  const id=String(values.get("editar_id")||"");
@@ -184,8 +184,8 @@ select.addEventListener("change",()=>{
  if(p)$("inventario-ajuste-cantidad").value=String(p.cantidad);
 });
 adjustForm.addEventListener("submit",async e=>{
- if(!adminReady)return;
  e.preventDefault();
+ if(!adminReady){status("inventario-ajuste-status","Debes iniciar sesión antes de ajustar existencias.");return;}
  if(adjusting)return;
  const v=new FormData(adjustForm);
  const id=String(v.get("producto_id")||"");
