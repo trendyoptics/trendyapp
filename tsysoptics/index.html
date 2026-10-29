@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0B1C40">
 <title>TsysOptics · Trendy Optics</title>
+<link rel="stylesheet" href="./temas.css">
+<script src="./preferencias.js" defer></script>
 <style>
 :root{--navy:#0B1C40;--deep:#081226;--slate:#585F73;--gray:#BFBFBF;--paper:#F2F2F2}
 *{box-sizing:border-box}body{margin:0;background:var(--paper);font:14px/1.5 system-ui,-apple-system,Arial,sans-serif;color:var(--deep)}button,input,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
@@ -98,9 +100,9 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </section>
 <div id="tsys-app" hidden><div class="layout">
 <aside class="sidebar"><div class="brand"><img src="logo.svg" alt="Logo Trendy Optics"><span><b>TsysOptics</b><small>Trendy Optics · Gestión</small></span></div><nav aria-label="Módulos">
-<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><a data-access-target="pacientes" href="./pacientes.html">♙ &nbsp; Pacientes</a><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><a data-access-target="clinica" href="../index.html">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
+<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><a data-access-target="pacientes" href="./pacientes.html">♙ &nbsp; Pacientes</a><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
 <div class="main"><header class="top"><strong>TsysOptics <span style="font-size:12px;color:#585F73">| Óptica Trendy Optics</span></strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
-<div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><a data-access-target="pacientes" href="./pacientes.html">Pacientes</a><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><a data-access-target="clinica" href="../index.html">Clínica ↗</a></div>
+<div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><a data-access-target="pacientes" href="./pacientes.html">Pacientes</a><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html">Clínica ↗</a></div>
 <main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda, Inventario, Ventas y Caja de prueba utilizan Supabase. <strong>Simulador óptico sigue siendo un esquema de demostración.</strong> Caja dispone de apertura, arqueo y cierre de turnos en modalidad de prueba. No incluye facturación electrónica DIAN ni autorización para uso en producción.</div>
 <section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historias, agenda, inventario y ventas de prueba centralizados en Supabase.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small id="metric-ventas-origen">Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase) ↗</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="caja">▣ &nbsp; Abrir Caja</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
 <section class="page" id="agenda"><span class="label">AGENDA · SUPABASE</span><h1>Agenda de citas</h1>
@@ -294,6 +296,46 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  </div>
  <p class="muted">Las operaciones anteriores a la primera apertura de caja permanecen en Ventas, sin asignarse retroactivamente a un turno.</p>
 </section>
+<section class="page" id="apariencia">
+ <span class="label">PREFERENCIAS DE INTERFAZ</span>
+ <h1>Apariencia y colores</h1>
+ <p class="lead">Selecciona la paleta visual de TsysOptics. El cambio se aplica de inmediato en el panel, Pacientes y la historia clínica, sin alterar sus registros.</p>
+ <div class="card">
+  <h2>Paletas disponibles</h2>
+  <div class="theme-palette-grid" role="group" aria-label="Elegir paleta de colores"><button type="button" class="theme-palette-choice" data-tsys-theme-choice="clasico" aria-pressed="false"
+ style="--theme-dark:#081226;--theme-primary:#0B1C40;--theme-light:#F2F2F2">
+ <span class="theme-swatches" aria-hidden="true"><i></i><i></i><i></i></span>
+ <span class="theme-meta"><strong>Trendy institucional</strong><small>La paleta original de tu óptica</small></span>
+</button>
+<button type="button" class="theme-palette-choice" data-tsys-theme-choice="oceano" aria-pressed="false"
+ style="--theme-dark:#073244;--theme-primary:#095B73;--theme-light:#F0F8FA">
+ <span class="theme-swatches" aria-hidden="true"><i></i><i></i><i></i></span>
+ <span class="theme-meta"><strong>Océano</strong><small>Azul petróleo y blanco</small></span>
+</button>
+<button type="button" class="theme-palette-choice" data-tsys-theme-choice="esmeralda" aria-pressed="false"
+ style="--theme-dark:#103B2C;--theme-primary:#166345;--theme-light:#F0F8F3">
+ <span class="theme-swatches" aria-hidden="true"><i></i><i></i><i></i></span>
+ <span class="theme-meta"><strong>Esmeralda</strong><small>Verde clínico y claro</small></span>
+</button>
+<button type="button" class="theme-palette-choice" data-tsys-theme-choice="violeta" aria-pressed="false"
+ style="--theme-dark:#261B47;--theme-primary:#554096;--theme-light:#F6F3FB">
+ <span class="theme-swatches" aria-hidden="true"><i></i><i></i><i></i></span>
+ <span class="theme-meta"><strong>Violeta</strong><small>Morado elegante</small></span>
+</button>
+<button type="button" class="theme-palette-choice" data-tsys-theme-choice="terracota" aria-pressed="false"
+ style="--theme-dark:#42291F;--theme-primary:#8E472F;--theme-light:#FFF7F2">
+ <span class="theme-swatches" aria-hidden="true"><i></i><i></i><i></i></span>
+ <span class="theme-meta"><strong>Terracota</strong><small>Cálido y profesional</small></span>
+</button></div>
+  <p class="muted">La paleta <strong>Trendy institucional</strong> reproduce los colores oficiales de tu imagen: #BFBFBF, #585F73, #0B1C40, #081226 y #F2F2F2.</p>
+  <p class="muted">Tu elección se conserva en este navegador. No cambia los colores de los documentos clínicos ni los datos almacenados en Supabase.</p>
+ </div>
+ <div class="card" style="margin-top:16px">
+  <h2>Escritura rápida</h2>
+  <p>En los campos editables con valor inicial <strong>0</strong> o <strong>0.00</strong>, al hacer clic se despeja el cero para escribir directamente. Si sales sin escribir, reaparece el cero original.</p>
+  <p class="muted">Los valores de las historias clínicas ya finalizadas no se modifican.</p>
+ </div>
+</section>
 <section class="page" id="simulador"><span class="label">LENTES · DEMOSTRACIÓN</span><h1>Simulación del perfil óptico</h1><div class="cols"><div class="card form"><h2>Parámetros</h2><label>Esfera <strong id="potencia-label">−2.00 D</strong><input id="potencia" type="range" min="-10" max="10" step=".25" value="-2"></label><label>Índice<select id="indice"><option>1.50</option><option>1.60</option><option>1.67</option><option>1.74</option></select></label><label>Diámetro <strong id="diametro-label">65 mm</strong><input id="diametro" type="range" min="50" max="80" value="65"></label><p class="muted">Representación conceptual sin escala. No predice espesores ni reemplaza los cálculos de laboratorio.</p></div><div class="card visual"><h2>Vista ilustrativa</h2><svg viewBox="0 0 360 235" role="img" aria-label="Sección esquemática de lente"><defs><linearGradient id="g"><stop stop-color="#b4c4d5"/><stop offset=".5" stop-color="#e7f0f6"/><stop offset="1" stop-color="#718aa7"/></linearGradient></defs><line x1="30" x2="330" y1="115" y2="115" stroke="#BFBFBF" stroke-dasharray="4 5"/><path id="perfil" fill="url(#g)" stroke="#585F73" stroke-width="2.5"/></svg><p id="tipo-lente" class="muted"></p></div></div></section>
 <footer style="margin-top:35px;color:#9099a7;font-size:11px">TsysOptics · Trendy Optics · Piloto aislado de la página clínica</footer></main></div></div></div>
 <div id="notice" hidden role="status" aria-live="polite"></div>
@@ -371,6 +413,7 @@ function applyDashboardRole(role){
 window.addEventListener("tsys:role",e=>applyDashboardRole(e.detail.role));
 window.addEventListener("tsys:locked",()=>{currentRole=null;});
 render();lens();
+if(new URLSearchParams(location.search).get("vista")==="apariencia")navigate("apariencia");
 })();
 </script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js"></script><script type="module" src="./ventas.js"></script><script type="module" src="./caja.js"></script><script type="module" src="./auth.js"></script><div id="venta-comprobante" hidden role="dialog" aria-modal="true" aria-labelledby="venta-recibo-titulo">
  <div class="recibo">
