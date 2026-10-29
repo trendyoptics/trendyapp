@@ -4,7 +4,7 @@
  const storageKey="tsysoptics_tema_v1";
  const colors={
   clasico:"#0B1C40",oceano:"#095B73",esmeralda:"#166345",
-  violeta:"#554096",terracota:"#8E472F"
+  violeta:"#554096","morado-neon":"#320140",terracota:"#8E472F"
  };
  const valid=name=>Object.hasOwn(colors,name)?name:"clasico";
  const saved=()=>{try{return valid(localStorage.getItem(storageKey)||"clasico")}catch{return "clasico"}};
