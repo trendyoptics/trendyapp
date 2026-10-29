@@ -32,6 +32,13 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 .auth-card .password-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:#585F73;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:8px}
 .auth-card .password-toggle:hover,.auth-card .password-toggle:focus-visible{background:#e5eaf3;color:#0B1C40}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.agenda-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:end}
+.agenda-action,.agenda-action-cancel{font:600 12px system-ui;border:1px solid #b8c5d7;border-radius:6px;background:#e9eef8;color:#0B1C40;padding:7px 10px;cursor:pointer}
+.agenda-action-cancel{background:#fff0f0;color:#7e2727;border-color:#f1c9c9}
+.agenda-action:disabled,.agenda-action-cancel:disabled{opacity:.5;cursor:wait}
+#agenda .item{align-items:center;gap:10px}
+#agenda .item small{display:block;margin-top:4px}
+@media(max-width:650px){#agenda .item{flex-direction:column;align-items:flex-start}.agenda-actions{justify-content:start}}
 </style></head><body>
 <section id="auth-root" class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
@@ -64,7 +71,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 <div class="main"><header class="top"><strong>TsysOptics <span style="font-size:12px;color:#585F73">| Óptica Trendy Optics</span></strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
 <div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><a data-access-target="pacientes" href="./pacientes.html">Pacientes</a><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><a data-access-target="clinica" href="../index.html">Clínica ↗</a></div>
 <main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Prototipo:</strong> los módulos administrativos almacenan únicamente datos de prueba en este navegador, sin servidor ni acceso seguro. No introduzcas información real de pacientes. La historia clínica sigue en la página original.</div>
-<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Gestión comercial de prueba y acceso a la historia clínica existente de Trendy Optics.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small>Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small>Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small>Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes ficticios (Supabase) ↗</a><button data-go="agenda">+ Registrar cita de prueba</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
+<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Gestión comercial de prueba y acceso a la historia clínica existente de Trendy Optics.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small>Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small>Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase) ↗</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
 <section class="page" id="agenda"><span class="label">AGENDA · SUPABASE</span><h1>Agenda de citas</h1>
 <p class="muted">Organiza las citas por fecha, hora y tipo de atención. El administrador puede asociarlas a pacientes de TsysOptics.</p>
 <div class="cols">
@@ -133,14 +140,18 @@ function applyDashboardRole(role){
  currentRole=role;
  const limited=role!=="administrador";
  const details=document.getElementById("access-details");
- if(details)details.textContent=limited?"Ventas e inventario bloqueados. Agenda y simulador disponibles.":"Acceso completo al piloto.";
+ if(details)details.textContent=limited?"Ventas e inventario bloqueados. Agenda de prueba y simulador disponibles.":"Acceso completo al panel.";
+ const origin=document.getElementById("metric-citas-origin");
+ if(origin)origin.textContent=limited?"Demo local":"Supabase";
+ const shortcut=document.getElementById("quick-cita");
+ if(shortcut)shortcut.textContent=limited?"+ Registrar cita de prueba":"+ Registrar cita";
  const cardTitle=document.getElementById("clinical-card-title");
  const cardDescription=document.getElementById("clinical-card-description");
  const cardLink=document.getElementById("clinical-card-link");
  if(cardTitle)cardTitle.textContent=limited?"Historia clínica completa (DEMO)":"Tu historia clínica actual";
  if(cardDescription)cardDescription.textContent=limited
    ?"Abre el formulario optométrico completo, con todos los parámetros del original. Es una copia de prueba sin ventas ni envíos a Google Sheets. No ingresar datos reales."
-   :"Accede al formulario optométrico original de Trendy Optics. La integración segura con Supabase está pendiente.";
+   :"Accede al formulario optométrico original de Trendy Optics, conectado a Supabase y con historial de consultas.";
  if(cardLink)cardLink.textContent=limited?"Abrir formulario completo ↗":"Abrir clínica ↗";
  for(const p of ["ventas","inventario"]){
   document.querySelectorAll(".tile").forEach(t=>{const txt=t.querySelector("span")?.textContent.trim().toLowerCase();if(txt===p || txt===(p==="inventario"?"referencias":"ventas"))t.classList.toggle("access-tile-locked",limited)});
