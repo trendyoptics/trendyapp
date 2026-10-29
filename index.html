@@ -222,7 +222,7 @@
             <label class="clinical-label">Teléfono Celular (Col)</label>
             <div class="flex">
               <span class="inline-flex items-center px-2 text-xs font-bold bg-slate-100 border border-r-0 border-slate-300 rounded-l-lg">🇨🇴 +57</span>
-              <input type="tel" id="telefono" placeholder="3003391055" maxlength="15" class="clinical-input rounded-l-none font-semibold" aria-describedby="tsys-telefono-aviso" />
+              <input type="tel" id="telefono" placeholder="3003391055" maxlength="15" autocomplete="off" class="clinical-input rounded-l-none font-semibold" aria-describedby="tsys-telefono-aviso" />
             </div>
             <p id="tsys-telefono-aviso" class="mt-1 text-[10px] font-semibold text-amber-700" hidden>Teléfono no disponible o inválido en la hoja de origen; verifica antes de contactar.</p>
           </div>
@@ -884,8 +884,36 @@
     }
 
     // FUNCIÓN DE IMPRESIÓN MEDIA CARTA CON TODOS LOS CAMPOS MAPEADOS CORRECTAMENTE
+    function potenciaOpticaImpresion(value) {
+      const raw = String(value ?? "").trim().replace(",", ".");
+      if (!raw) return "—";
+      if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw)) return raw;
+      const n = Number(raw);
+      if (!Number.isFinite(n)) return raw;
+      return (n > 0 ? "+" : "") + n.toFixed(2);
+    }
+    function ejeOpticoImpresion(value) {
+      const raw = String(value ?? "").trim().replace(/^[xX×]\s*/, "").replace(/°$/, "").trim();
+      return raw ? "× " + raw + "°" : "—";
+    }
+    function adicionOpticaImpresion(value) {
+      const raw = String(value ?? "").trim();
+      if (!raw) return "—";
+      if (/^(NO APLICA|N\/?A)$/i.test(raw)) return "N/A";
+      const num = raw.replace(",", ".").replace(/\s*D$/i, "");
+      if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(num)) return raw;
+      const n = Number(num);
+      return (n > 0 ? "+" : "") + n.toFixed(2) + " D";
+    }
+    function telefonoImpresion(value) {
+      const raw = String(value ?? "").trim();
+      if (!raw || raw === "57" || raw === "+57" ||
+          /^#(?:ERROR!|REF!|VALUE!|N\/A|DIV\/0!|NUM!|NAME\?|NULL!)$/i.test(raw)) return "NO REGISTRADO";
+      return raw;
+    }
+
     function imprimirMediaCarta() {
-      const d = obtenerDatos();
+      const d = window.tsysDatosImpresion?.() || obtenerDatos();
       if (!d.nombre) {
         mostrarToast("⚠️ Por favor ingresa el nombre del paciente antes de imprimir");
         document.getElementById('nombre').focus();
@@ -900,9 +928,9 @@
       document.getElementById('p_nombre').textContent = d.nombre || '-';
       document.getElementById('p_doc').textContent = `${(d.tipoDoc || 'CC').split(' ')[0]} ${d.documento || '-'}`;
       document.getElementById('p_edad').textContent = `${d.fechaNacimiento || '-'} (${d.edad || '-'})`;
-      document.getElementById('p_telefono').textContent = d.telefono || '-';
-      document.getElementById('p_direccion').textContent = d.direccion || 'BOGOTÁ';
-      document.getElementById('p_eps').textContent = d.eps || 'PARTICULAR';
+      document.getElementById('p_telefono').textContent = telefonoImpresion(d.telefono);
+      document.getElementById('p_direccion').textContent = d.direccion || '—';
+      document.getElementById('p_eps').textContent = d.eps || '—';
       document.getElementById('p_ocupacion').textContent = d.ocupacion || '-';
       document.getElementById('p_motivo').textContent = d.motivoConsulta || '-';
       document.getElementById('p_antecedentes').textContent = d.antecedentes || '-';
@@ -912,20 +940,20 @@
       document.getElementById('p_lenso_od').textContent = d.lensoOd || 'N/A';
       document.getElementById('p_lenso_oi').textContent = d.lensoOi || 'N/A';
 
-      document.getElementById('p_od_esf').textContent = d.odEsfera || '0.00';
-      document.getElementById('p_od_cil').textContent = d.odCilindro || '0.00';
-      document.getElementById('p_od_eje').textContent = (d.odEje || '0') + "°";
-      document.getElementById('p_od_add').textContent = d.odAdicion || 'N/A';
-      document.getElementById('p_od_av_vl').textContent = d.odAvLejos || '20/20';
-      document.getElementById('p_od_av_vc').textContent = d.odAvCerca || '0.50 M';
+      document.getElementById('p_od_esf').textContent = potenciaOpticaImpresion(d.odEsfera);
+      document.getElementById('p_od_cil').textContent = potenciaOpticaImpresion(d.odCilindro);
+      document.getElementById('p_od_eje').textContent = ejeOpticoImpresion(d.odEje);
+      document.getElementById('p_od_add').textContent = adicionOpticaImpresion(d.odAdicion);
+      document.getElementById('p_od_av_vl').textContent = d.odAvLejos || '—';
+      document.getElementById('p_od_av_vc').textContent = d.odAvCerca || '—';
       document.getElementById('p_od_dnp').textContent = d.odDnp || '-';
 
-      document.getElementById('p_oi_esf').textContent = d.oiEsfera || '0.00';
-      document.getElementById('p_oi_cil').textContent = d.oiCilindro || '0.00';
-      document.getElementById('p_oi_eje').textContent = (d.oiEje || '0') + "°";
-      document.getElementById('p_oi_add').textContent = d.oiAdicion || 'N/A';
-      document.getElementById('p_oi_av_vl').textContent = d.oiAvLejos || '20/20';
-      document.getElementById('p_oi_av_vc').textContent = d.oiAvCerca || '0.50 M';
+      document.getElementById('p_oi_esf').textContent = potenciaOpticaImpresion(d.oiEsfera);
+      document.getElementById('p_oi_cil').textContent = potenciaOpticaImpresion(d.oiCilindro);
+      document.getElementById('p_oi_eje').textContent = ejeOpticoImpresion(d.oiEje);
+      document.getElementById('p_oi_add').textContent = adicionOpticaImpresion(d.oiAdicion);
+      document.getElementById('p_oi_av_vl').textContent = d.oiAvLejos || '—';
+      document.getElementById('p_oi_av_vc').textContent = d.oiAvCerca || '—';
       document.getElementById('p_oi_dnp').textContent = d.oiDnp || '-';
 
       document.getElementById('p_dp').textContent = d.dp || '-';
@@ -934,14 +962,14 @@
       document.getElementById('p_examen_fisico').textContent = `${d.biomicroscopia} | ${d.oftalmoscopia} | ${d.motilidad}`;
 
       const cies = [d.cie1, d.cie2, d.cie3, d.cie4, d.cie5].filter(Boolean).join(" ; ");
-      document.getElementById('p_cie10').textContent = cies || 'Z010 - EXAMEN DE OJOS Y DE LA VISIÓN';
+      document.getElementById('p_cie10').textContent = cies || '—';
       document.getElementById('p_notas').textContent = d.notas || '-';
 
       document.getElementById('p_total').textContent = formatoCOP(d.precioTotal);
       document.getElementById('p_abono').textContent = formatoCOP(d.valorAbonado);
       document.getElementById('p_saldo').textContent = formatoCOP(d.saldoPendiente);
-      document.getElementById('p_metodo').textContent = d.metodoPago || 'EFECTIVO';
-      document.getElementById('p_optometra').textContent = d.optometra || 'DR. YOHNNIER RAMOS';
+      document.getElementById('p_metodo').textContent = d.metodoPago || '—';
+      document.getElementById('p_optometra').textContent = d.optometra || '—';
 
       window.print();
     }
@@ -951,6 +979,10 @@
     }
 
     function enviarWhatsApp() {
+      if (window.tsysTelefonoHistoricoInvalido) {
+        mostrarToast("El teléfono de esta historia no es válido. Verifica el contacto antes de enviar.");
+        return;
+      }
       let d = obtenerDatos();
       let num = document.getElementById('telefono').value.replace(/\D/g, '');
       if (!num) { mostrarToast("⚠️ Ingresa el celular del paciente"); return; }
@@ -1070,6 +1102,7 @@ const saveButtonText = document.getElementById("btnGuardarTexto");
 let currentHistoryId = null;
 let currentPatientId = null;
 let currentHistoryIsFinalized = false;
+let currentHistoricalData = null;
 let saveBusy = false;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -1124,9 +1157,15 @@ function restoreHistoricalPhone(value) {
   const invalid = raw === "57" || raw === "+57" || /^#(?:ERROR!|REF!|VALUE!|N\/A|DIV\/0!|NUM!|NAME\?|NULL!)$/i.test(raw);
   const warning = field("tsys-telefono-aviso");
   if (warning) warning.hidden = !invalid;
-  // Se mantiene el dato defectuoso en Supabase; solo se evita presentarlo
-  // como si fuera un número válido para contactar al paciente.
-  setField("telefono", invalid ? "" : raw.replace(/^\+?57\s*/, ""));
+  const phone = field("telefono");
+  // Una historia finalizada no admite edición. El autocompletado del navegador
+  // no puede suplir silenciosamente un dato que falta en la historia original.
+  if (phone) {
+    phone.readOnly = Boolean(currentHistoryIsFinalized);
+    phone.autocomplete = "off";
+    phone.value = invalid ? "" : raw.replace(/^\+?57\s*/, "");
+  }
+  window.tsysTelefonoHistoricoInvalido = Boolean(currentHistoryIsFinalized && invalid);
 }
 function setDateTimeFromHistory(d, fechaConsulta) {
   if (!d.fechaConsulta && fechaConsulta) {
@@ -1177,6 +1216,7 @@ function fillClinicalForm(record) {
   const d = record.datos_clinicos || {};
   currentHistoryId = record.id;
   currentHistoryIsFinalized = record.estado === "finalizada";
+  currentHistoricalData = currentHistoryIsFinalized ? { ...d } : null;
   currentPatientId = record.paciente_id || null;
   field("hcConsecutivo").textContent = d.id || ("HC-" + record.id.slice(0,8).toUpperCase());
   const keys = [
@@ -1208,10 +1248,18 @@ async function updateHistoryCount() {
   if (!error && field("savedCountBadge")) field("savedCountBadge").textContent = String(count ?? 0);
 }
 window.tsysActualizarContador = updateHistoryCount;
+// La impresión de una historia finalizada usa el registro recuperado de Supabase,
+ // no valores que el navegador pudiera autocompletar o modificar en la pantalla.
+window.tsysDatosImpresion = () => currentHistoryIsFinalized && currentHistoricalData
+  ? { ...currentHistoricalData } : null;
 window.tsysResetHistoriaActual = () => {
   currentHistoryId = null;
   currentPatientId = null;
   currentHistoryIsFinalized = false;
+  currentHistoricalData = null;
+  window.tsysTelefonoHistoricoInvalido = false;
+  const phone = field("telefono");
+  if (phone) phone.readOnly = false;
   const warning = field("tsys-telefono-aviso");
   if (warning) warning.hidden = true;
   for (const id of ["odAdicion","oiAdicion"]) {
