@@ -318,37 +318,54 @@ function showDenied(text){
  $("loading").textContent=text;$("loading").hidden=false;$("panel").hidden=true
 }
 async function searchPatients(){
- if(busy)return;
+ if(busy||!authorized)return;
+ const request=++searchRequest;
  const query=$("search").value.trim();
  if(query.length>70){status("La búsqueda es demasiado larga.");return;}
- status("Buscando…");
- let q=sb.from("pacientes_tsysoptics").select("id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps,creado_en").order("creado_en",{ascending:false}).limit(30);
- if(query){
-   // Dos consultas en vez de interpolar texto en el filtro OR.
-   const byDoc=q.ilike("documento","%"+query.replaceAll("%","\\%").replaceAll("_","\\_")+"%");
-   const byName=sb.from("pacientes_tsysoptics").select("id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps,creado_en").ilike("nombre_completo","%"+query.replaceAll("%","\\%").replaceAll("_","\\_")+"%").limit(30);
-   const [a,b]=await Promise.all([byDoc,byName]);
-   if(a.error||b.error){status("No se pudo consultar. Revisa los permisos de base de datos.");return}
-   renderPatients([...new Map([...(a.data||[]),...(b.data||[])].map(r=>[r.id,r])).values()]);
- }else{
-   const {data,error}=await q;
-   if(error){status("No se pudo consultar. Comprueba permisos RLS y la migración.");return}
-   renderPatients(data||[]);
+ status("Buscando pacientes…");
+ const projection="id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps,creado_en";
+ const current=()=>request===searchRequest&&authorized;
+ try{
+  let rows=[];
+  if(query){
+   const needle="%"+query.replaceAll("%","\\%").replaceAll("_","\\_")+"%";
+   const [a,b]=await Promise.all([
+    sb.from("pacientes_tsysoptics").select(projection)
+     .ilike("documento",needle).order("creado_en",{ascending:false}).limit(30),
+    sb.from("pacientes_tsysoptics").select(projection)
+     .ilike("nombre_completo",needle).order("creado_en",{ascending:false}).limit(30)
+   ]);
+   if(!current())return;
+   if(a.error||b.error){status("No se pudo consultar. Revisa la conexión y los permisos.");return;}
+   rows=[...new Map([...(a.data||[]),...(b.data||[])].map(x=>[x.id,x])).values()];
+  }else{
+   const {data,error}=await sb.from("pacientes_tsysoptics").select(projection)
+    .order("creado_en",{ascending:false}).limit(30);
+   if(!current())return;
+   if(error){status("No se pudo consultar. Comprueba la conexión y los permisos.");return;}
+   rows=data||[];
+  }
+  if(current())renderPatients(rows,Boolean(query));
+ }catch{
+  if(current())status("No se pudo buscar pacientes. Revisa la conexión.");
  }
 }
-function renderPatients(rows){
- const area=$("results");area.replaceChildren();status(rows.length+" paciente(s) encontrados. Máximo 60 por búsqueda.");
+function renderPatients(rows,searched){
+ const area=$("results");area.replaceChildren();
+ status(rows.length+" paciente(s) encontrados. "+
+  (searched?"Se muestran hasta 60 coincidencias.":"Se muestran los 30 registros más recientes."));
  if(!rows.length){area.append(item("No hay pacientes para mostrar.","small"));return}
  for(const p of rows){
-  const btn=document.createElement("button");btn.type="button";btn.className="item";
-  btn.append(item(p.nombre_completo,"patient-name"),document.createElement("br"),item(p.tipo_documento+" · "+p.documento+" · "+(p.telefono||"Sin teléfono"),"small"));
-  btn.addEventListener("click",()=>{
-   selectedId=p.id;for(const k of ["nombre_completo","fecha_nacimiento","telefono","direccion","eps"])form.elements[k].value=p[k]||"";
-   form.elements.tipo_documento.value=p.tipo_documento;form.elements.documento.value=p.documento;
-   form.elements.tipo_documento.disabled=true;form.elements.documento.disabled=true;
-   $("form-title").textContent="Editar paciente";save.textContent="Guardar cambios";$("cancel").hidden=false;$("history-link").href="../index.html?paciente="+encodeURIComponent(p.id);$("history-link").hidden=false;
-   form.scrollIntoView({behavior:"smooth",block:"start"});
-  });
+  const btn=document.createElement("button");
+  btn.type="button";btn.className="item";
+  btn.dataset.patientId=p.id;
+  if(p.id===selectedId)btn.classList.add("is-current");
+  const name=document.createElement("b");name.textContent=p.nombre_completo;
+  const details=document.createElement("small");
+  details.textContent=p.tipo_documento+" · "+p.documento+" · "+(p.telefono||"Sin teléfono");
+  btn.append(name,details);
+  btn.setAttribute("aria-label","Consultar ficha clínica de "+p.nombre_completo);
+  btn.addEventListener("click",()=>choosePatient(p));
   area.append(btn);
  }
 }
@@ -363,13 +380,44 @@ form.addEventListener("submit",async e=>{
    ? await sb.from("pacientes_tsysoptics").update(data).eq("id",selectedId).select("id").single()
    : await sb.from("pacientes_tsysoptics").insert({...data,documento:doc,tipo_documento:tipo}).select("id").single();
   if(result.error){status(result.error.code==="23505"?"Ese documento ya está registrado.":"No se pudo guardar. Verifica los datos y permisos.");return;}
-  resetForm();busy=false;await searchPatients();status("Paciente guardado en Supabase. Listado actualizado.");
+  const savedId=result.data.id;
+  resetForm();busy=false;
+  // Evitar que un resultado de búsqueda anterior sobrescriba la consulta actual.
+  searchRequest++;
+  await searchPatients();
+  const {data:saved,error:savedError}=await sb.from("pacientes_tsysoptics")
+   .select("id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps")
+   .eq("id",savedId).maybeSingle();
+  if(!savedError&&saved&&authorized){
+   choosePatient(saved);
+   status("Paciente guardado. Puedes abrir su historia clínica desde la ficha.");
+  }else{
+   showPatientView("buscar",true);
+   status("Paciente guardado en Supabase. Busca por documento para ver su ficha.");
+  }
  } catch{status("No se pudo conectar con Supabase.");}
  finally{busy=false;save.disabled=false}
 });
-$("cancel").addEventListener("click",resetForm);
+$("cancel").addEventListener("click",()=>{
+ resetForm();showPatientView("buscar",true);
+});
 $("find").addEventListener("click",searchPatients);
-$("search").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchPatients()}});
-if(await requireAdmin()){$("loading").hidden=true;$("panel").hidden=false;await searchPatients()}
-else showDenied("Acceso denegado. Inicia sesión con un administrador activo en TsysOptics y vuelve a abrir este módulo.");
+$("search").addEventListener("keydown",e=>{
+ if(e.key==="Enter"){e.preventDefault();clearTimeout(searchTimer);void searchPatients()}
+});
+let searchTimer=null;
+$("search").addEventListener("input",()=>{
+ clearTimeout(searchTimer);
+ searchTimer=setTimeout(()=>{if(authorized&&!busy)void searchPatients()},380);
+});
+if(await requireAdmin()){
+ authorized=true;$("loading").hidden=true;$("panel").hidden=false;
+ await searchPatients();
+}else showDenied("Acceso denegado. Inicia sesión con un administrador activo en TsysOptics y vuelve a abrir este módulo.");
+document.addEventListener("visibilitychange",async()=>{
+ if(document.hidden||!authorized)return;
+ if(!(await requireAdmin())){
+  showDenied("Tu acceso ya no está autorizado. Vuelve al panel e inicia sesión de nuevo.");
+ }
+});
 </script></body></html>
