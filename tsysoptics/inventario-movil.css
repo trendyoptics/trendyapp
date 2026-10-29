@@ -80,12 +80,13 @@
  #inventario .form label{
   display:block;font-size:13px;font-weight:700;color:#374966;line-height:1.4
  }
- #inventario .form :is(input:not([type="checkbox"]),select,textarea){
+ #inventario .form :is(input:not([type="checkbox"]):not([type="hidden"]),select,textarea){
   display:block;width:100%;max-width:100%;min-height:49px;
   border:1px solid #c9d5e3;border-radius:10px;
   background:#fff;color:#132745;font-size:16px;
   -webkit-text-fill-color:#132745;padding:11px;
  }
+ #inventario .form input[type="hidden"]{display:none!important}
  #inventario .form textarea{min-height:96px;resize:vertical}
  #inventario .form :is(input,select,textarea):focus-visible,
  #inventario .tsys-inv-filters button:focus-visible{
