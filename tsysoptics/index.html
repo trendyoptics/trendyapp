@@ -479,17 +479,23 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 <section class="page" id="cotizaciones">
  <span class="label">CICLO 7 · PRESUPUESTOS ÓPTICOS</span>
  <h1>Cotizaciones y presupuestos</h1>
- <p class="muted">Cotiza monturas y lentes escribiendo sus descripciones, cantidades y precios. No hace falta registrar un cliente ni seleccionar productos del inventario. La cotización no descuenta stock ni registra pagos.</p>
+ <p class="muted">Cotización independiente: escribe los datos de contacto del cliente y negocia libremente montura y lentes. No necesita historia clínica ni registro de paciente. Si acepta el presupuesto, el examen visual y la venta se realizan posteriormente en sus módulos correspondientes.</p>
  <div class="tiles cot-resumen">
   <div class="tile"><span>Pendientes</span><strong id="cot-ind-pendientes">0</strong></div>
   <div class="tile"><span>Aprobadas</span><strong id="cot-ind-aprobadas">0</strong></div>
   <div class="tile"><span>Vencidas</span><strong id="cot-ind-vencidas">0</strong></div>
-  <div class="tile"><span>Convertidas</span><strong id="cot-ind-convertidas">0</strong></div>
+  <div class="tile"><span>Históricas</span><strong id="cot-ind-convertidas">0</strong></div>
  </div>
  <div class="cols" style="align-items:start">
   <form class="card form" id="cot-form" autocomplete="off">
    <h2>Nueva cotización</h2>
-   <p class="muted"><strong>Cliente ocasional:</strong> no necesitas seleccionar ni registrar una persona para hacer un presupuesto.</p>
+   <div class="card" style="background:#f4f7fb;box-shadow:none">
+    <h3>Datos del cliente para esta cotización</h3>
+    <label>Nombre del cliente <input id="cot-cliente-nombre" type="text" maxlength="120" minlength="2" autocomplete="off" required></label>
+    <label>Documento (opcional) <input id="cot-cliente-documento" type="text" maxlength="30" minlength="3" autocomplete="off"></label>
+    <label>Teléfono (opcional) <input id="cot-cliente-telefono" type="tel" maxlength="30" minlength="7" inputmode="tel" autocomplete="off"></label>
+    <p class="muted">Estos datos identifican el presupuesto. No registran al cliente como paciente y no crean una venta.</p>
+   </div>
    <label>Válida hasta <input type="date" id="cot-vigencia" required></label>
    <div class="card" style="background:#f4f7fb;box-shadow:none">
     <h3>Montura</h3>
@@ -867,8 +873,8 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
 })();
 </script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script>
 <script type="module" src="./posventa.js?v=20261030c6"></script>
-<script type="module" src="./cotizaciones.js?v=20261030cot-mapeo"></script><script type="module" src="./informes.js?v=20261030c5"></script>
-<script type="module" src="./finanzas.js?v=20261030c5"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030cot-mapeo"></script><script type="module" src="./caja.js?v=20261030cotizaciones"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+<script type="module" src="./cotizaciones.js?v=20261030cliente-independiente"></script><script type="module" src="./informes.js?v=20261030c5"></script>
+<script type="module" src="./finanzas.js?v=20261030c5"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030sin-cot-link"></script><script type="module" src="./caja.js?v=20261030cotizaciones"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
