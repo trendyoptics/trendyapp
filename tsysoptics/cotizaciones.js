@@ -131,15 +131,17 @@ function renderQuotes(){
  }
 }
 async function load(){
- if(!allowed)return;const t=++request;set("cot-status","Cargando catálogo, pacientes y cotizaciones…");
+ if(!allowed)return;const t=++request;set("cot-status","Cargando cotizaciones…");
  try{
-  const [c,q]=await Promise.all([
-   db.from("pacientes_tsysoptics").select("id,nombre_completo,documento").order("nombre_completo").limit(1500),
-   db.from("cotizaciones_tsysoptics").select("id,numero,paciente_id,cliente_nombre,cliente_documento,cliente_telefono,fecha,vigente_hasta,estado,items,total,observaciones,venta_id").order("creado_en",{ascending:false}).limit(1000)
+  const [q,c]=await Promise.all([
+   db.from("cotizaciones_tsysoptics").select("id,numero,paciente_id,cliente_nombre,cliente_documento,cliente_telefono,fecha,vigente_hasta,estado,items,total,observaciones,venta_id").order("creado_en",{ascending:false}).limit(1000),
+   db.from("pacientes_tsysoptics").select("id,nombre_completo,documento").order("nombre_completo").limit(1500)
   ]);
-  if(c.error||q.error)throw Error([c.error,q.error].filter(Boolean).map(x=>x.message).join("; "));
+  if(q.error)throw Error(q.error.message);
   if(t!==request||!allowed)return;
-  patients=c.data||[];quotes=q.data||[];
+  // Los pacientes solo se consultan como respaldo para documentos históricos.
+  // Su ausencia o una falla de lectura no debe bloquear cotizaciones independientes.
+  patients=c.error?[]:(c.data||[]);quotes=q.data||[];
   renderQuotes();set("cot-status",quotes.length+" cotizaciones consultadas.");
  }catch(e){set("cot-status","Error al consultar cotizaciones: "+(e?.message||e))}
 }
