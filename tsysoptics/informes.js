@@ -15,6 +15,11 @@ let authorized=false,loading=false,report=null,requestSeq=0;
 const activeStates=new Set(["pendiente","en_fabricacion","recibido","listo_para_entrega"]);
 const monthInput=$("informe-mes");
 const status=t=>{$("informe-status").textContent=t};
+function bogotaDay(){
+ const x=Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:"America/Bogota",year:"numeric",month:"2-digit",day:"2-digit"})
+  .formatToParts(new Date()).filter(p=>["year","month","day"].includes(p.type)).map(p=>[p.type,p.value]));
+ return x.year+"-"+x.month+"-"+x.day;
+}
 function localMonth(){
  const values=Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:"America/Bogota",year:"numeric",month:"2-digit"})
   .formatToParts(new Date()).filter(x=>x.type==="year"||x.type==="month").map(x=>[x.type,x.value]));
@@ -100,7 +105,7 @@ async function collect(month){
  for(const o of orderMonth)labStatus.set(o.estado,(labStatus.get(o.estado)||0)+1);
  const stockActive=stock.filter(p=>p.activo);
  const lowStock=stockActive.filter(p=>Number(p.cantidad)<=Number(p.stock_minimo));
- const nowLocal=new Date().toLocaleDateString("en-CA",{timeZone:"America/Bogota"});
+ const nowLocal=bogotaDay();
  const overdue=orders.filter(o=>activeStates.has(o.estado)&&o.fecha_entrega_estimada<nowLocal);
  const computed={
   salesTotal:sum(valid,x=>x.total),salesCount:valid.length,
@@ -184,7 +189,7 @@ function render(r){
   ["Turnos cerrados",number(t.shiftsClosed)],
   ["Diferencia en arqueos",money(t.shiftsDifference)]
  ]);
- const isCurrent=r.month===new Intl.DateTimeFormat("en-CA",{timeZone:"America/Bogota",year:"numeric",month:"2-digit"}).format(new Date());
+ const isCurrent=r.month===bogotaDay().slice(0,7);
  $("informe-nota").textContent="Periodo de ventas y recaudos: "+r.month+
   ". Cifras de ventas calculadas con el estado vigente al consultar; devoluciones y anulaciones se excluyen del total vigente. Recaudos incluyen pagos registrados durante el mes, incluso de ventas anteriores: no equivalen necesariamente a las ventas del mes ni descuentan posibles devoluciones externas. Stock, saldos y pedidos abiertos reflejan el momento de consulta ("+
   new Date(r.generatedAt).toLocaleString("es-CO")+
@@ -306,14 +311,14 @@ async function exportPdf(){
   heading("ADVERTENCIAS DEL REPORTE");
   for(const item of sec.at(-1).rows)line(item[0]+": "+item[1]);
   line("Para el detalle completo de ventas, productos, inventario y movimientos, descarga Excel (CSV).");
-  pdf.save("TsysOptics_Informe_Mensual_"+report.month+".pdf");
+  download(pdf.output("blob"),"TsysOptics_Informe_Mensual_"+report.month+".pdf");
  }catch(e){status("No se pudo exportar el PDF: "+(e?.message||"Error inesperado."))}
  finally{btn.disabled=!report||!authorized}
 }
 $("informe-generar").addEventListener("click",()=>void generate());
 $("informe-csv").addEventListener("click",exportCsv);
 $("informe-pdf").addEventListener("click",()=>void exportPdf());
-monthInput.addEventListener("change",()=>{report=null;setReady(false);$("informe-resultado").hidden=true;status("Mes modificado. Genera nuevamente el informe para exportarlo.");});
+monthInput.addEventListener("change",()=>{requestSeq++;report=null;setReady(false);$("informe-resultado").hidden=true;status("Mes modificado. Genera nuevamente el informe para exportarlo.");});
 window.addEventListener("tsys:locked",clear);
 window.addEventListener("tsys:role",async e=>{
  const enabled=e.detail?.role==="administrador"&&await checkAdmin();
