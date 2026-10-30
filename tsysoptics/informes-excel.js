@@ -76,7 +76,7 @@ function makeSheet(book,{name,title,month,note,cols,rows,totals}){
   for(let c=1;c<=cols.length;c++){
    row.getCell(c).alignment={vertical:"middle",wrapText:cols[c-1].width==="name"||cols[c-1].width==="text"};
   }
-  if(name==="Inventario actual"&&Number(rows[i][3])<=Number(rows[i][4])){
+  if(name==="Inventario actual"&&rows[i][9]==="ACTIVO"&&Number(rows[i][3])<=Number(rows[i][4])){
    row.getCell(5).fill={type:"pattern",pattern:"solid",fgColor:{argb:ALERT}};
   }
  }
@@ -133,8 +133,7 @@ function build(book,r,company){
  makeSheet(book,{...common,name:"Ventas",title:"VENTAS DEL MES",cols:[
   {label:"Número",width:"brief"},{label:"Fecha (Bogotá)",width:"date"},{label:"Estado actual",width:"normal"},
   {label:"Total COP",width:"money",type:"money"},{label:"Abonado actual COP",width:"money",type:"money"},{label:"Saldo actual COP",width:"money",type:"money"}
- ],rows:r.sales.map(x=>[x.numero,bogotaDate(x.fecha),x.estado,cop(x.total),cop(x.abonado),cop(x.saldo)]),
- totals:[{column:3,value:r.sales.reduce((a,v)=>a+cop(v.total),0)}]});
+ ],rows:r.sales.map(x=>[x.numero,bogotaDate(x.fecha),x.estado,cop(x.total),cop(x.abonado),cop(x.saldo)])});
  makeSheet(book,{...common,name:"Recaudos",title:"PAGOS RECIBIDOS EN EL MES",cols:[
   {label:"Fecha (Bogotá)",width:"date"},{label:"Medio",width:"normal"},{label:"Monto COP",width:"money",type:"money"},
   {label:"Venta ID",width:"id"},{label:"Pago ID",width:"id"}
