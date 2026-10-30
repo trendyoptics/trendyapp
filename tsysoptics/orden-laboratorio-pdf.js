@@ -9,7 +9,7 @@ const signed=value=>{
  return Number.isFinite(n)?(n>0?"+":"")+n.toFixed(2):v;
 };
 async function printableLogo(source){
- if(typeof source!=="string"||!/^data:image\\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(source)||source.length>210000)return null;
+ if(typeof source!=="string"||!/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(source)||source.length>210000)return null;
  const image=new Image();image.src=source;
  try{
   await image.decode();
