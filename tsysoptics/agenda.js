@@ -79,6 +79,8 @@ function resetAdministrativeView(){
  $("agenda-filtro-fecha").value="";
  window.tsysAgendaMobileReset?.();
  $("agenda-filtro-estado").value="";
+ patientLookupSeq++;clearTimeout(patientSearchTimer);
+ patientSearch.value="";status("agenda-paciente-status","");
  patientSelect.replaceChildren(new Option("Sin paciente registrado",""));
  list.replaceChildren();
  resetEditor();
@@ -97,23 +99,57 @@ async function verifyAdmin(){
    .select("rol,activo").eq("id",data.user.id).maybeSingle();
  return !profileError&&profile?.activo===true&&profile?.rol==="administrador";
 }
-async function loadPatients(){
+let patientLookupSeq=0,patientSearchTimer=null;
+const patientSearch=$("agenda-paciente-busqueda");
+async function loadPatients(term=patientSearch.value.trim()){
+ if(!adminReady)return;
+ const request=++patientLookupSeq;
+ const query=term.slice(0,70);
  const selected=patientSelect.value;
- const {data,error}=await sb.from("pacientes_tsysoptics")
-  .select("id,nombre_completo,tipo_documento,documento")
-  .order("nombre_completo",{ascending:true}).limit(300);
- if(error){
-  status("agenda-save-status","No se pudo consultar el listado de pacientes.");
+ const previous=patientSelect.selectedOptions[0];
+ const keep=selected?{text:previous?.textContent||"Paciente seleccionado",name:previous?.dataset.name||""}:null;
+ status("agenda-paciente-status",query?"Buscando pacientes…":"Cargando pacientes recientes…");
+ let result;
+ if(query){
+  const needle="%"+query.replaceAll("\\","\\\\").replaceAll("%","\\%").replaceAll("_","\\_")+"%";
+  const [byName,byDocument]=await Promise.all([
+   sb.from("pacientes_tsysoptics").select("id,nombre_completo,tipo_documento,documento")
+    .ilike("nombre_completo",needle).order("nombre_completo").limit(40),
+   sb.from("pacientes_tsysoptics").select("id,nombre_completo,tipo_documento,documento")
+    .ilike("documento",needle).order("nombre_completo").limit(40)
+  ]);
+  result={error:byName.error||byDocument.error,
+    data:[...new Map([...(byName.data||[]),...(byDocument.data||[])].map(p=>[p.id,p])).values()]};
+ }else{
+  result=await sb.from("pacientes_tsysoptics")
+   .select("id,nombre_completo,tipo_documento,documento")
+   .order("creado_en",{ascending:false}).limit(40);
+ }
+ if(!adminReady||request!==patientLookupSeq)return;
+ if(result.error){
+  status("agenda-paciente-status","No fue posible buscar pacientes. Verifica la conexión y los permisos.");
   return;
  }
  patientSelect.replaceChildren(new Option("Sin paciente registrado",""));
- for(const p of data||[]){
+ for(const p of result.data||[]){
   const option=new Option(p.nombre_completo+" · "+p.tipo_documento+" "+p.documento,p.id);
   option.dataset.name=p.nombre_completo;
   patientSelect.append(option);
  }
- if(Array.from(patientSelect.options).some(o=>o.value===selected))patientSelect.value=selected;
+ if(selected&&!Array.from(patientSelect.options).some(o=>o.value===selected)&&keep){
+  const option=new Option(keep.text,selected);
+  option.dataset.name=keep.name;
+  patientSelect.append(option);
+ }
+ if(selected)patientSelect.value=selected;
+ status("agenda-paciente-status",(result.data||[]).length+" paciente(s) encontrados."+
+   (query?" Selecciona el paciente de la lista.":" Escribe para buscar por nombre o documento."));
 }
+patientSearch.addEventListener("input",()=>{
+ clearTimeout(patientSearchTimer);
+ patientLookupSeq++;
+ patientSearchTimer=setTimeout(()=>{if(adminReady)void loadPatients();},350);
+});
 patientSelect.addEventListener("change",()=>{
  if(!adminReady)return;
  const selected=patientSelect.options[patientSelect.selectedIndex];
