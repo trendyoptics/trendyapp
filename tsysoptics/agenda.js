@@ -125,9 +125,12 @@ async function loadCitas(){
  status("agenda-list-status","Consultando citas…");
  let query=sb.from("citas_tsysoptics")
   .select("id,paciente_id,referencia,fecha,hora,tipo,estado,paciente:pacientes_tsysoptics(nombre_completo)",{count:"exact"})
-  .order("fecha",{ascending:true}).order("hora",{ascending:true}).limit(150);
- if($("agenda-filtro-fecha").value) query=query.eq("fecha",$("agenda-filtro-fecha").value);
- if($("agenda-filtro-estado").value) query=query.eq("estado",$("agenda-filtro-estado").value);
+  .order("fecha",{ascending:$("agenda-filtro-vista").value!=="todas"})
+  .order("hora",{ascending:$("agenda-filtro-vista").value!=="todas"}).limit(150);
+ const selectedDate=$("agenda-filtro-fecha").value;
+ if(selectedDate)query=query.eq("fecha",selectedDate);
+ else if($("agenda-filtro-vista").value!=="todas")query=query.gte("fecha",todayBogota());
+ if($("agenda-filtro-estado").value)query=query.eq("estado",$("agenda-filtro-estado").value);
  const [rows,totals]=await Promise.all([
   query,
   sb.from("citas_tsysoptics").select("id",{count:"exact",head:true})
@@ -154,10 +157,22 @@ async function loadCitas(){
   );
   if(item.paciente?.nombre_completo){
     info.append(textNode("small","Paciente asociado: "+item.paciente.nombre_completo));
+    const clinical=document.createElement("a");
+    clinical.href="../index.html?paciente="+encodeURIComponent(item.paciente_id);
+    clinical.target="_blank";clinical.rel="noopener noreferrer";
+    clinical.className="agenda-clinical-link";
+    clinical.textContent="Abrir historia clínica ↗";
+    info.append(clinical);
   }
   row.append(info);
   const actions=document.createElement("div");
   actions.className="agenda-actions";
+  if(["programada","confirmada"].includes(item.estado)){
+   const edit=textNode("button","Reprogramar");
+   edit.type="button";edit.className="agenda-action";
+   edit.addEventListener("click",()=>openEditor(item));
+   actions.append(edit);
+  }
   const choices=item.estado==="programada"
    ? [["confirmada","Confirmar"],["atendida","Atendida"],["cancelada","Cancelar"]]
    : item.estado==="confirmada"
@@ -167,26 +182,28 @@ async function loadCitas(){
    const button=textNode("button",label);
    button.type="button";
    button.className=state==="cancelada"?"agenda-action-cancel":"agenda-action";
-   button.addEventListener("click",()=>changeState(item.id,state,button));
+   button.addEventListener("click",()=>changeState(item,state,button));
    actions.append(button);
   }
   row.append(actions);
   list.append(row);
  }
 }
-async function changeState(id,newState,button){
+async function changeState(item,newState,button){
  if(!adminReady)return;
  if(["cancelada","no_asistio","atendida"].includes(newState)){
   if(!window.confirm("¿Confirmas cambiar el estado de esta cita?"))return;
  }
  button.disabled=true;
  try{
+  if(!(await verifyAdmin())){resetAdministrativeView();status("agenda-list-status","Tu sesión ya no tiene permiso para actualizar citas.");return;}
   const {data,error}=await sb.from("citas_tsysoptics")
-   .update({estado:newState}).eq("id",id).select("id").maybeSingle();
+   .update({estado:newState}).eq("id",item.id).eq("estado",item.estado).select("id").maybeSingle();
   if(error||!data){
    status("agenda-list-status",showError(error,"actualizar"));
    return;
   }
+  if(editingId===item.id)resetEditor();
   await loadCitas();
  }catch{
   status("agenda-list-status","No se pudo actualizar la cita. Revisa la conexión.");
@@ -226,6 +243,7 @@ form.addEventListener("submit",async event=>{
 $("agenda-refresh").addEventListener("click",loadCitas);
 $("agenda-filtro-fecha").addEventListener("change",loadCitas);
 $("agenda-filtro-estado").addEventListener("change",loadCitas);
+$("agenda-filtro-vista").addEventListener("change",loadCitas);
 
 async function activate(){
  if(adminReady||initializing)return;
@@ -330,6 +348,7 @@ function setupMobileAgenda(){
   if(dateInput.value)start=monday(localDate(dateInput.value)||new Date());
   renderWeek();
  });
+ window.tsysAgendaMobileGoToForm=()=>{show("nueva");if(media.matches)tabs.scrollIntoView({behavior:"smooth",block:"start"});};
  show("citas");renderWeek();
  window.tsysAgendaMobileSync=items=>{
   const counts=key=>items.filter(x=>x.estado===key).length;
