@@ -213,9 +213,11 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 <div class="cols">
 <form class="card form" id="form-cita">
  <h2 id="agenda-form-title">Nueva cita</h2>
+ <label>Buscar paciente por nombre o documento<input type="search" id="agenda-paciente-busqueda" maxlength="70" autocomplete="off" placeholder="Escribe el nombre o número de documento"></label>
  <label>Paciente registrado (opcional)
   <select name="paciente_id" id="agenda-paciente"><option value="">Sin paciente registrado</option></select>
  </label>
+ <p id="agenda-paciente-status" class="muted" role="status" aria-live="polite">Puedes buscar entre los pacientes registrados.</p>
  <label>Nombre o referencia de la cita<input name="referencia" maxlength="100" placeholder="Nombre o referencia de atención" required></label>
  <label>Fecha<input name="fecha" type="date" required></label>
  <label>Hora<input name="hora" type="time" required></label>
