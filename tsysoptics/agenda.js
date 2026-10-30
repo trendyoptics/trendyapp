@@ -356,7 +356,7 @@ function setupMobileAgenda(){
    b.setAttribute("aria-pressed",String(key===tab));
   }
   if(tab==="nueva"&&media.matches&&!form.elements.fecha.value)
-   form.elements.fecha.value=dateInput.value||dateText(new Date());
+   form.elements.fecha.value=dateInput.value||todayBogota();
  }
  const calendar=make("div","agenda-mobile-calendar");
  const tools=make("div","agenda-mobile-calendar-tools");
@@ -433,7 +433,7 @@ function setupMobileAgenda(){
  window.addEventListener("tsys:locked",()=>window.tsysAgendaMobileReset());
  media.addEventListener("change",()=>{if(!media.matches)show("citas");renderWeek()});
  if($("tsys-app")?.dataset.role==="administrador"&&media.matches&&!dateInput.value)
-  selectDate(dateText(new Date()),false);
+  selectDate(todayBogota(),false);
 }
 
 setupMobileAgenda();
