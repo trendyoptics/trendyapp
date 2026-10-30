@@ -2,6 +2,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config.js";
 
 const root = document.getElementById("auth-root");
+const loading = document.getElementById("tsys-auth-loading");
+function finishLoading(){ if(loading) loading.hidden=true; }
 const app = document.getElementById("tsys-app");
 const notice = document.getElementById("auth-message");
 const form = document.getElementById("auth-form");
@@ -75,6 +77,7 @@ function clearRole() {
 }
 function message(text) { notice.textContent = text; }
 function locked(text = "") {
+  finishLoading();
   app.hidden = true;
   root.hidden = false;
   logout.hidden = true;
@@ -83,6 +86,7 @@ function locked(text = "") {
 }
 function showApp(role) {
   applyRole(role);
+  finishLoading();
   root.hidden = true;
   app.hidden = false;
   logout.hidden = false;
@@ -106,7 +110,8 @@ async function verifyUser() {
     submit.disabled = true;
     return;
   }
-  locked("Comprobando sesión…");
+  // En una navegación entre módulos, no mostrar el formulario de login
+  // mientras Supabase recupera la sesión persistida.
   const { data: userResult, error: authError } = await client.auth.getUser();
   const user = userResult?.user;
   if (authError || !user) { currentUserId = null; locked("Ingresa con el correo y la contraseña de TsysOptics."); return; }
