@@ -1,5 +1,5 @@
 /* TsysOptics · identidad de la instalación.
-   La marca de software "TsysOptics · by TrendyOptics" no es editable. */
+   La marca de software "TsysOptics - Sistema de gestión" no es editable. */
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
 
@@ -49,7 +49,7 @@ function renderPreview(){
  if(!form)return;
  preview.src=imageUrl(pendingLogo);
  $("identidad-preview-nombre").textContent=nameInput.value.trim()||current.nombre_optica;
- $("identidad-preview-firma").textContent="TsysOptics · by TrendyOptics";
+ $("identidad-preview-firma").textContent="TsysOptics - Sistema de gestión";
  $("identidad-archivo-actual").textContent=
   pendingLogo===null?"Logo de TsysOptics / Trendy Optics (predeterminado).":
   "Logo personalizado seleccionado.";
@@ -180,7 +180,11 @@ let docPrefs={...docDefaults},savingDocs=false;
 function fillDocPrefs(){
  for(const [key,id] of Object.entries(docKeys))$(id).value=docPrefs[key]??docDefaults[key];
 }
-function docPermission(){docEditor.disabled=!canEdit||savingDocs;}
+function docPermission(){
+ canEdit=$("tsys-app")?.dataset.role==="administrador";
+ docEditor.disabled=!canEdit||savingDocs;
+ docStatus.textContent=canEdit?(docEditor.disabled?"Guardando configuración…":"Campos disponibles para el administrador."):"Solo el administrador puede personalizar documentos.";
+}
 async function loadDocPrefs(){
  const {data,error}=await db.from("identidad_optica_tsysoptics")
   .select("nit_optica,direccion_optica,telefono_optica,titulo_documento,nota_garantia,pie_documento,mensaje_whatsapp").eq("id",1).maybeSingle();

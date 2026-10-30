@@ -128,7 +128,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 <section id="auth-root" hidden class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
   <img src="./logo.svg" data-tsys-logo alt="Logotipo de Trendy Optics">
-  <h1>TsysOptics</h1><p><strong data-tsys-business>Trendy Optics</strong></p><p>Gestión óptica inteligente · acceso privado</p><p class="firma-producto">TsysOptics · by TrendyOptics</p>
+  <h1>TsysOptics</h1><p><strong data-tsys-business>Trendy Optics</strong></p><p>Gestión óptica inteligente · acceso privado</p><p class="firma-producto">TsysOptics - Sistema de gestión</p>
   <form id="auth-form">
    <label>Correo o usuario<input id="auth-email" type="text" autocomplete="username" placeholder="Correo personal o externo" required></label>
    <label for="auth-password">Contraseña</label>
@@ -151,7 +151,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  </div>
 </section>
 <div id="tsys-app" hidden><div class="layout">
-<aside class="sidebar"><div class="brand"><img src="logo.svg" data-tsys-logo alt="Logo de la óptica"><span><b>TsysOptics</b><small data-tsys-business>Trendy Optics</small><small class="brand-attribution">by TrendyOptics</small></span></div><nav aria-label="Módulos">
+<aside class="sidebar"><div class="brand"><img src="logo.svg" data-tsys-logo alt="Logo de la óptica"><span><b>TsysOptics</b><small data-tsys-business>Trendy Optics</small><small class="brand-attribution">Sistema de gestión</small></span></div><nav aria-label="Módulos">
 <button class="active" data-page="inicio">▦ &nbsp; Inicio</button><button type="button" data-page="pacientes">♙ &nbsp; Pacientes</button><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
 <div class="main"><header class="top"><strong data-tsys-page-title>TsysOptics | Trendy Optics</strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
 <div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><button type="button" data-page="pacientes">Pacientes</button><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">Clínica ↗</a></div>
@@ -494,7 +494,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  </div>
  <div class="card" style="margin-top:16px" id="identidad-seccion">
  <h2>Identidad de la óptica</h2>
- <p class="muted">Personaliza el nombre y el logo que aparecerán en el acceso y en el panel. La firma <strong>TsysOptics · by TrendyOptics</strong> siempre será visible y no se puede cambiar.</p>
+ <p class="muted">Personaliza el nombre y el logo que aparecerán en el acceso y en el panel. La firma <strong>TsysOptics - Sistema de gestión</strong> siempre será visible y no se puede cambiar.</p>
  <div class="identidad-layout">
   <form id="identidad-form" class="form" autocomplete="off">
    <fieldset id="identidad-editor" disabled class="identidad-fieldset">
@@ -513,6 +513,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
    </fieldset>
    <p class="muted" id="identidad-permisos">Solo el administrador puede modificar la identidad.</p>
    <p id="identidad-status" role="status" aria-live="polite" class="muted"></p>
+  </form>
   <div class="card" style="margin-top:16px">
    <h2>Personalización de documentos y mensajes</h2>
    <p class="muted">Estos textos aparecen con el nombre y logo de la óptica en comprobantes y documentos combinados. Cada instalación puede tener sus propios valores.</p>
@@ -531,11 +532,10 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
     <p id="documentos-config-status" class="muted" role="status"></p>
    </form>
   </div>
-  </form>
   <div class="identidad-preview" aria-label="Vista previa de marca">
    <img id="identidad-preview-logo" src="./logo.svg" alt="Vista previa de logo">
    <strong id="identidad-preview-nombre">Trendy Optics</strong>
-   <small id="identidad-preview-firma">TsysOptics · by TrendyOptics</small>
+   <small id="identidad-preview-firma">TsysOptics - Sistema de gestión</small>
    <span class="muted">Vista previa antes de guardar</span>
   </div>
  </div>
@@ -634,7 +634,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030catalogopdf"></script><script type="module" src="./caja.js?v=20261030lentes3"></script><script type="module" src="./identidad.js?v=20261030docs"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030lentes3"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
