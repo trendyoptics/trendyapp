@@ -12,7 +12,7 @@ function fromHistory(d,key){return txt(d?.[key])}
 export async function loadDocumentContext(sb,sale){
  const id=sale.paciente_id;
  const queries=[
-  sb.from("identidad_optica_tsysoptics").select("nombre_optica,logo_data_url,titulo_documento,nota_garantia,pie_documento,mensaje_whatsapp").eq("id",1).maybeSingle(),
+  sb.from("identidad_optica_tsysoptics").select("nombre_optica,logo_data_url,nit_optica,direccion_optica,telefono_optica,titulo_documento,nota_garantia,pie_documento,mensaje_whatsapp").eq("id",1).maybeSingle(),
   id?sb.from("pacientes_tsysoptics").select("nombre_completo,tipo_documento,documento,fecha_nacimiento,telefono,direccion,eps").eq("id",id).maybeSingle():Promise.resolve({data:null,error:null}),
   id?sb.from("historias_clinicas_tsysoptics").select("fecha_consulta,optometra_nombre,datos_clinicos,estado").eq("paciente_id",id).eq("estado","finalizada").order("fecha_consulta",{ascending:false}).limit(1):Promise.resolve({data:[],error:null})
  ];
@@ -101,6 +101,13 @@ export async function createSalePdf(ctx){
   if(logo){try{pdf.addImage(logo,"PNG",W-pad-22,11,21,21)}catch{}}
   pdf.text(txt(ctx.config.nombre_optica||"ÓPTICA").slice(0,55),pad,y);y+=7;
   pdf.setFontSize(10);pdf.text(txt(ctx.config.titulo_documento).slice(0,100),pad,y);y+=6;
+  const contact=[
+   ctx.config.nit_optica?"NIT: "+ctx.config.nit_optica:"",
+   ctx.config.direccion_optica||"",
+   ctx.config.telefono_optica?"Tel: "+ctx.config.telefono_optica:""
+  ].filter(Boolean).join(" · ");
+  if(contact){pdf.setFont("helvetica","normal");pdf.setFontSize(8);pdf.text(pdf.splitTextToSize(contact,max-26),pad,y);y+=5;}
+
   pdf.setDrawColor(150);pdf.line(pad,y,W-pad,y);y+=6;
  }
  function space(h=6){if(y+h>H-18)header();}
