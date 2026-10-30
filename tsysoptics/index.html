@@ -328,7 +328,9 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   </label>
   <p class="muted" id="venta-lente-ayuda">Puedes elegir un lente ya registrado en el selector de productos, o escribir uno nuevo con su precio en el formulario siguiente. El servidor comprueba precios y existencias antes de confirmar la venta.</p>
   <button class="btn alt" type="button" id="venta-ir-inventario-lentes" data-go="inventario">Registrar lente y precio en Inventario</button>
-  <div class="card" style="background:#f1f5fa;border:1px solid #d4deec;padding:12px">
+  <label>Cantidad <input name="cantidad" id="venta-cantidad" type="number" min="1" step="1" value="1" required></label>
+  <button class="btn alt" type="button" id="venta-agregar-producto">Agregar montura al carrito</button>
+    <div class="card" style="background:#f1f5fa;border:1px solid #d4deec;padding:12px">
    <h3 style="margin:0">Lente oftálmico personalizado</h3>
    <p class="muted">Escribe el tipo de lente y el precio de venta. Al pulsar Agregar, se crea una referencia en Inventario con existencia inicial para esta venta y después se agrega al carrito.</p>
    <label>Catálogo de lentes con precio automático
@@ -346,8 +348,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
    <button type="button" class="btn alt" id="venta-agregar-lente">Registrar lente y agregar al carrito</button>
    <p id="venta-lente-status" class="muted" role="status" aria-live="polite">Puedes modificar el nombre y el precio después de seleccionar un lente.</p>
   </div>
-  <label>Cantidad <input name="cantidad" id="venta-cantidad" type="number" min="1" step="1" value="1" required></label>
-  <button class="btn alt" type="button" id="venta-agregar-producto">Agregar al carrito</button>
+
   <div class="list" id="venta-carrito"></div>
   <div class="money">Total calculado en Supabase (estimado) <strong id="total-preview">$ 0</strong></div>
   <label>Pago inicial (COP) <input name="abono" id="venta-abono" type="text" inputmode="decimal" data-tsys-cop value="0" autocomplete="off" required></label>
