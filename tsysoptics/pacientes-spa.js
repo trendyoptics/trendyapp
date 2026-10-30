@@ -226,6 +226,15 @@ form.addEventListener("submit",async e=>{
  e.preventDefault();if(busy)return;
  const nombre=rowField("nombre_completo"),tipo=rowField("tipo_documento"),doc=rowField("documento").toUpperCase();
  if(doc.length<3||doc.length>30||!nombre){status("Ingresa un documento válido y el nombre completo del paciente.");return}
+ if(nombre.length<3||nombre.length>150){status("El nombre debe tener entre 3 y 150 caracteres.");return}
+ const birth=rowField("fecha_nacimiento");
+ if(birth){
+  const parsed=new Date(birth+"T12:00:00");
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(birth)||Number.isNaN(parsed.getTime())||
+     parsed.toISOString().slice(0,10)!==birth||birth>new Date().toLocaleDateString("en-CA",{timeZone:"America/Bogota"})){
+   status("Verifica la fecha de nacimiento. No puede ser inválida ni futura.");return;
+  }
+ }
  const data={nombre_completo:nombre,fecha_nacimiento:rowField("fecha_nacimiento")||null,telefono:rowField("telefono")||null,direccion:rowField("direccion")||null,eps:rowField("eps")||null};
  let savedConfirmed=false;
  busy=true;save.disabled=true;status("Guardando…");
