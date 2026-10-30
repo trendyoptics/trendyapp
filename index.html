@@ -1026,8 +1026,26 @@
       if (!window.confirm(aviso)) return false;
 
       window.tsysResetHistoriaActual?.(conservarPaciente);
-      document.getElementById('hcForm').dataset.tsysHistoriaFinalizada = "false";
-      document.getElementById('hcForm').reset();
+      const formulario = document.getElementById('hcForm');
+      formulario.dataset.tsysHistoriaFinalizada = "false";
+      if (conservarPaciente) {
+        // No ejecutar form.reset(): algunos navegadores o listeners restauran los
+        // campos de identificación tras un reset. Limpiar sólo datos de la atención.
+        const identificacion = new Set(clavesPaciente);
+        for (const control of formulario.elements) {
+          if (!control.id || identificacion.has(control.id)) continue;
+          if (control.matches('button, [type="submit"], [type="reset"]')) continue;
+          if (control.matches('input[type="checkbox"], input[type="radio"]')) {
+            control.checked = false;
+          } else if (control.tagName === "SELECT") {
+            control.selectedIndex = 0;
+          } else {
+            control.value = "";
+          }
+        }
+      } else {
+        formulario.reset();
+      }
       setTodayDate();
       poblarMenus();
       document.getElementById('optometra').value = "DR. YOHNNIER RAMOS";
