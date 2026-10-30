@@ -116,6 +116,7 @@ async function change(item,state,button){
    .eq("id",item.id).eq("estado",item.estado).select("id").maybeSingle();
   if(error||!data)throw Error("No se pudo confirmar el cambio. Puede que otro usuario haya actualizado la orden.");
   await load();
+  window.dispatchEvent(new Event("tsys:laboratorio-actualizado"));
  }catch(e){status("lab-list-status",e.message||"No se pudo actualizar el pedido.")}
  finally{busy=false;button.disabled=false}
 }
