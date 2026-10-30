@@ -1413,6 +1413,22 @@ async function saveClinicalHistory() {
     direccion: String(d.direccion || "").trim() || null,
     eps: String(d.eps || "").trim() || null
   };
+  // Una consulta iniciada desde una ficha no puede cambiar silenciosamente de paciente.
+  if (currentPatientId) {
+    const {data:linkedPatient,error:patientCheckError}=await supabase
+      .from("pacientes_tsysoptics")
+      .select("id,tipo_documento,documento")
+      .eq("id",currentPatientId).maybeSingle();
+    if (patientCheckError || !linkedPatient) {
+      clinicalMessage("No se pudo verificar el paciente vinculado. Vuelve a su ficha antes de guardar.");
+      return;
+    }
+    if (String(linkedPatient.tipo_documento).toUpperCase()!==type ||
+        String(linkedPatient.documento).trim().toUpperCase()!==documentNumber) {
+      clinicalMessage("El documento no coincide con el paciente seleccionado. No se guardó la consulta.");
+      return;
+    }
+  }
   saveBusy = true;
   if (saveButton) saveButton.disabled = true;
   if (saveButtonText) saveButtonText.textContent = "Guardando…";
