@@ -897,7 +897,15 @@ function applyDashboardRole(role){
  render();
 }
 window.addEventListener("tsys:role",e=>applyDashboardRole(e.detail.role));
-window.addEventListener("tsys:locked",()=>{currentRole=null;});
+window.addEventListener("tsys:locked",()=>{
+ currentRole=null;
+ ventasTotalRemoto=null;ventasHoy=null;inventoryCount=null;agendaCount=null;labProceso=null;labEntregas=null;
+ for(const id of ["metric-ventas","metric-ventas-hoy","metric-ventas-mes","metric-citas-programadas","metric-productos","metric-citas","metric-lab-proceso","metric-lab-entregas"]){
+  const el=document.getElementById(id);if(el)el.textContent="…";
+ }
+ const warning=document.getElementById("dashboard-alerta-stock");if(warning){warning.hidden=true;warning.textContent="";}
+ navigate("inicio");
+});
 render();lens();
 // Respetar el módulo solicitado desde la navegación inferior de las subpáginas.
 // No se permite activar páginas inexistentes ni eludir los permisos por URL.
