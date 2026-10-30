@@ -1,5 +1,6 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+import {generateLabOrderPdf,downloadLabPdf} from "./orden-laboratorio-pdf.js?v=1";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
  auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
 });
@@ -41,6 +42,22 @@ function render(){
   if(item.observaciones)info.append(node("small",item.observaciones));
   if(item.fecha_recepcion)info.append(node("small","Recibido: "+formatDate(item.fecha_recepcion)));
   if(item.fecha_entrega_paciente)info.append(node("small","Entregado: "+formatDate(item.fecha_entrega_paciente)));
+  const print=node("button","Orden media carta (PDF)","btn alt");
+  print.type="button";print.style.margin="4px";
+  print.addEventListener("click",async()=>{
+   if(!authorized)return;
+   print.disabled=true;
+   status("lab-list-status","Preparando orden media carta…");
+   try{
+    if(!(await admin())){clear();return;}
+    const file=await generateLabOrderPdf(db,item);
+    downloadLabPdf(file);
+    status("lab-list-status","Orden descargada. Imprime en papel media carta al 100 %.");
+   }catch(error){
+    status("lab-list-status",error?.message||"No se pudo preparar la orden.");
+   }finally{print.disabled=false}
+  });
+  actions.append(print);
   for(const state of next[item.estado]||[]){
    const btn=node("button",labels[state],"btn alt");btn.type="button";
    btn.style.margin="4px";btn.addEventListener("click",()=>change(item,state,btn));actions.append(btn);
