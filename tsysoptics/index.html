@@ -328,6 +328,13 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   </label>
   <p class="muted" id="venta-lente-ayuda">Para vender lentes, primero registra cada tipo y su precio en Inventario. Después selecciónalo aquí junto con la montura. El total se calcula con ambas referencias y el servidor comprueba el precio y las existencias.</p>
   <button class="btn alt" type="button" id="venta-ir-inventario-lentes" data-go="inventario">Registrar lente y precio en Inventario</button>
+  <div class="card" style="background:#f1f5fa;border:1px solid #d4deec;padding:12px">
+   <label>Lente oftálmico para esta venta
+    <select id="venta-lente-producto"><option value="">Seleccionar lente y precio</option></select>
+   </label>
+   <p class="muted" id="venta-lente-precio" role="status">Selecciona un lente registrado en Inventario para ver su precio y disponibilidad.</p>
+   <button type="button" class="btn alt" id="venta-agregar-lente">Agregar lente al carrito</button>
+  </div>
   <label>Cantidad <input name="cantidad" id="venta-cantidad" type="number" min="1" step="1" value="1" required></label>
   <button class="btn alt" type="button" id="venta-agregar-producto">Agregar al carrito</button>
   <div class="list" id="venta-carrito"></div>
