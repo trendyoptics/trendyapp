@@ -1,36 +1,30 @@
-# TsysOptics · Prueba de inicio de sesión (tercera tanda)
+# Acceso y perfiles de TsysOptics · Estado actual
 
-El panel está protegido visualmente por autenticación Supabase y exige una fila propia activa con rol `administrador` en `public.usuarios_tsysoptics`. **No equivale a seguridad de producción:** siguen pendientes pruebas, endurecimiento de configuración, despliegue y un backend seguro para datos clínicos.
+Esta es la documentación vigente del **piloto TrendyOptics**, no una instrucción de lanzamiento comercial.
 
-## Configuración necesaria
+## Autenticación
 
-1. Supabase → **Project Settings → API Keys**. Copiar únicamente la **publishable key** que comienza con `sb_publishable_`.
-2. En el archivo `tsysoptics/supabase-config.js` de GitHub (rama de desarrollo), cambiar `PENDIENTE_CLAVE_PUBLICABLE` por la clave publicable. No copiar ni publicar `sb_secret_*`, `service_role`, JWT secret ni contraseñas.
-3. Supabase → **Authentication → URL Configuration**, configurar:
-   - Site URL: `https://trendyoptics.github.io/trendyapp/tsysoptics/`
-   - Additional Redirect URL: `https://trendyoptics.github.io/trendyapp/tsysoptics/`
-   (solo tras preparar una versión desplegada y probar los flujos de acceso).
-4. La pantalla requiere contraseña. Si la cuenta se creó por invitación sin contraseña, restablecerla usando **¿Olvidaste tu contraseña?** una vez publicado el sitio y configuradas sus URLs. Para pruebas sin correo se puede configurar una contraseña desde administración en un ambiente de desarrollo separado, nunca compartirla aquí.
-5. Para publicar esta rama en Pages tras la revisión, fusionar el PR #1. La ruta nueva será `https://trendyoptics.github.io/trendyapp/tsysoptics/`, manteniendo la aplicación clínica de la raíz sin cambios.
+La aplicación web usa Supabase Auth en `https://trendyoptics.github.io/trendyapp/tsysoptics/`. El panel comprueba la sesión con `auth.getUser()` y consulta un perfil activo en `usuarios_tsysoptics`. Los permisos efectivos de los datos deben comprobarse en PostgreSQL/RLS y en las funciones RPC, nunca solamente en controles visuales.
 
-## Verificaciones funcionales
+El archivo `supabase-config.js` incluye **solo** la URL y clave publicable. No agregar ninguna contraseña, clave `service_role`, `sb_secret_*` o token a la aplicación pública.
 
-- Sin sesión → pantalla de login, panel oculto
-- Clave incorrecta → no entra
-- Usuario autenticado sin fila activa de administrador → acceso denegado
-- Administrador activo → panel piloto visible
-- Cerrar sesión → panel oculto
-- Recuperación de contraseña → correo con redirección correcta y actualización real
-- En otra ventana/navegador la sesión no se comparte automáticamente
-- Módulos de agenda/ventas/inventario → solo datos ficticios en almacenamiento local
+## Perfiles en el piloto
 
-## Aviso clínico
+- **Administrador:** acceso completo a los módulos disponibles.
+- **Externo:** acceso limitado a pacientes e historias marcados DEMO, sin ventas/inventario/caja/laboratorio/informes.
+- **Asesor** y **optómetra comercial:** la matriz de permisos para estos perfiles aún requiere diseño y pruebas; no anunciarla como funcional.
+- **Cuentas desactivadas o sin rol autorizado:** deben carecer de acceso a operaciones internas. Las pruebas de lectura SQL de la auditoría confirman bloqueo de los recursos examinados, pero no sustituyen pruebas HTTP autenticadas.
 
-El archivo original `../index.html` **no está protegido** por este login. El enlace "Historia clínica" conduce a la app anterior, de acceso público, con su flujo previo a Google Apps Script. **No usar el panel piloto como si protegiera ese módulo clínico.** Antes de datos reales: separar frontend clínico protegido, backend privado, roles y RLS para datos de pacientes, auditoría, respaldo y test de permisos de acceso indebido. La aplicación actual debe migrarse de forma controlada.
+## Historia clínica principal
 
-## Estado
+El `index.html` de la raíz ahora contiene un control de sesión y perfil administrador que usa Supabase. Las historias clínicas se guardan mediante la RPC protegida `guardar_historia_clinica_tsysoptics`. La aplicación anterior y el material de migración pueden aparecer en archivos históricos del repositorio; no son instrucciones vigentes para insertar registros en Google Sheets.
 
-- Migración SQL 001 ejecutada por usuario: tres tablas y RLS habilitado.
-- Migración SQL 002 ejecutada por usuario: lectura de perfil propio, sin lecturas públicas de pacientes/historias.
-- Administrador insertado por usuario y confirmado mediante consulta `rol=administrador, activo=true`.
-- Login agregado a rama de revisión, todavía sin clave publicable ni despliegue verificado.
+## Recuperación de contraseña
+
+Usar la opción de recuperación del login, que depende de URL de redirección autorizada en Supabase Auth. Para un entorno comercial se requieren reglas de contraseñas, comprobación de contraseñas comprometidas cuando el plan lo permita, MFA y criterios de revocación de sesiones.
+
+## Seguridad y salida comercial
+
+El diagnóstico y sus limitaciones están en [auditoria/INFORME_PRECOMERCIAL.md](auditoria/INFORME_PRECOMERCIAL.md). Los datos siguen en una base diseñada para **una sola óptica**, y el proyecto Supabase auditado utiliza plan Free. No abrir cuentas a terceros como si ya existiera aislamiento multiempresa o restauración garantizada.
+
+**Importante:** una clave publicable no es un secreto, pero eso **no** convierte a los datos en públicos. El sistema solo será vendible cuando se pruebe una arquitectura aislada y procedimientos reales de respaldo/restauración.
