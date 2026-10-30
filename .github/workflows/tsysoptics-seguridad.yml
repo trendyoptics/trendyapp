@@ -1,0 +1,30 @@
+name: TsysOptics - controles de seguridad estaticos
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "tsysoptics/**"
+      - ".github/workflows/tsysoptics-seguridad.yml"
+  pull_request:
+    paths:
+      - "index.html"
+      - "tsysoptics/**"
+      - ".github/workflows/tsysoptics-seguridad.yml"
+permissions:
+  contents: read
+jobs:
+  controles-estaticos:
+    name: Validaciones sin acceso a pacientes ni a Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          check-latest: false
+      - name: Ejecutar pruebas de regresion
+        run: node --test tsysoptics/auditoria/controles-estaticos.test.mjs
