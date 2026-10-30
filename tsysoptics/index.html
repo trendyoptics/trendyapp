@@ -388,7 +388,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
     <input id="venta-lente-cantidad" type="number" min="1" max="20" step="1" value="1" />
    </label>
    <button type="button" class="btn alt" id="venta-agregar-lente">Registrar lente y agregar al carrito</button>
-   <p id="venta-lente-status" class="muted" role="status" aria-live="polite">Puedes modificar el nombre y el precio después de seleccionar un lente.</p>
+   <p id="venta-lente-status" class="muted" role="status" aria-live="polite">Selecciona o escribe un lente, revisa el precio y pulsa Registrar. Se solicitará confirmación antes de guardar en Inventario.</p>
   </div>
 
   <div class="list" id="venta-carrito"></div>
@@ -780,7 +780,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
 }
 })();
 </script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script><script type="module" src="./informes.js?v=20261030c5"></script>
-<script type="module" src="./finanzas.js?v=20261030c5"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030informes"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+<script type="module" src="./finanzas.js?v=20261030c5"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030lensfixmobile"></script><script type="module" src="./caja.js?v=20261030informes"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
