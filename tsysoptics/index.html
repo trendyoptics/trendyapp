@@ -521,7 +521,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   </form>
   <div class="card">
    <div class="cot-toolbar"><h2>Historial y seguimiento</h2><button class="btn alt" type="button" id="cot-refrescar" disabled>Actualizar</button></div>
-   <label>Mostrar <select id="cot-filtro"><option value="">Todas</option><option value="borrador">Borrador</option><option value="enviada">Enviadas</option><option value="aprobada">Aprobadas</option><option value="vencida">Vencidas</option><option value="rechazada">Rechazadas</option><option value="convertida">Convertidas</option></select></label>
+   <label>Mostrar <select id="cot-filtro"><option value="">Todas</option><option value="pendiente">Pendientes vigentes</option><option value="borrador">Borrador</option><option value="enviada">Enviadas</option><option value="aprobada">Aprobadas</option><option value="vencida">Vencidas</option><option value="rechazada">Rechazadas</option><option value="convertida">Convertidas</option></select></label>
    <p id="cot-status" class="muted" role="status" aria-live="polite">Verificando acceso…</p>
    <div id="cot-lista" class="list"></div>
   </div>
@@ -820,6 +820,7 @@ let patientsModuleStarted=false;
 function navigate(p){if(p==="pacientes"&&!patientsModuleStarted){patientsModuleStarted=true;import("./pacientes-spa.js?v=1").catch(()=>{patientsModuleStarted=false;toast("No se pudo cargar Pacientes. Intenta de nuevo.");});}if(!canNavigate(p)){toast("Módulo reservado al administrador.");return;}document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===p));document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===p));scrollTo({top:0,behavior:"instant"})}
 document.querySelectorAll("[data-page]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.page)));
 document.querySelectorAll("[data-go]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.go)));
+document.getElementById("quick-cotizaciones-pendientes")?.addEventListener("click",()=>window.dispatchEvent(new Event("tsys:cotizaciones-ver-pendientes")));
 function list(id,records,format,remove){const el=$(id);el.replaceChildren();if(!records.length){el.append(node("p","Sin registros de prueba."));return}for(const r of records){const row=node("div","");row.className="item";const info=node("div","");info.append(node("strong",format(r)[0]),node("small",format(r)[1]));row.append(info);if(remove){const b=node("button","Eliminar");b.type="button";b.addEventListener("click",()=>{data[remove]=data[remove].filter(x=>x.id!==r.id);save();render()});row.append(b)}el.append(row)}}
 function render(){
  $("metric-citas").textContent=currentRole==="administrador"?(agendaCount===null?"…":String(agendaCount)):data.citas.length;
@@ -881,7 +882,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
 })();
 </script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script>
 <script type="module" src="./posventa.js?v=20261030c6"></script>
-<script type="module" src="./cotizaciones.js?v=20261030ciclo8-dashboard"></script><script type="module" src="./informes.js?v=20261030c5"></script>
+<script type="module" src="./cotizaciones.js?v=20261030ciclo8-pendientes"></script><script type="module" src="./informes.js?v=20261030c5"></script>
 <script type="module" src="./finanzas.js?v=20261030c5"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030sin-cot-link"></script><script type="module" src="./caja.js?v=20261030cotizaciones"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
