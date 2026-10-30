@@ -175,7 +175,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 document.addEventListener("click",function(event){
  const control=event.target.closest("a,button,[role=button]");
  if(!control||control.closest("#pacientes"))return;
- const name=(control.textContent||"").replace(/\\s+/g," ").trim().toLocaleLowerCase("es-CO");
+ const name=(control.textContent||"").replace(/\s+/g," ").trim().toLocaleLowerCase("es-CO");
  if(name!=="pacientes")return;
  const rect=control.getBoundingClientRect();
  const inBottom=rect.top>=window.innerHeight-190&&rect.bottom<=window.innerHeight+5;
