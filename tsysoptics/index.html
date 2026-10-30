@@ -587,7 +587,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030b"></script><script type="module" src="./ventas.js?v=20261029a"></script><script type="module" src="./caja.js?v=20261029g"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030b"></script><script type="module" src="./ventas.js?v=20261030validacion"></script><script type="module" src="./caja.js?v=20261029g"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
@@ -609,6 +609,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
   <div class="recibo-acciones">
    <button class="btn alt" id="venta-cerrar-comprobante" type="button">Cerrar</button>
    <button class="btn" id="venta-imprimir-comprobante" type="button">Imprimir / guardar PDF</button>
+   <button class="btn alt" id="venta-whatsapp-comprobante" type="button">Compartir por WhatsApp</button>
   </div>
   <h2 id="venta-recibo-titulo">Trendy Optics · Comprobante interno</h2>
   <p id="venta-recibo-meta"></p>
