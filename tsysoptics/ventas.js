@@ -90,6 +90,8 @@ voidForm.addEventListener("submit",async e=>{
   }
   voidToken=crypto.randomUUID();voidModal.hidden=true;voidForm.reset();saleToVoid=null;
   await refresh();
+  window.dispatchEvent(new Event("tsys:ventas-actualizadas"));
+  window.dispatchEvent(new Event("tsys:inventario-refrescar"));
   displayStatus("ventas-list-status","Anulación confirmada en Supabase: existencias reintegradas con auditoría.");
  }catch{
   voidMessage.textContent="No se confirmó la operación. Actualiza el historial antes de repetirla.";
