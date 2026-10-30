@@ -36,14 +36,15 @@ function render(){
  if(!rows.length){root.append(node("p","No hay órdenes para este filtro.","muted"));return}
  for(const item of rows){
   const sale=sales.find(s=>s.id===item.venta_id);
-  const row=node("div",undefined,"item"),info=node("div"),actions=node("div");
+  const row=node("div",undefined,"item lab-item"),info=node("div",undefined,"lab-item-info"),actions=node("div",undefined,"lab-item-actions");
   info.append(node("strong","Venta V-"+String(sale?.numero||"—").padStart(6,"0")+" · "+item.laboratorio));
-  info.append(node("small","Estado: "+labels[item.estado]+" · Entrega prevista: "+formatDate(item.fecha_entrega_estimada)));
+  info.append(node("span",labels[item.estado],"lab-status"));
+  info.append(node("small","Entrega prevista: "+formatDate(item.fecha_entrega_estimada)));
   if(item.observaciones)info.append(node("small",item.observaciones));
   if(item.fecha_recepcion)info.append(node("small","Recibido: "+formatDate(item.fecha_recepcion)));
   if(item.fecha_entrega_paciente)info.append(node("small","Entregado: "+formatDate(item.fecha_entrega_paciente)));
   const print=node("button","Orden media carta (PDF)","btn alt");
-  print.type="button";print.style.margin="4px";
+  print.type="button";
   print.addEventListener("click",async()=>{
    if(!authorized)return;
    print.disabled=true;
@@ -60,7 +61,7 @@ function render(){
   actions.append(print);
   for(const state of next[item.estado]||[]){
    const btn=node("button",labels[state],"btn alt");btn.type="button";
-   btn.style.margin="4px";btn.addEventListener("click",()=>change(item,state,btn));actions.append(btn);
+   btn.addEventListener("click",()=>change(item,state,btn));actions.append(btn);
   }
   row.append(info,actions);root.append(row);
  }

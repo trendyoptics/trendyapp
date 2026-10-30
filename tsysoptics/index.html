@@ -119,6 +119,49 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 @media print{#venta-anular-modal{display:none!important}}
  
  #tsys-auth-loading[hidden],#auth-root[hidden]{display:none!important}
+
+/* Laboratorio táctil: adaptado a móvil, tablet y escritorio */
+#laboratorio .lab-item{min-width:0;align-items:flex-start;gap:12px}
+#laboratorio .lab-item-info{flex:1 1 240px;min-width:0;overflow-wrap:anywhere}
+#laboratorio .lab-item-info small{display:block;line-height:1.55;margin-top:4px;white-space:normal}
+#laboratorio .lab-item-actions{display:flex;flex:0 1 235px;justify-content:flex-end;align-items:stretch;flex-wrap:wrap;gap:7px;min-width:0}
+#laboratorio .lab-item-actions button{flex:1 1 98px;min-height:43px;line-height:1.3;font-size:12px;font-weight:650;text-align:center;margin:0!important;white-space:normal}
+#laboratorio .lab-status{display:inline-flex;align-items:center;padding:3px 8px;border-radius:99px;background:#e9edf4;color:#0b1c40;font-size:11px;font-weight:750}
+#laboratorio .form select,#laboratorio .form input,#laboratorio .form textarea{max-width:100%;font-size:16px}
+#laboratorio .card{min-width:0}
+#laboratorio #lab-guardar,#laboratorio #lab-actualizar{min-height:44px}
+/* Informes mensuales legibles y exportables */
+#informes .report-toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:10px}
+#informes .report-toolbar label{display:grid;gap:4px;color:#34445d;font-size:12px;font-weight:700;flex:1 1 185px}
+#informes .report-toolbar input{min-height:44px;width:100%;padding:8px 10px;border:1px solid #bfc9d8;border-radius:9px;font:inherit;font-size:16px;color:#0b1c40;background:#fff}
+#informes .report-toolbar button{min-height:44px;flex:1 1 145px}
+#informes .report-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+#informes .report-metric{min-width:0;background:white;border:1px solid #dce3ec;border-radius:12px;padding:15px}
+#informes .report-metric span{display:block;color:#585f73;font-size:12px;font-weight:650}
+#informes .report-metric strong{display:block;color:#0b1c40;margin-top:6px;font-size:clamp(15px,2vw,23px);overflow-wrap:anywhere}
+#informes .report-metric small{display:block;color:#66758c;font-size:11px;margin-top:5px}
+#informes .report-grids{margin-top:12px}
+#informes .report-list{display:grid;gap:9px}
+#informes .report-list .item{align-items:center;min-width:0}
+#informes .report-list small{display:block;color:#68778c}
+#informes .report-list strong{overflow-wrap:anywhere}
+@media(max-width:950px){#informes .report-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){
+ #laboratorio .cols{display:grid;grid-template-columns:minmax(0,1fr)}
+ #laboratorio .lab-item{flex-direction:column;align-items:stretch;width:100%;padding:13px}
+ #laboratorio .lab-item-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));flex:auto;gap:8px}
+ #laboratorio .lab-item-actions button{width:100%;min-width:0;padding:10px 7px;min-height:46px}
+ #laboratorio .lab-item-info{flex:auto;min-width:0}
+ #laboratorio #lab-guardar,#laboratorio #lab-actualizar{width:100%;min-height:48px}
+ #informes .report-summary{gap:8px}
+ #informes .report-metric{padding:11px}
+ #informes .report-metric strong{font-size:16px}
+ #informes .report-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ #informes .report-toolbar label{grid-column:1/-1}
+ #informes .report-toolbar #informe-generar{grid-column:1/-1}
+ #informes .report-toolbar button{min-height:48px;width:100%}
+ #informes .report-list .item{flex-direction:column;align-items:flex-start}
+}
 </style><style>
 @view-transition { navigation: auto; }
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.16s;animation-timing-function:ease-out}
@@ -152,9 +195,9 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </section>
 <div id="tsys-app" hidden><div class="layout">
 <aside class="sidebar"><div class="brand"><img src="logo.svg" data-tsys-logo alt="Logo de la óptica"><span><b>TsysOptics</b><small data-tsys-business>Trendy Optics</small><small class="brand-attribution">Sistema de gestión</small></span></div><nav aria-label="Módulos">
-<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><button type="button" data-page="pacientes">♙ &nbsp; Pacientes</button><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="laboratorio">▤ &nbsp; Laboratorio</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
+<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><button type="button" data-page="pacientes">♙ &nbsp; Pacientes</button><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="laboratorio">▤ &nbsp; Laboratorio</button><button data-page="informes">▥ &nbsp; Informes</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
 <div class="main"><header class="top"><strong data-tsys-page-title>TsysOptics | Trendy Optics</strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
-<div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><button type="button" data-page="pacientes">Pacientes</button><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="laboratorio">Pedidos</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">Clínica ↗</a></div>
+<div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><button type="button" data-page="pacientes">Pacientes</button><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="laboratorio">Pedidos</button><button data-page="informes">Informes</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">Clínica ↗</a></div>
 <main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda, Inventario, Ventas y Caja de prueba utilizan Supabase. <strong>Simulador óptico sigue siendo un esquema de demostración.</strong> Caja dispone de apertura, arqueo y cierre de turnos en modalidad de prueba. No incluye facturación electrónica DIAN ni autorización para uso en producción.</div>
 <section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historias, agenda, inventario y ventas de prueba centralizados en Supabase.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small id="metric-ventas-origen">Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><button type="button" data-page="pacientes">Pacientes (Supabase)</button><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="caja">▣ &nbsp; Abrir Caja</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
 <section class="page" id="pacientes"><div class="patients-spa-content"><div id="loading" class="card" role="status">Verificando permisos de acceso…</div>
@@ -425,9 +468,35 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
     <button type="button" class="btn alt" id="lab-actualizar">Actualizar pedidos</button>
    </div>
    <p id="lab-list-status" class="muted" role="status" aria-live="polite"></p>
-   <p class="muted">Cada pedido tiene un botón <strong>Orden media carta (PDF)</strong> para imprimir la fórmula y las especificaciones y acompañar la montura al laboratorio. No incluye precios ni abonos. <strong>Tamaño real: media carta (13,97 × 21,59 cm).</strong> Al imprimir, selecciona papel «Media carta / Half Letter» y escala 100 %. La vista previa puede ampliarse en pantalla sin cambiar el tamaño del documento.</p>
+   <p class="muted">Cada pedido tiene un botón <strong>Orden media carta (PDF)</strong> para imprimir la fórmula y las especificaciones y acompañar la montura al laboratorio. No incluye precios ni abonos. <strong>Tamaño real: media carta horizontal (21,59 × 13,97 cm).</strong> Al imprimir, selecciona papel «Media carta / Half Letter» y escala 100 %. La vista previa puede ampliarse en pantalla sin cambiar el tamaño del documento.</p>
    <div class="list" id="lab-lista"></div>
   </div>
+ </div>
+</section>
+<section class="page" id="informes">
+ <span class="label">GESTIÓN ADMINISTRATIVA · CIERRE MENSUAL</span>
+ <h1>Informes y cierre de mes</h1>
+ <p class="muted">Consulta las ventas del mes seleccionado, cobros recibidos en ese periodo, saldos de las ventas, movimientos de caja, productos vendidos y pedidos. El inventario es una <strong>foto actual</strong> tomada al generar el informe: no representa automáticamente las existencias al final de un mes pasado.</p>
+ <div class="card report-controls">
+  <div class="report-toolbar">
+   <label for="informe-mes">Mes a consultar
+    <input type="month" id="informe-mes" aria-label="Mes del informe" required>
+   </label>
+   <button id="informe-generar" class="btn" type="button">Generar informe</button>
+   <button id="informe-pdf" class="btn alt" type="button" disabled>Exportar PDF</button>
+   <button id="informe-csv" class="btn alt" type="button" disabled>Exportar Excel (CSV)</button>
+  </div>
+  <p id="informe-status" class="muted" role="status" aria-live="polite">Selecciona un mes y genera el informe.</p>
+ </div>
+ <div id="informe-resultado" hidden>
+  <div class="report-summary" id="informe-indicadores"></div>
+  <div class="cols report-grids">
+   <div class="card"><h2>Recaudos por medio de pago</h2><div id="informe-medios"></div></div>
+   <div class="card"><h2>Ventas y productos más vendidos</h2><div id="informe-productos"></div></div>
+   <div class="card"><h2>Inventario actual</h2><div id="informe-stock"></div></div>
+   <div class="card"><h2>Laboratorio y caja</h2><div id="informe-laboratorio"></div></div>
+  </div>
+  <p class="muted" id="informe-nota"></p>
  </div>
 </section>
 <section class="page" id="caja">
@@ -608,7 +677,7 @@ const $=id=>document.getElementById(id),cop=n=>new Intl.NumberFormat("es-CO",{st
 const node=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;return e};
 const save=()=>{try{localStorage.setItem(key,JSON.stringify(data));toast("Guardado localmente como prueba.")}catch{toast("No se pudo guardar en este navegador.")}};
 let timer;function toast(s){$("notice").textContent=s;$("notice").hidden=false;clearTimeout(timer);timer=setTimeout(()=>$("notice").hidden=true,3000)}
-function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas","caja","laboratorio"].includes(page)}
+function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas","caja","laboratorio","informes"].includes(page)}
 let patientsModuleStarted=false;
 function navigate(p){if(p==="pacientes"&&!patientsModuleStarted){patientsModuleStarted=true;import("./pacientes-spa.js?v=1").catch(()=>{patientsModuleStarted=false;toast("No se pudo cargar Pacientes. Intenta de nuevo.");});}if(!canNavigate(p)){toast("Módulo reservado al administrador.");return;}document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===p));document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===p));scrollTo({top:0,behavior:"instant"})}
 document.querySelectorAll("[data-page]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.page)));
@@ -631,7 +700,7 @@ function applyDashboardRole(role){
  currentRole=role;
  const limited=role!=="administrador";
  const details=document.getElementById("access-details");
- if(details)details.textContent=limited?"Inventario, ventas y caja bloqueados. Agenda de prueba y simulador disponibles.":"Acceso administrativo a agenda, inventario, ventas y caja de prueba en Supabase.";
+ if(details)details.textContent=limited?"Inventario, ventas, caja, laboratorio e informes bloqueados. Agenda de prueba y simulador disponibles.":"Acceso administrativo a agenda, inventario, ventas, caja, laboratorio e informes en Supabase.";
  const ventasOrigin=document.getElementById("metric-ventas-origen");
  if(ventasOrigin)ventasOrigin.textContent=limited?"Demo local":"Supabase";
  const inventarioOrigin=document.getElementById("metric-productos-origen");
@@ -662,12 +731,12 @@ render();lens();
 // No se permite activar páginas inexistentes ni eludir los permisos por URL.
 const params=new URLSearchParams(location.search);
 const requestedModule=params.get("modulo") || (params.get("vista")==="apariencia"?"apariencia":null);
-if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","simulador","apariencia"].includes(requestedModule)) {
+if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","informes","simulador","apariencia"].includes(requestedModule)) {
  if(canNavigate(requestedModule)) navigate(requestedModule);
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030lentes3"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script><script type="module" src="./informes.js?v=20261030c4"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030informes"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
