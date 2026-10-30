@@ -170,18 +170,17 @@ function normalizeProductSearch(text){
 }
 function updateProductButton(){
  const product=products.find(p=>p.id===productSelect.value);
- const kind=product?.tipo==="Lente oftálmico"?"lente":
-   product?.tipo==="Accesorio"?"accesorio":"montura";
- $("venta-agregar-producto").textContent="Agregar "+kind+" al carrito";
+ $("venta-agregar-producto").textContent="Agregar montura al carrito";
 }
 productSelect.addEventListener("change",updateProductButton);
 function fillOptions(){
  const previously=productSelect.value;
  const query=window.matchMedia("(max-width: 850px)").matches
   ?normalizeProductSearch(mobileProductFilter.trim()):"";
- const available=products.filter(p=>p.activo&&p.cantidad>0&&
+ // Este selector muestra solamente monturas; los lentes tienen su propio bloque.
+ const available=products.filter(p=>p.tipo==="Montura"&&p.activo&&p.cantidad>0&&
   (!query||normalizeProductSearch(p.codigo+" "+p.nombre).includes(query)));
- productSelect.replaceChildren(new Option("Seleccionar referencia",""));
+ productSelect.replaceChildren(new Option("Seleccionar montura",""));
  for(const p of available){
   const opt=new Option(p.codigo+" · "+p.nombre+" · "+money(p.precio_venta)+" ("+p.cantidad+" uds)",p.id);
   productSelect.append(opt);
@@ -521,6 +520,7 @@ $("venta-agregar-producto").addEventListener("click",()=>{
  const id=productSelect.value;
  const qty=Number(form.elements.cantidad.value);
  const p=products.find(x=>x.id===id);
+ if(p&&p.tipo!=="Montura"){displayStatus("venta-form-status","Este selector admite solamente monturas. Para lentes usa su apartado independiente.");return}
  if(!p||!Number.isSafeInteger(qty)||qty<1){
   displayStatus("venta-form-status","Selecciona una referencia y una cantidad entera válida.");
   return;
@@ -621,7 +621,7 @@ function reset(){
  window.tsysVentasMobileReset?.();
  receiptClose();
  saleList.replaceChildren();cartRoot.replaceChildren();
- productSelect.replaceChildren(new Option("Seleccionar referencia",""));
+ productSelect.replaceChildren(new Option("Seleccionar montura",""));
  lensCatalog.value="";lensName.value="";lensPrice.value="";lensQuantity.value="1";
  displayStatus("venta-lente-status","");
  window.dispatchEvent(new CustomEvent("tsys:ventas-carrito",{detail:{unidades:0,total:0}}));
