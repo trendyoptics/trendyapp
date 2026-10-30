@@ -475,7 +475,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  </div>
 </section>
 <section class="page" id="informes">
- <span class="label">GESTIÓN ADMINISTRATIVA · CIERRE MENSUAL</span>
+ <span class="label">CICLO 4 Y 5 · INFORMES, GASTOS Y CIERRES</span>
  <h1>Informes y cierre de mes</h1>
  <p class="muted">Consulta las ventas del mes seleccionado, cobros recibidos en ese periodo, saldos de las ventas, movimientos de caja, productos vendidos y pedidos. El inventario es una <strong>foto actual</strong> tomada al generar el informe: no representa automáticamente las existencias al final de un mes pasado.</p>
  <div class="card report-controls">
@@ -489,7 +489,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
    <button id="informe-csv" class="btn alt" type="button" disabled>CSV (alternativo)</button>
   </div>
   <p id="informe-status" class="muted" role="status" aria-live="polite">Selecciona un mes y genera el informe.</p>
-  <p class="muted">El Excel descarga un archivo <strong>.xlsx</strong> con pestañas y filtros para ventas, recaudos, productos, inventario actual, laboratorio y caja. El PDF es un resumen administrativo listo para imprimir. El CSV se conserva como alternativa sin formato.</p>
+  <p class="muted">El Excel descarga un archivo <strong>.xlsx</strong> con pestañas y filtros para ventas, recaudos, gastos, productos, inventario actual, laboratorio, caja y cierres históricos. El PDF es un resumen administrativo listo para imprimir. El CSV se conserva como alternativa sin formato.</p>
  </div>
  <div id="informe-resultado" hidden>
   <div class="report-summary" id="informe-indicadores"></div>
@@ -779,7 +779,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script><script type="module" src="./informes.js?v=20261030excel-pdf-v3"></script>
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script><script type="module" src="./informes.js?v=20261030c5"></script>
 <script type="module" src="./finanzas.js?v=20261030c5"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030informes"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
