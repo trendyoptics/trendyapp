@@ -17,7 +17,7 @@ async function isAdmin(){
 }
 function reset(){
  allowed=false;request++;items=[];products=[];patients=[];quotes=[];
- for(const id of ["cot-items","cot-lista","cot-paciente","cot-producto"])$(id).replaceChildren();
+ for(const id of ["cot-items","cot-lista"])$(id).replaceChildren();
  $("cot-guardar").disabled=true;$("cot-refrescar").disabled=true;set("cot-status","Acceso reservado al administrador.");
 }
 function options(id,values,placeholder){
@@ -29,7 +29,7 @@ function renderItems(){
  const box=$("cot-items");box.replaceChildren();
  for(const [index,x] of items.entries()){
   const row=el("div",undefined,"item cot-item"),info=el("div");
-  info.append(el("strong",x.nombre+" · "+x.codigo));
+  info.append(el("strong",(x.tipo?x.tipo+" · ":"")+x.nombre));
   info.append(el("small",x.cantidad+" x "+money(x.precio_unitario)+" = "+money(x.cantidad*x.precio_unitario)));
   const del=el("button","Quitar","btn alt");del.type="button";
   del.addEventListener("click",()=>{items.splice(index,1);renderItems()});
@@ -38,18 +38,22 @@ function renderItems(){
  if(!items.length)box.append(el("p","Sin productos cotizados. Añade monturas o lentes del catálogo.","muted"));
  set("cot-total",money(items.reduce((sum,x)=>sum+x.cantidad*x.precio_unitario,0)));
 }
-function addItem(){
- const p=products.find(p=>p.id===$("cot-producto").value);
- const quantity=Number($("cot-cantidad").value);
- const price=num($("cot-precio").value);
- if(!p||!Number.isSafeInteger(quantity)||quantity<1||quantity>100||!Number.isFinite(price)||price<0||price>999999999){
-  set("cot-form-status","Selecciona un producto, cantidad entre 1 y 100 y precio válido.");return;
+function addItem(tipo){
+ const montura=tipo==="Montura";
+ const descripcion=$(montura?"cot-montura-descripcion":"cot-lente-descripcion");
+ const cantidad=$(montura?"cot-montura-cantidad":"cot-lente-cantidad");
+ const precio=$(montura?"cot-montura-precio":"cot-lente-precio");
+ const nombre=descripcion.value.trim().toLocaleUpperCase("es-CO");
+ const n=Number(cantidad.value),unit=num(precio.value);
+ if(nombre.length<3||nombre.length>120){set("cot-form-status","Escribe una descripción de "+(montura?"montura":"lente")+" de 3 a 120 caracteres.");descripcion.focus();return}
+ if(!Number.isSafeInteger(n)||n<1||n>100||!Number.isFinite(unit)||unit<0||unit>999999999){
+  set("cot-form-status","Ingresa cantidad entre 1 y 100 y precio válido para "+(montura?"montura":"lente")+".");return;
  }
- if(items.some(x=>x.producto_id===p.id)){set("cot-form-status","Esa referencia ya está incluida. Quita la anterior para cambiar su cantidad.");return}
- if(items.length>=20){set("cot-form-status","Límite de 20 referencias por cotización.");return}
- items.push({producto_id:p.id,codigo:p.codigo,nombre:p.nombre,cantidad:quantity,precio_unitario:price});
- $("cot-cantidad").value="1";$("cot-producto").value="";$("cot-precio").value="";
- renderItems();set("cot-form-status","Referencia agregada. Aún no modifica Inventario.");
+ if(items.length>=20){set("cot-form-status","Máximo 20 conceptos por cotización.");return}
+ items.push({tipo,nombre,cantidad:n,precio_unitario:unit});
+ descripcion.value="";cantidad.value="1";precio.value="";
+ renderItems();
+ set("cot-form-status",(montura?"Montura":"Lente")+" agregado sin crear referencias de inventario.");
 }
 function quotePatient(q){return patients.find(p=>p.id===q.paciente_id)}
 async function printQuote(q,button){
@@ -72,8 +76,8 @@ async function printQuote(q,button){
   const patient=quotePatient(q);
   for(const line of [
     "Fecha: "+q.fecha+"   Válida hasta: "+q.vigente_hasta,
-    "Cliente: "+(patient?.nombre_completo||"Consumidor final"),
-    "Documento: "+(patient?.documento||"No registrado"),
+    "Cliente: "+(patient?.nombre_completo||"Cliente ocasional"),
+    "Documento: "+(patient?.documento||"No requerido para cotizar"),
     "NIT: "+(business?.nit_optica||"No registrado"),
     "Dirección: "+(business?.direccion_optica||"") + "  Teléfono: "+(business?.telefono_optica||"")
   ]){doc.text(doc.splitTextToSize(line,178),16,y);y+=8;}
@@ -82,7 +86,7 @@ async function printQuote(q,button){
   doc.setFont("helvetica","normal");doc.setTextColor(...gray);
   for(const item of q.items){
    if(y>265){doc.addPage();y=20}
-   const lines=doc.splitTextToSize((item.codigo||"")+" · "+(item.nombre||""),107);
+   const lines=doc.splitTextToSize((item.tipo?item.tipo+" · ":"")+(item.codigo?item.codigo+" · ":"")+(item.nombre||""),107);
    doc.text(lines,17,y);doc.text(String(item.cantidad),139,y,{align:"right"});
    doc.text(money(Number(item.cantidad)*Number(item.precio_unitario)),190,y,{align:"right"});
    y+=Math.max(9,lines.length*5+3);
@@ -94,7 +98,7 @@ async function printQuote(q,button){
   doc.setFont("helvetica","normal");doc.setFontSize(9);
   for(const line of doc.splitTextToSize(q.observaciones||"Cotización informativa sujeta a vigencia.",176)){doc.text(line,16,y);y+=5}
   y+=6;doc.setFontSize(8);doc.setTextColor(...gray);
-  doc.text(doc.splitTextToSize("Esta cotización no representa una venta, no garantiza inventario y no acredita ningún pago. Los precios y las existencias se verifican nuevamente al registrar la venta.",177),16,y);
+  doc.text(doc.splitTextToSize("Presupuesto informativo. No constituye venta, reserva de inventario ni comprobante de pago. Las descripciones son indicadas por la óptica y no obligan a registrar una referencia en Inventario.",177),16,y);
   doc.save("TsysOptics-COT-"+formatNum(q.numero)+".pdf");
   set("cot-status","PDF de cotización descargado.");
  }catch(e){set("cot-status","No se pudo generar PDF: "+(e?.message||e))}
@@ -112,7 +116,7 @@ function renderQuotes(){
   const expired=q.vigente_hasta<today()&&!["convertida","rechazada"].includes(q.estado);
   info.append(el("strong","COT-"+formatNum(q.numero)+" · "+(quotePatient(q)?.nombre_completo||"Consumidor final")));
   info.append(el("small",(states[q.estado]||q.estado)+(expired?" · VENCIDA":"")+" · "+q.fecha+" → "+q.vigente_hasta+" · "+money(q.total)));
-  info.append(el("small",q.items.map(x=>x.cantidad+"× "+x.nombre).join(", ")));
+  info.append(el("small",q.items.map(x=>x.cantidad+"× "+(x.tipo?x.tipo+" · ":"")+x.nombre).join(", ")));
   const pdf=el("button","PDF","btn alt");pdf.type="button";pdf.addEventListener("click",()=>void printQuote(q,pdf));actions.append(pdf);
   const transition=(label,to)=>{
    const b=el("button",label,"btn alt");b.type="button";
@@ -120,7 +124,7 @@ function renderQuotes(){
   };
   if(q.estado==="borrador"){transition("Marcar enviada","enviada");if(!expired)transition("Aprobar","aprobada");transition("Rechazar","rechazada")}
   if(q.estado==="enviada"){if(!expired)transition("Aprobar","aprobada");transition("Rechazar","rechazada")}
-  if(q.estado==="aprobada"){if(!expired){const convert=el("button","Preparar venta","btn");convert.type="button";convert.addEventListener("click",()=>prepare(q));actions.append(convert)}transition("Rechazar","rechazada")}
+  if(q.estado==="aprobada"){if(!expired&&q.items.every(x=>Boolean(x.producto_id))){const convert=el("button","Preparar venta","btn");convert.type="button";convert.addEventListener("click",()=>prepare(q));actions.append(convert)}else if(!expired){info.append(el("small","Cotización descriptiva: venta manual desde Inventario, sin conversión automática."))}transition("Rechazar","rechazada")}
   if(q.estado==="convertida"&&q.venta_id)info.append(el("small","Venta vinculada: "+q.venta_id));
   row.append(info,actions);root.append(row);
  }
@@ -136,19 +140,17 @@ async function load(){
   if(p.error||c.error||q.error)throw Error([p.error,c.error,q.error].filter(Boolean).map(x=>x.message).join("; "));
   if(t!==request||!allowed)return;
   products=p.data||[];patients=c.data||[];quotes=q.data||[];
-  options("cot-producto",products.map(x=>[x.id,x.codigo+" · "+x.nombre+" · "+money(x.precio_venta)]),"Seleccionar montura, lente o accesorio");
-  options("cot-paciente",patients.map(x=>[x.id,x.nombre_completo+" · "+x.documento]),"Consumidor final");
   renderQuotes();set("cot-status",quotes.length+" cotizaciones consultadas.");
  }catch(e){set("cot-status","Error al consultar cotizaciones: "+(e?.message||e))}
 }
 async function save(event){
  event.preventDefault();if(busy||!allowed)return;
- if(!items.length){set("cot-form-status","Agrega al menos una referencia.");return}
+ if(!items.length){set("cot-form-status","Agrega al menos una montura o lente.");return}
  if($("cot-vigencia").value<today()){set("cot-form-status","La fecha de validez no puede estar vencida.");return}
  busy=true;$("cot-guardar").disabled=true;
  try{
   if(!(await isAdmin())){reset();return}
-  const payload={paciente_id:$("cot-paciente").value||null,vigente_hasta:$("cot-vigencia").value,
+  const payload={paciente_id:null,vigente_hasta:$("cot-vigencia").value,
    items:items.map(x=>({...x})),total:items.reduce((a,x)=>a+x.cantidad*x.precio_unitario,0),
    observaciones:$("cot-observaciones").value.trim()};
   const {error}=await db.from("cotizaciones_tsysoptics").insert(payload);
@@ -174,6 +176,9 @@ async function changeState(q,next,button){
 function prepare(q){
  if(!allowed)return;
  if(q.estado!=="aprobada"||q.vigente_hasta<today()){set("cot-status","Solo las cotizaciones aprobadas y vigentes pueden convertirse.");return}
+ if(q.items.some(x=>!x.producto_id)){
+  set("cot-status","La cotización contiene descripciones libres. Para facturarla, registra los productos en Inventario y prepara la venta manualmente. No se descuenta stock ni se crea una referencia desde Cotizaciones.");return;
+ }
  const invalid=q.items.find(x=>{const p=products.find(p=>p.id===x.producto_id);return !p||p.cantidad<x.cantidad});
  if(invalid){set("cot-status","No hay existencias suficientes de "+invalid.nombre+". Debes revisar Inventario antes de vender.");return}
  if(!window.confirm("Se preparará una venta con las referencias cotizadas. El importe final se calculará con precios ACTUALES de Inventario y el stock se descontará solo al confirmar la venta. ¿Continuar?"))return;
@@ -181,12 +186,8 @@ function prepare(q){
  document.querySelector('.sidebar button[data-page="ventas"]')?.click();
  set("cot-status","Ve a Ventas para revisar el carrito y confirmar la venta.");
 }
-$("cot-producto").addEventListener("change",()=>{
- const p=products.find(x=>x.id===$("cot-producto").value);
- $("cot-precio").value=p?String(p.precio_venta):"";
- window.tsysFormatCOPInput?.($("cot-precio"));
-});
-$("cot-agregar").addEventListener("click",addItem);
+$("cot-agregar-montura").addEventListener("click",()=>addItem("Montura"));
+$("cot-agregar-lente").addEventListener("click",()=>addItem("Lente oftálmico"));
 $("cot-filtro").addEventListener("change",renderQuotes);
 $("cot-refrescar").addEventListener("click",()=>void load());
 $("cot-form").addEventListener("submit",e=>void save(e));
