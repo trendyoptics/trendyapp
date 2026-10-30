@@ -105,7 +105,7 @@
             <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white">TrendyOptics</h1>
             <span id="storageStatus" class="text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full">Conectando Supabase</span>
           </div>
-          <p class="text-[11px] text-slate-300 leading-tight">Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá &bull; NIT: 1073263942-5 &bull; Cel: +57 3003391055</p>
+          <p id="tsys-app-contacto" class="text-[11px] text-slate-300 leading-tight"></p>
         </div>
       </div>
 
@@ -1128,6 +1128,8 @@ async function actualizarPersonalizacionImpresion(){
  const n=document.getElementById("tsys-print-nombre-optica");
  const note=document.getElementById("tsys-print-garantia");
  const contacto=document.getElementById("tsys-print-datos-optica");
+ const appContacto=document.getElementById("tsys-app-contacto");
+ if(appContacto)appContacto.textContent=[data.direccion_optica||"",data.nit_optica?"NIT: "+data.nit_optica:"",data.telefono_optica?"TEL: "+data.telefono_optica:""].filter(Boolean).join(" · ");
  if(contacto)contacto.textContent=[
   data.direccion_optica||"",data.nit_optica?"NIT: "+data.nit_optica:"",
   data.telefono_optica?"TEL: "+data.telefono_optica:""
