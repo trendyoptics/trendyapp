@@ -117,7 +117,7 @@
         
         
         <button type="button" id="tsys-nueva-consulta-paciente" class="flex items-center gap-1.5 text-xs font-semibold bg-sky-700 hover:bg-sky-600 text-white px-2.5 py-2 rounded-lg border border-sky-600" title="Nueva consulta sin modificar la historia anterior" hidden>Nueva consulta del paciente</button>
-        <a id="tsys-volver-paciente" href="./tsysoptics/pacientes.html" class="flex items-center gap-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-2 rounded-lg border border-slate-700" title="Regresar a la ficha del paciente">
+        <a id="tsys-volver-paciente" href="./tsysoptics/index.html?modulo=pacientes" class="flex items-center gap-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-2 rounded-lg border border-slate-700" title="Regresar a la ficha del paciente">
           <span>← Ficha del paciente</span>
         </a>
         <a href="./tsysoptics/?vista=apariencia" class="tsys-theme-link flex items-center gap-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-2 rounded-lg border border-slate-700" title="Cambiar los colores de TsysOptics">
@@ -1483,7 +1483,7 @@ try {
   const requestedPatientId = new URLSearchParams(window.location.search).get("paciente");
   if (requestedPatientId && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(requestedPatientId)) {
     const backToPatient = document.getElementById("tsys-volver-paciente");
-    if (backToPatient) backToPatient.href = "./tsysoptics/pacientes.html?paciente=" + encodeURIComponent(requestedPatientId);
+    if (backToPatient) backToPatient.href = "./tsysoptics/index.html?modulo=pacientes&paciente=" + encodeURIComponent(requestedPatientId);
   }
   if (requestedPatientId) {
     const { data: patientRow, error: patientError } = await supabase
