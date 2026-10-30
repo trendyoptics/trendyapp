@@ -134,6 +134,7 @@ function choosePatient(p){
  const href="../index.html?paciente="+encodeURIComponent(p.id);
  $("history-link").href=href;$("history-link").hidden=false;
  $("profile-clinical").href=href;
+ $("profile-new-clinical").href=href+"&nueva=1";
  setText("patient-profile-name",p.nombre_completo);
  setText("patient-profile-document",p.tipo_documento+" · "+p.documento);
  setText("profile-phone",p.telefono);
