@@ -162,6 +162,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  #informes .report-toolbar button{min-height:48px;width:100%}
  #informes .report-list .item{flex-direction:column;align-items:flex-start}
 }
+#finanzas-ciclo5{min-width:0}#finanzas-ciclo5 .fin-item{min-width:0;align-items:flex-start;overflow-wrap:anywhere}#finanzas-ciclo5 .fin-item small{display:block;margin:4px 0;font-size:11px;color:#66758a}#finanzas-ciclo5 .fin-item>div{min-width:0;flex:1}#finanzas-ciclo5 .fin-item>strong{text-align:right;font-size:12px;max-width:220px}#finanzas-ciclo5 input,#finanzas-ciclo5 select{font-size:16px}#finanzas-ciclo5 .report-toolbar{align-items:center}@media(max-width:650px){#finanzas-ciclo5 .fin-item{flex-direction:column}#finanzas-ciclo5 .fin-item>strong{text-align:left;max-width:100%}#finanzas-ciclo5 .cols{grid-template-columns:minmax(0,1fr)}#finanzas-ciclo5 .btn{min-height:48px;width:100%}}
 </style><style>
 @view-transition { navigation: auto; }
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.16s;animation-timing-function:ease-out}
@@ -501,6 +502,46 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <p class="muted" id="informe-nota"></p>
  </div>
 </section>
+<section class="card" id="finanzas-ciclo5" style="margin-top:18px">
+ <span class="label">CICLO 5 · GASTOS Y CIERRE HISTÓRICO</span>
+ <h2>Gastos, conciliación y cierre mensual</h2>
+ <p class="muted">Registra gastos administrativos y guarda una fotografía histórica del mes seleccionado. Las cifras de gastos no deben sumarse automáticamente a movimientos manuales de caja porque pueden representar la misma salida de dinero.</p>
+ <div class="cols" style="align-items:start">
+  <form class="form" id="gasto-form">
+   <h2>Registrar gasto</h2>
+   <label>Fecha <input type="date" id="gasto-fecha" required></label>
+   <label>Categoría <select id="gasto-categoria" required>
+    <option>Arriendo</option><option>Servicios</option><option>Nómina</option><option>Laboratorio</option><option>Transporte</option><option>Insumos</option><option>Publicidad</option><option>Impuestos</option><option>Otros</option>
+   </select></label>
+   <label>Descripción <input id="gasto-descripcion" type="text" minlength="3" maxlength="300" placeholder="EJ. SERVICIO DE ENERGÍA" required></label>
+   <label>Valor en COP <input id="gasto-monto" type="number" min="0.01" max="99999999999" step="0.01" inputmode="decimal" required></label>
+   <label>Medio de pago <select id="gasto-medio"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="tarjeta">Tarjeta</option><option value="nequi">Nequi</option><option value="daviplata">Daviplata</option><option value="otro">Otro</option></select></label>
+   <label>Referencia (opcional) <input id="gasto-referencia" maxlength="150" placeholder="RECIBO / COMPROBANTE"></label>
+   <button class="btn" id="gasto-guardar" type="submit" disabled>Registrar gasto</button>
+   <p class="muted" id="gasto-status" role="status" aria-live="polite">Los gastos guardados no se pueden modificar ni borrar desde esta pantalla.</p>
+  </form>
+  <div class="form">
+   <h2>Cierre del mes seleccionado</h2>
+   <p class="muted">Selecciona el mes en la parte superior de Informes. El cierre se realiza una única vez y preserva ventas, recaudos, gastos, diferencia de arqueo e inventario capturado.</p>
+   <p class="muted" id="cierre-advertencia" role="status">Solo se pueden cerrar meses completos.</p>
+   <label>Confirmación obligatoria <input id="cierre-confirmacion" autocomplete="off" placeholder="ESCRIBE CERRAR AAAA-MM" disabled></label>
+   <button class="btn" type="button" id="cierre-ejecutar" disabled>Guardar cierre definitivo</button>
+   <p class="muted" id="cierre-status" role="status" aria-live="polite"></p>
+   <div class="card" style="box-shadow:none;background:#f5f7fb;padding:14px">
+    <h2>Conciliación de caja</h2>
+    <p class="muted">La diferencia acumulada de arqueos se registra dentro del cierre. Una diferencia distinta de cero requiere revisión de turnos, pagos y movimientos; no se transforma en un ajuste automático.</p>
+   </div>
+  </div>
+ </div>
+ <div class="report-toolbar" style="margin-top:18px">
+  <button id="finanzas-actualizar" type="button" class="btn alt" disabled>Actualizar gastos y cierres</button>
+  <p id="finanzas-status" class="muted" role="status" aria-live="polite">Verificando acceso…</p>
+ </div>
+ <div class="cols" style="margin-top:16px">
+  <div><h2>Gastos del periodo</h2><strong id="gastos-total"></strong><div id="gastos-lista" class="list"></div></div>
+  <div><h2>Historial de cierres definitivos</h2><div id="cierres-lista" class="list"></div></div>
+ </div>
+</section>
 <section class="page" id="caja">
  <span class="label">CAJA · TURNOS Y ARQUEO · SUPABASE</span>
  <h1>Control de caja</h1>
@@ -738,7 +779,8 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script><script type="module" src="./informes.js?v=20261030excel-pdf-v2"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030informes"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script><script type="module" src="./informes.js?v=20261030excel-pdf-v3"></script>
+<script type="module" src="./finanzas.js?v=20261030c5"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030informes"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
