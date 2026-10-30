@@ -287,6 +287,19 @@ if(await requireAdmin()){
   }else if(authorized){status("No fue posible recuperar la ficha solicitada.");}
  }
 }else showDenied("Acceso denegado. Inicia sesión con un administrador activo en TsysOptics y vuelve a abrir este módulo.");
+// Recupera Pacientes cuando la sesión administrativa se establece después de importar el módulo.
+window.addEventListener("tsys:role",async e=>{
+ if(e.detail?.role!=="administrador"){showDenied("Acceso reservado al administrador.");return;}
+ if(authorized)return;
+ $("loading").hidden=false;$("loading").textContent="Verificando acceso a Pacientes…";
+ try{
+  if(await requireAdmin()){
+   authorized=true;$("loading").hidden=true;$("panel").hidden=false;
+   showPatientView("buscar");
+   await searchPatients();
+  }else showDenied("No se pudo verificar tu sesión de administrador. Cierra sesión y vuelve a ingresar.");
+ }catch{showDenied("No se pudo iniciar Pacientes. Comprueba la conexión e inténtalo de nuevo.");}
+});
 document.addEventListener("visibilitychange",async()=>{
  if(document.hidden||!authorized)return;
  if(!(await requireAdmin())){
