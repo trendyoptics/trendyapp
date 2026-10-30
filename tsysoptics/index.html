@@ -323,9 +323,18 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  <form class="card form" id="form-venta">
   <h2>Nueva venta de prueba</h2><p class="muted" id="venta-turno-estado" role="status">Consultando estado de Caja…</p><button type="button" class="btn alt" data-go="caja" id="ventas-ir-caja">Ir a Caja</button>
   <label>Paciente registrado (opcional)<select name="paciente_id" id="venta-paciente"><option value="">Consumidor final</option></select></label>
-  <label>Producto del inventario
+  <label>Montura, lente oftálmico o accesorio del inventario
    <select name="producto" id="venta-producto"><option value="">Seleccionar referencia</option></select>
   </label>
+  <p class="muted" id="venta-lente-ayuda">Para vender lentes, primero registra cada tipo y su precio en Inventario. Después selecciónalo aquí junto con la montura. El total se calcula con ambas referencias y el servidor comprueba el precio y las existencias.</p>
+  <button class="btn alt" type="button" id="venta-ir-inventario-lentes" data-go="inventario">Registrar lente y precio en Inventario</button>
+  <div class="card" style="background:#f1f5fa;border:1px solid #d4deec;padding:12px">
+   <label>Lente oftálmico para esta venta
+    <select id="venta-lente-producto"><option value="">Seleccionar lente y precio</option></select>
+   </label>
+   <p class="muted" id="venta-lente-precio" role="status">Selecciona un lente registrado en Inventario para ver su precio y disponibilidad.</p>
+   <button type="button" class="btn alt" id="venta-agregar-lente">Agregar lente al carrito</button>
+  </div>
   <label>Cantidad <input name="cantidad" id="venta-cantidad" type="number" min="1" step="1" value="1" required></label>
   <button class="btn alt" type="button" id="venta-agregar-producto">Agregar al carrito</button>
   <div class="list" id="venta-carrito"></div>
@@ -341,6 +350,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
    <option value="otro">Otro</option>
   </select></label>
   <div class="money">Saldo estimado <strong id="saldo-preview">$ 0</strong></div>
+  <p class="muted">Los pagos y las ventas se guardan en Supabase. La sección Historial muestra el estado de cada venta; la sección Caja muestra solamente los cobros del turno abierto.</p>
   <button type="submit" class="btn" id="venta-guardar">Registrar venta</button>
   <p class="muted" id="venta-form-status" role="status" aria-live="polite"></p>
  </form>
@@ -349,6 +359,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <p class="muted">Consulta comprobantes, registra abonos y anula ventas sin pagos. Las anulaciones requieren motivo y reintegran las existencias con auditoría. Si hay pagos registrados, se necesita un proceso separado de devolución financiera.</p>
   <button class="btn alt" id="ventas-actualizar" type="button">Actualizar ventas</button>
   <p class="muted" id="ventas-list-status" role="status" aria-live="polite"></p>
+  <p class="muted" id="ventas-conciliacion" role="status" aria-live="polite"></p>
   <div class="list" id="lista-ventas"></div>
  </div>
 </div>
@@ -383,6 +394,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <h2>Estado del turno</h2>
   <p id="caja-estado-mensaje" role="status" aria-live="polite">Consultando estado…</p>
   <p id="caja-turno-fechas" class="muted"></p>
+  <p id="caja-accion-disponible" class="muted" role="status" aria-live="polite">Verificando qué operaciones están disponibles…</p>
   <button type="button" id="caja-actualizar" class="btn alt">Actualizar estado de caja</button>
  </div>
  <div class="venta-resumen" aria-label="Resumen de caja">
@@ -587,7 +599,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030b"></script><script type="module" src="./ventas.js?v=20261030validacion"></script><script type="module" src="./caja.js?v=20261029g"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030caja2"></script><script type="module" src="./caja.js?v=20261030caja2"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>

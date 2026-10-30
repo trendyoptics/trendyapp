@@ -12,6 +12,7 @@ const receipt=$("venta-comprobante");
 const cartRoot=$("venta-carrito");
 const saleList=$("lista-ventas");
 const productSelect=$("venta-producto");
+const lensSelect=$("venta-lente-producto");
 const patientSelect=$("venta-paciente");
 const paymentSaleSelect=$("ventas-abono-venta");
 const money=n=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:2}).format(Number(n)||0);
@@ -164,13 +165,36 @@ function fillOptions(){
   const opt=new Option(p.codigo+" · "+p.nombre+" · "+money(p.precio_venta)+" ("+p.cantidad+" uds)",p.id);
   productSelect.append(opt);
  }
+ const prevLens=lensSelect.value;
+ lensSelect.replaceChildren(new Option("Seleccionar lente y precio",""));
+ for(const p of products.filter(p=>p.activo&&p.cantidad>0&&p.tipo==="Lente oftálmico")){
+  lensSelect.append(new Option(p.nombre+" · "+money(p.precio_venta)+" ("+p.cantidad+" uds)",p.id));
+ }
  if(Array.from(productSelect.options).some(o=>o.value===previously))productSelect.value=previously;
+ if(Array.from(lensSelect.options).some(o=>o.value===prevLens))lensSelect.value=prevLens;
+ updateLensPrice();
  window.dispatchEvent(new CustomEvent("tsys:ventas-busqueda",{detail:{cantidad:available.length}}));
  const current=patientSelect.value;
  patientSelect.replaceChildren(new Option("Consumidor final",""));
  for(const p of patients)patientSelect.append(new Option(p.nombre_completo+" · "+p.tipo_documento+" "+p.documento,p.id));
  if(Array.from(patientSelect.options).some(o=>o.value===current))patientSelect.value=current;
 }
+function updateLensPrice(){
+ const p=products.find(p=>p.id===lensSelect.value);
+ $("venta-lente-precio").textContent=p
+  ?"Lente: "+p.nombre+" · Precio unitario: "+money(p.precio_venta)+" · Existencias: "+p.cantidad
+  :"Selecciona un lente registrado en Inventario para ver su precio y disponibilidad.";
+}
+lensSelect.addEventListener("change",updateLensPrice);
+$("venta-agregar-lente").addEventListener("click",()=>{
+ if(!lensSelect.value){
+  displayStatus("venta-form-status","Primero selecciona el lente oftálmico que quieres vender.");
+  return;
+ }
+ productSelect.value=lensSelect.value;
+ form.elements.cantidad.value="1";
+ $("venta-agregar-producto").click();
+});
 window.tsysVentasMobileFiltrar=value=>{
  mobileProductFilter=String(value||"").slice(0,100);
  fillOptions();
@@ -178,7 +202,7 @@ window.tsysVentasMobileFiltrar=value=>{
 async function refreshCatalog(){
  if(!isActive)return;
  const [r,p]=await Promise.all([
-  sb.from("productos_tsysoptics").select("id,codigo,nombre,precio_venta,cantidad,activo")
+  sb.from("productos_tsysoptics").select("id,codigo,nombre,tipo,precio_venta,cantidad,activo")
    .eq("activo",true).order("nombre",{ascending:true}).limit(300),
   sb.from("pacientes_tsysoptics").select("id,nombre_completo,tipo_documento,documento")
    .order("nombre_completo",{ascending:true}).limit(300)
@@ -283,6 +307,7 @@ function renderSales(){
   info.append(element("strong",salesNumber(sale.numero)+" · "+money(sale.total)+(sale.estado==="anulada"?" · ANULADA":sale.estado==="devuelta"?" · DEVUELTA":"")),
    element("small",new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+(sale.paciente?.nombre_completo||"Consumidor final")),
    element("small",labels),
+   element("small","Pagos registrados: "+(sale.pagos||[]).length+" · Total cobrado: "+money((sale.pagos||[]).reduce((n,p)=>n+Number(p.monto||0),0))),
    element("small",sale.estado==="anulada"
     ?"Sin saldo exigible · Motivo: "+(sale.motivo_anulacion||"Auditoría registrada")
     :sale.estado==="devuelta"
@@ -344,6 +369,12 @@ async function refreshSales(){
  if(!isActive||mine!==generation)return;
  if(error){displayStatus("ventas-list-status","No se pudieron cargar las ventas. Verifica la conexión y los permisos.");return}
  sales=data||[];
+ const pagos=sales.reduce((n,v)=>n+(v.pagos||[]).length,0);
+ const saldoPendiente=sales.filter(v=>v.estado==="emitida"&&Number(v.saldo)>0).length;
+ displayStatus("ventas-conciliacion","En las ventas cargadas hay "+pagos+
+   " pago(s) registrado(s). "+(saldoPendiente
+   ?saldoPendiente+" venta(s) con saldo pendiente: usa Registrar abono."
+   :"No hay saldos pendientes entre estas ventas. Los cobros anteriores aparecen en el comprobante de cada venta."));
  const selected=paymentSaleSelect.value;
  renderSales();
  window.dispatchEvent(new CustomEvent("tsys:ventas-lista"));
@@ -412,6 +443,8 @@ form.addEventListener("submit",async e=>{
   window.tsysFormatCOPInputs(form);
   displayStatus("venta-form-status","Venta registrada y existencias descontadas en Supabase.");
   await refresh();
+  window.dispatchEvent(new Event("tsys:ventas-actualizadas"));
+  window.dispatchEvent(new Event("tsys:inventario-refrescar"));
   const receiptSale=sales.find(s=>s.id===data);
   if(receiptSale)receiptOpen(receiptSale);
  }catch{
@@ -445,6 +478,7 @@ paymentsForm.addEventListener("submit",async e=>{
   paymentsForm.reset();window.tsysFormatCOPInputs(paymentsForm);
   displayStatus("ventas-abono-status","Abono registrado correctamente en Supabase.");
   await refreshSales();
+  window.dispatchEvent(new Event("tsys:ventas-actualizadas"));
   const updated=sales.find(s=>s.id===sale.id);
   if(updated)receiptOpen(updated);
  }catch{
@@ -462,6 +496,8 @@ function reset(){
  receiptClose();
  saleList.replaceChildren();cartRoot.replaceChildren();
  productSelect.replaceChildren(new Option("Seleccionar referencia",""));
+ lensSelect.replaceChildren(new Option("Seleccionar lente y precio",""));
+ updateLensPrice();
  window.dispatchEvent(new CustomEvent("tsys:ventas-carrito",{detail:{unidades:0,total:0}}));
  window.dispatchEvent(new CustomEvent("tsys:ventas-lista"));
  patientSelect.replaceChildren(new Option("Consumidor final",""));
@@ -469,6 +505,7 @@ function reset(){
  displayStatus("venta-form-status","");
  displayStatus("ventas-list-status","");
  displayStatus("ventas-abono-status","");
+ displayStatus("ventas-conciliacion","");
 }
 function addNotesLink(){
  const title=document.querySelector("#ventas h1");
