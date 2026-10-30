@@ -71,7 +71,7 @@ async function load(){
  status("lab-list-status","Consultando pedidos…");
  try{
   const [s,o]=await Promise.all([
-   db.from("ventas_tsysoptics").select("id,numero,estado").order("fecha",{ascending:false}).limit(250),
+   db.from("ventas_tsysoptics").select("id,numero,estado,paciente:pacientes_tsysoptics(nombre_completo,tipo_documento,documento)").order("fecha",{ascending:false}).limit(250),
    db.from("ordenes_laboratorio_tsysoptics").select("id,venta_id,laboratorio,fecha_entrega_estimada,fecha_recepcion,fecha_entrega_paciente,estado,observaciones,creado_en")
     .order("creado_en",{ascending:false}).limit(250)
   ]);
@@ -81,7 +81,12 @@ async function load(){
   const current=$("lab-venta").value,ordered=new Set(orders.map(o=>o.venta_id));
   $("lab-venta").replaceChildren(new Option("Seleccionar venta",""));
   for(const sale of sales.filter(s=>s.estado==="emitida"&&!ordered.has(s.id)))
-   $("lab-venta").append(new Option("V-"+String(sale.numero).padStart(6,"0"),sale.id));
+   $("lab-venta").append(new Option(
+    "V-"+String(sale.numero).padStart(6,"0")+" · "+
+    (sale.paciente?.nombre_completo||"CONSUMIDOR FINAL")+" · "+
+    (sale.paciente?.documento?((sale.paciente.tipo_documento||"DOC")+" "+sale.paciente.documento):"SIN DOCUMENTO"),
+    sale.id
+   ));
   if([...$("lab-venta").options].some(x=>x.value===current))$("lab-venta").value=current;
   status("lab-list-status",orders.length+" órdenes consultadas. Puedes actualizar sus estados.");
   render();
