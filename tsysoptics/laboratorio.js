@@ -103,6 +103,11 @@ async function change(item,state,button){
  busy=true;button.disabled=true;
  try{
   if(!(await admin())){clear();return}
+  // Verificar que la venta siga vigente antes de entregar o avanzar el pedido.
+  const {data:ventaActual,error:ventaError}=await db.from("ventas_tsysoptics")
+   .select("estado").eq("id",item.venta_id).maybeSingle();
+  if(ventaError||!ventaActual)throw Error("No fue posible verificar la venta asociada al pedido.");
+  if(ventaActual.estado!=="emitida")throw Error("La venta está anulada o devuelta. No se puede avanzar ni entregar este pedido.");
   const today=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Bogota",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const changes={estado:state,actualizado_en:new Date().toISOString()};
   if(state==="recibido")changes.fecha_recepcion=today;
@@ -125,6 +130,12 @@ form.addEventListener("submit",async e=>{
  busy=true;$("lab-guardar").disabled=true;
  try{
   if(!(await admin())){clear();return}
+  const {data:ventaActual,error:ventaError}=await db.from("ventas_tsysoptics")
+   .select("estado").eq("id",id).maybeSingle();
+  if(ventaError||!ventaActual||ventaActual.estado!=="emitida"){
+   status("lab-form-status","La venta seleccionada ya no está vigente o no se pudo verificar. Actualiza las ventas antes de crear un pedido.");
+   return;
+  }
   const {data,error}=await db.from("ordenes_laboratorio_tsysoptics").insert({
    venta_id:id,laboratorio:nombre,fecha_entrega_estimada:date,observaciones:notes
   }).select("id").maybeSingle();
