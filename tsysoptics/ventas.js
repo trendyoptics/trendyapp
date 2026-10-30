@@ -168,6 +168,13 @@ function renderCart(){
 function normalizeProductSearch(text){
  return String(text||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("es-CO");
 }
+function updateProductButton(){
+ const product=products.find(p=>p.id===productSelect.value);
+ const kind=product?.tipo==="Lente oftálmico"?"lente":
+   product?.tipo==="Accesorio"?"accesorio":"montura";
+ $("venta-agregar-producto").textContent="Agregar "+kind+" al carrito";
+}
+productSelect.addEventListener("change",updateProductButton);
 function fillOptions(){
  const previously=productSelect.value;
  const query=window.matchMedia("(max-width: 850px)").matches
@@ -180,6 +187,7 @@ function fillOptions(){
   productSelect.append(opt);
  }
  if(Array.from(productSelect.options).some(o=>o.value===previously))productSelect.value=previously;
+ updateProductButton();
  window.dispatchEvent(new CustomEvent("tsys:ventas-busqueda",{detail:{cantidad:available.length}}));
  const current=patientSelect.value;
  patientSelect.replaceChildren(new Option("Consumidor final",""));
