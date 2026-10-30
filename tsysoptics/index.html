@@ -786,7 +786,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <p class="muted">Los valores de las historias clínicas ya finalizadas no se modifican.</p>
  </div>
 </section>
-<section class="page" id="simulador"><span class="label">LENTES · DEMOSTRACIÓN</span><h1>Simulación del perfil óptico</h1><div class="cols"><div class="card form"><h2>Parámetros</h2><label>Esfera <strong id="potencia-label">−2.00 D</strong><input id="potencia" type="range" min="-10" max="10" step=".25" value="-2"></label><label>Índice<select id="indice"><option>1.50</option><option>1.60</option><option>1.67</option><option>1.74</option></select></label><label>Diámetro <strong id="diametro-label">65 mm</strong><input id="diametro" type="range" min="50" max="80" value="65"></label><p class="muted">Representación conceptual sin escala. No predice espesores ni reemplaza los cálculos de laboratorio.</p></div><div class="card visual"><h2>Vista ilustrativa</h2><svg viewBox="0 0 360 235" role="img" aria-label="Sección esquemática de lente"><defs><linearGradient id="g"><stop stop-color="#b4c4d5"/><stop offset=".5" stop-color="#e7f0f6"/><stop offset="1" stop-color="#718aa7"/></linearGradient></defs><line x1="30" x2="330" y1="115" y2="115" stroke="#BFBFBF" stroke-dasharray="4 5"/><path id="perfil" fill="url(#g)" stroke="#585F73" stroke-width="2.5"/></svg><p id="tipo-lente" class="muted"></p></div></div></section>
+<section class="page" id="simulador"><span class="label">LENTES · DEMOSTRACIÓN</span><h1>Simulación del perfil óptico</h1><div class="cols"><div class="card form"><h2>Parámetros</h2><label>Esfera <strong id="potencia-label">−2.00 D</strong><input id="potencia" type="range" min="-10" max="10" step=".25" value="-2"></label><label>Índice<select id="indice"><option>1.50</option><option>1.60</option><option>1.67</option><option>1.74</option></select></label><label>Diámetro <strong id="diametro-label">65 mm</strong><input id="diametro" type="range" min="50" max="80" value="65"></label><p class="muted">Perfil orientativo de lente monofocal: el espesor varía según esfera, diámetro e índice. El espesor final depende también de diseño, montura y parámetros de fabricación; no sustituye el cálculo del laboratorio.</p></div><div class="card visual"><h2>Perfil y espesores</h2><svg viewBox="0 0 360 235" role="img" aria-label="Sección esquemática de lente"><defs><linearGradient id="g"><stop stop-color="#b4c4d5"/><stop offset=".5" stop-color="#e7f0f6"/><stop offset="1" stop-color="#718aa7"/></linearGradient></defs><line x1="30" x2="330" y1="115" y2="115" stroke="#BFBFBF" stroke-dasharray="4 5"/><path id="perfil" fill="url(#g)" stroke="#585F73" stroke-width="2.5"/></svg><p id="tipo-lente" class="muted"></p><div class="row" style="display:flex;gap:10px;flex-wrap:wrap"><div class="card" style="flex:1;min-width:120px;padding:12px"><small>Centro</small><strong id="espesor-centro" style="display:block;font-size:20px">…</strong></div><div class="card" style="flex:1;min-width:120px;padding:12px"><small>Borde</small><strong id="espesor-borde" style="display:block;font-size:20px">…</strong></div></div><p class="muted" style="font-size:12px">Valores orientativos para visualizar la diferencia de espesor, no para fabricar lentes.</p></div></div></section>
 <footer style="margin-top:35px;color:#9099a7;font-size:11px">TsysOptics · Trendy Optics · Piloto aislado de la página clínica</footer></main></div></div></div>
 <div id="notice" hidden role="status" aria-live="polite"></div>
 <script>
@@ -840,7 +840,30 @@ function calc(){const f=new FormData($("form-venta"));const producto=data.produc
 function preview(){if(currentRole==="administrador")return;const x=calc();$("total-preview").textContent=cop(x.total);$("saldo-preview").textContent=cop(Math.max(0,x.total-(x.abono||0)))}
 $("form-venta").addEventListener("input",preview);$("form-venta").addEventListener("change",preview);
 $("form-venta").addEventListener("submit",e=>{if(currentRole==="administrador")return;e.preventDefault();if(currentRole!=="administrador"){toast("Acceso restringido.");return;}const x=calc();if(!x.producto||!Number.isSafeInteger(x.cantidad)||x.cantidad<1||x.cantidad>x.producto.cantidad){toast("Revisa producto o existencias.");return}if(!Number.isFinite(x.abono)||x.abono<0||x.abono>x.total){toast("El abono supera el total o es inválido.");return}x.producto.cantidad-=x.cantidad;data.ventas.unshift({id:uuid(),producto:x.producto.nombre,cantidad:x.cantidad,total:x.total,abono:x.abono,saldo:x.total-x.abono});save();e.currentTarget.reset();render()});
-function lens(){const p=Number($("potencia").value),diam=Number($("diametro").value);$("potencia-label").textContent=(p>0?"+":"")+p.toFixed(2)+" D";$("diametro-label").textContent=diam+" mm";const a=165,b=195,w=12+Math.abs(p)*3;if(p>0)$("perfil").setAttribute("d",`M${a-15} 40 Q${a+w} 115 ${a-15} 190 L${a+5} 190 Q${a+w+24} 115 ${a+5} 40Z`);else if(p<0)$("perfil").setAttribute("d",`M${a-15} 40 Q${a+w+20} 115 ${a-15} 190 L${a+5} 190 Q${a+w} 115 ${a+5} 40Z`);else $("perfil").setAttribute("d",`M${a} 40H${a+20}V190H${a}Z`);$("tipo-lente").textContent=(p>0?"Positivo":p<0?"Negativo":"Plano")+" · Esquema no a escala · Índice "+$("indice").value}
+function lens(){
+ const p=Number($("potencia").value),diam=Number($("diametro").value),n=Number($("indice").value);
+ $("potencia-label").textContent=(p>0?"+":"")+p.toFixed(2)+" D";
+ $("diametro-label").textContent=diam+" mm";
+ // Aproximación paraxial de la diferencia centro-borde, con superficie equivalente.
+ // El diámetro útil y el diseño real de cada lente modifican sus espesores.
+ const sag=Math.abs(p)*(diam/2)**2/(2000*(n-1));
+ const minimo=1.5;
+ const centro=p>=0?minimo+sag:minimo;
+ const borde=p>=0?minimo:minimo+sag;
+ const px=5.0; // Se amplifica el espesor para facilitar la lectura del perfil.
+ const centerWidth=centro*px,edgeWidth=borde*px;
+ const mid=180,left=90,right=270,cy=115;
+ const front=x=>cy-centerWidth/2-(edgeWidth-centerWidth)/2*Math.pow(Math.abs(x-mid)/90,2);
+ const back=x=>cy+centerWidth/2+(edgeWidth-centerWidth)/2*Math.pow(Math.abs(x-mid)/90,2);
+ // Perfil horizontal: las superficies superior e inferior muestran centro y bordes.
+ const segments=24,pointsTop=[],pointsBottom=[];
+ for(let i=0;i<=segments;i++){const x=left+(right-left)*i/segments;pointsTop.push(x.toFixed(2)+","+front(x).toFixed(2));}
+ for(let i=segments;i>=0;i--){const x=left+(right-left)*i/segments;pointsBottom.push(x.toFixed(2)+","+back(x).toFixed(2));}
+ $("perfil").setAttribute("d","M"+pointsTop.join(" L")+" L"+pointsBottom.join(" L")+" Z");
+ $("espesor-centro").textContent=centro.toFixed(2)+" mm aprox.";
+ $("espesor-borde").textContent=borde.toFixed(2)+" mm aprox.";
+ $("tipo-lente").textContent=(p>0?"Positivo: centro más grueso":p<0?"Negativo: bordes más gruesos":"Plano: espesor uniforme")+" · Índice "+n.toFixed(2)+" · Sección transversal ampliada";
+}
 for(const id of ["potencia","indice","diametro"])$(id).addEventListener("input",lens);
 function applyDashboardRole(role){
  currentRole=role;
