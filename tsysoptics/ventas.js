@@ -18,6 +18,7 @@ const lensName=$("venta-lente-descripcion");
 const lensPrice=$("venta-lente-precio-manual");
 const lensQuantity=$("venta-lente-cantidad");
 let creatingLens=false,confirmingLens=false;
+let cotizacionPreparada=null;
 let receiptContext=null,receiptRequest=0;
 const LENS_CATALOG=[
  ["CR BLUE",100000],["CR FOTO BLUE",220000],["POLY BLUE",180000],
@@ -153,7 +154,7 @@ function renderCart(){
    element("small",(p?.nombre||"Referencia")+" · "+money((p?.precio_venta||0)*item.cantidad)));
   const rm=element("button","Quitar","btn alt");
   rm.type="button";
-  rm.addEventListener("click",()=>{cart=cart.filter(x=>x.producto_id!==item.producto_id);renderCart()});
+  rm.addEventListener("click",()=>{cart=cart.filter(x=>x.producto_id!==item.producto_id);cotizacionPreparada=null;renderCart()});
   row.append(info,rm);cartRoot.append(row);
  }
  if(!cart.length)cartRoot.append(element("p","Carrito vacío. Selecciona una referencia y agrégala.","muted"));
@@ -292,6 +293,7 @@ $("venta-agregar-lente").addEventListener("click",async()=>{
   if(!data?.id){displayStatus("venta-lente-status","No llegó confirmación del guardado. Revisa Inventario antes de repetir.");return}
   products.push(data);
   cart.push({producto_id:data.id,cantidad});
+  if(cotizacionPreparada)cotizacionPreparada=null;
   fillOptions();renderCart();
   lensCatalog.value="";lensName.value="";lensPrice.value="";lensQuantity.value="1";
   window.dispatchEvent(new Event("tsys:inventario-refrescar"));
@@ -533,6 +535,7 @@ $("venta-agregar-producto").addEventListener("click",()=>{
  }
  if(existing)existing.cantidad=sum;
  else cart.push({producto_id:id,cantidad:qty});
+ if(cotizacionPreparada){cotizacionPreparada=null;displayStatus("venta-form-status","Modificaste el carrito: la cotización ya no quedará vinculada a esta venta.");}
  displayStatus("venta-form-status",p.codigo+" agregado al carrito.");
  renderCart();
 });
@@ -564,10 +567,20 @@ form.addEventListener("submit",async e=>{
    p_abono:abono,p_medio_pago:metodo||null,p_solicitud_id:saleToken
   });
   if(error||!data){displayStatus("venta-form-status",saleError(error));return}
+  // La venta ya fue guardada. Vincular la cotización es un paso posterior;
+  // un fallo aquí NUNCA autoriza a repetir la venta ni a descontar stock dos veces.
+  const cotizacionId=cotizacionPreparada;
+  cotizacionPreparada=null;
+  let cotizacionError="";
+  if(cotizacionId){
+   const linked=await sb.rpc("vincular_cotizacion_venta_tsysoptics",{p_cotizacion_id:cotizacionId,p_venta_id:data});
+   if(linked.error)cotizacionError=linked.error.message;
+   else window.dispatchEvent(new Event("tsys:cotizaciones-refrescar"));
+  }
   saleToken=crypto.randomUUID();cart=[];
   form.reset();form.elements.cantidad.value="1";form.elements.abono.value="0";
   window.tsysFormatCOPInputs(form);
-  displayStatus("venta-form-status","Venta registrada y existencias descontadas en Supabase.");
+  displayStatus("venta-form-status",cotizacionError?"VENTA REGISTRADA correctamente, pero no se vinculó a la cotización: "+cotizacionError+". NO repitas la venta. Revisa Historial y Cotizaciones.":"Venta registrada y existencias descontadas en Supabase."+(cotizacionId?" Cotización vinculada.":""));
   await refresh();
   window.dispatchEvent(new Event("tsys:ventas-actualizadas"));
   window.dispatchEvent(new Event("tsys:inventario-refrescar"));
@@ -614,6 +627,7 @@ paymentsForm.addEventListener("submit",async e=>{
  }
 });
 function reset(){
+ cotizacionPreparada=null;
  isActive=false;isStarting=false;generation++;
  voiding=false;voidModal.hidden=true;saleToVoid=null;voidToken=crypto.randomUUID();voidForm.reset();
  setCajaEstado(false);
@@ -654,6 +668,25 @@ async function activate(){
   displayStatus("ventas-list-status","No fue posible iniciar el módulo de ventas.");
  }finally{isStarting=false}
 }
+window.addEventListener("tsys:cotizacion-preparar-venta",event=>{
+ if(!isActive){displayStatus("venta-form-status","Ventas todavía no está disponible. Abre el módulo e inténtalo de nuevo.");return}
+ if(registering){displayStatus("venta-form-status","Ya hay una venta registrándose.");return}
+ const detail=event.detail||{};
+ const requested=Array.isArray(detail.items)?detail.items:[];
+ if(!detail.id||requested.length<1||requested.length>20){displayStatus("venta-form-status","La cotización no contiene referencias válidas.");return}
+ const invalid=requested.find(x=>{
+  const p=products.find(p=>p.id===x.producto_id);
+  return !p||!p.activo||!Number.isSafeInteger(x.cantidad)||x.cantidad<1||p.cantidad<x.cantidad;
+ });
+ if(invalid){displayStatus("venta-form-status","La cotización incluye referencias sin stock suficiente. Refresca y revisa Inventario.");return}
+ if(cart.length&&!window.confirm("Se reemplazará el carrito actual por la cotización. ¿Continuar?"))return;
+ cart=requested.map(x=>({producto_id:x.producto_id,cantidad:x.cantidad}));
+ cotizacionPreparada=detail.id;
+ patientSelect.value=detail.paciente_id||"";
+ form.elements.abono.value="0";form.elements.medio.value="";
+ renderCart();
+ displayStatus("venta-form-status","Cotización cargada. Comprueba TOTAL actualizado, paciente y stock antes de registrar la venta. La cotización se vinculará después del registro exitoso.");
+});
 window.addEventListener("tsys:role",e=>{
  if(e.detail?.role==="administrador")void activate();
  else reset();
