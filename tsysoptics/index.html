@@ -804,7 +804,7 @@ window.tsysInventarioSetCount=n=>{
  if(currentRole==="administrador")document.getElementById("metric-productos").textContent=String(n);
 };
 let cotizacionesPendientes=null;
-window.tsysCotizacionesSetPendientes=n=>{cotizacionesPendientes=n;if(currentRole==="administrador")document.getElementById("metric-cotizaciones").textContent=String(n)};
+window.tsysCotizacionesSetPendientes=n=>{cotizacionesPendientes=n;if(currentRole==="administrador")document.getElementById("metric-cotizaciones").textContent=n===null?"…":String(n)};
 let agendaCount=null;
 window.tsysAgendaSetCount=n=>{agendaCount=n;if(currentRole==="administrador")document.getElementById("metric-citas").textContent=String(n)};
 // Aunque estos datos DEMO son locales, el panel no debe compartirlos entre roles.
