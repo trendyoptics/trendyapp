@@ -40,6 +40,14 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 .agenda-action:disabled,.agenda-action-cancel:disabled{opacity:.5;cursor:wait}
 #agenda .item{align-items:center;gap:10px}
 #agenda .item small{display:block;margin-top:4px}
+#agenda .agenda-form-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#agenda .agenda-form-actions [hidden]{display:none!important}
+#agenda .agenda-clinical-link{display:inline-block;margin-top:9px;font-size:12px;font-weight:700;color:#0B1C40;text-decoration:underline;text-underline-offset:3px}
+#agenda .agenda-clinical-link:hover{color:#264c8b}
+#agenda .agenda-clinical-link:focus-visible,#agenda .agenda-action:focus-visible{outline:3px solid #4e83c4;outline-offset:2px}
+#agenda .agenda-actions button{min-height:38px}
+@media(max-width:650px){#agenda .agenda-form-actions>.btn{flex:1 1 100%}#agenda .agenda-actions{width:100%;justify-content:flex-start}}
+
 @media(max-width:650px){#agenda .item{flex-direction:column;align-items:flex-start}.agenda-actions{justify-content:start}}
 .stock-danger{color:#a13d28;font-weight:700}
 .stock-ok{color:#24643c;font-weight:700}
@@ -200,19 +208,21 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  </div>
 </section>
 </section></div></section>
-<section class="page" id="agenda"><span class="label">AGENDA · SUPABASE</span><h1>Agenda de citas</h1>
-<p class="muted">Organiza las citas por fecha, hora y tipo de atención. El administrador puede asociarlas a pacientes de TsysOptics.</p>
+<section class="page" id="agenda"><span class="label">AGENDA · CICLO 2</span><h1>Agenda de citas</h1>
+<p class="muted">Programa, confirma y reprograma citas vinculadas a pacientes. Una franja activa solo puede tener una cita.</p>
 <div class="cols">
 <form class="card form" id="form-cita">
- <h2>Nueva cita</h2>
+ <h2 id="agenda-form-title">Nueva cita</h2>
+ <label>Buscar paciente por nombre o documento<input type="search" id="agenda-paciente-busqueda" maxlength="70" autocomplete="off" placeholder="Escribe el nombre o número de documento"></label>
  <label>Paciente registrado (opcional)
   <select name="paciente_id" id="agenda-paciente"><option value="">Sin paciente registrado</option></select>
  </label>
+ <p id="agenda-paciente-status" class="muted" role="status" aria-live="polite">Puedes buscar entre los pacientes registrados.</p>
  <label>Nombre o referencia de la cita<input name="referencia" maxlength="100" placeholder="Nombre o referencia de atención" required></label>
  <label>Fecha<input name="fecha" type="date" required></label>
  <label>Hora<input name="hora" type="time" required></label>
  <label>Tipo de atención<select name="tipo"><option>Optometría</option><option>Entrega de lentes</option><option>Control</option></select></label>
- <button class="btn" id="agenda-submit" type="submit">Guardar cita</button>
+ <div class="agenda-form-actions"><button class="btn" id="agenda-submit" type="submit">Guardar cita</button><button class="btn alt" id="agenda-cancel-edit" type="button" hidden>Cancelar edición</button></div>
  <p id="agenda-save-status" class="muted" role="status" aria-live="polite"></p>
 </form>
 <div class="card">
@@ -220,6 +230,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  <div class="form" style="margin-bottom:14px">
   <label>Filtrar por fecha (opcional)<input id="agenda-filtro-fecha" type="date"></label>
   <label>Estado<select id="agenda-filtro-estado"><option value="">Todos</option><option value="programada">Programadas</option><option value="confirmada">Confirmadas</option><option value="atendida">Atendidas</option><option value="cancelada">Canceladas</option><option value="no_asistio">No asistió</option></select></label>
+  <label>Periodo<select id="agenda-filtro-vista"><option value="proximas">Próximas citas</option><option value="todas">Todas, recientes primero</option></select></label>
   <button type="button" class="btn alt" id="agenda-refresh">Actualizar agenda</button>
  </div>
  <p id="agenda-list-status" class="muted" role="status" aria-live="polite"></p>
@@ -550,7 +561,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js"></script><script type="module" src="./inventario.js?v=20261029a"></script><script type="module" src="./ventas.js?v=20261029a"></script><script type="module" src="./caja.js?v=20261029g"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c2"></script><script type="module" src="./inventario.js?v=20261029a"></script><script type="module" src="./ventas.js?v=20261029a"></script><script type="module" src="./caja.js?v=20261029g"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
