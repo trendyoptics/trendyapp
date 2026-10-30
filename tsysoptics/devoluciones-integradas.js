@@ -37,6 +37,9 @@ function renderHistory(list){
   const row=node("div","");row.className="item";
   const info=node("div","");info.append(node("strong","Nota interna NCI-V-"+String(n.numero_venta).padStart(6,"0")+" · "+cop(n.monto_reembolsado)));
   info.append(node("p",new Date(n.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+n.motivo+" · "+(n.reintegro_stock?"Inventario reintegrado":"Sin reintegro de inventario")));
+  const details=node("p","Medios: "+((n.medios||[]).map(x=>x.medio+" "+cop(x.monto)).join(", ")||"No registrados")+" · Saldo cancelado: "+cop(n.saldo_condonado));
+  details.className="muted";info.append(details);
+  if(n.reintegro_stock){const stock=node("p","Reingreso: "+((n.detalle_inventario||[]).map(x=>x.codigo+" × "+x.cantidad).join(", ")||"Consultar movimientos de inventario"));stock.className="muted";info.append(stock);}
   row.append(info);root.append(row);
  }
 }
@@ -46,7 +49,7 @@ async function load(){
   const [sales,shift,notes]=await Promise.all([
    db.from("ventas_tsysoptics").select("id,numero,total,abonado,saldo,estado,pagos:pagos_ventas_tsysoptics(medio,monto),lineas:detalle_ventas_tsysoptics(codigo_snapshot,cantidad)").eq("estado","emitida").gt("abonado",0).order("fecha",{ascending:false}).limit(100),
    db.rpc("resumen_turno_caja_tsysoptics"),
-   db.from("devoluciones_ventas_tsysoptics").select("id,numero_venta,fecha,motivo,monto_reembolsado,reintegro_stock").order("fecha",{ascending:false}).limit(40)
+   db.from("devoluciones_ventas_tsysoptics").select("id,numero_venta,fecha,motivo,monto_reembolsado,saldo_condonado,reintegro_stock,detalle_inventario,medios:reembolsos_medios_tsysoptics(medio,monto)").order("fecha",{ascending:false}).limit(40)
   ]);
   if(sales.error||shift.error||notes.error){status("No fue posible consultar las devoluciones. Revisa tu sesión y conexión.");return;}
   const open=Array.isArray(shift.data)&&shift.data[0]?.estado==="abierta";
