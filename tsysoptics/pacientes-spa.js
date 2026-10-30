@@ -9,6 +9,9 @@ let selectedId=null,busy=false,dirty=false,historyRequest=0,searchRequest=0,auth
 function resetForm(){
  form.reset();selectedId=null;dirty=false;historyRequest++;
  $("history-link").hidden=true;
+ $("history-link").removeAttribute("href");
+ $("profile-clinical").removeAttribute("href");
+ $("profile-new-clinical").removeAttribute("href");
  $("patient-profile").hidden=true;
  $("patient-history-list").replaceChildren();
  form.elements.tipo_documento.disabled=false;form.elements.documento.disabled=false;
@@ -135,6 +138,7 @@ function choosePatient(p){
  $("history-link").href=href;$("history-link").hidden=false;
  $("profile-clinical").href=href;
  $("profile-new-clinical").href=href+"&nueva=1";
+ $("profile-new-clinical").setAttribute("aria-label","Iniciar una nueva consulta clínica de "+p.nombre_completo);
  setText("patient-profile-name",p.nombre_completo);
  setText("patient-profile-document",p.tipo_documento+" · "+p.documento);
  setText("profile-phone",p.telefono);
