@@ -26,7 +26,7 @@ function renderSales(list,open){
   const row=node("div","");row.className="item";
   const details=node("div","");details.append(node("strong","Venta V-"+String(sale.numero).padStart(6,"0")+" · "+cop(sale.total)));
   details.append(node("p","Pagado "+cop(sale.abonado)+" · Saldo "+cop(sale.saldo)+" · "+(sale.lineas||[]).map(x=>x.codigo_snapshot+" × "+x.cantidad).join(", ")));
-  const btn=node("button",open?"Preparar devolución":"Abrir Caja");btn.type="button";btn.disabled=!open;
+  const btn=node("button",open?"Preparar devolución":"Caja cerrada");btn.type="button";btn.disabled=!open;
   btn.addEventListener("click",()=>choose(sale));row.append(details,btn);root.append(row);
  }
 }
@@ -74,7 +74,21 @@ $("form").addEventListener("submit",async event=>{
  saving=true;$("guardar").disabled=true;$("cancelar").disabled=true;$("resultado").textContent="Registrando devolución…";
  try{
   const {data,error}=await db.rpc("devolver_venta_tsysoptics",{p_venta_id:selected.id,p_motivo:motivo,p_reintegra_stock:$("reintegrar").checked,p_reembolso_confirmado:true,p_operacion_id:token});
-  if(error||!data){$("resultado").textContent="No se pudo confirmar la devolución. Revisa el historial antes de volver a intentarlo.";return;}
+  if(error||!data){
+   const reason=String(error?.message||"");
+   const known=[
+    ["efectivo suficiente","No hay efectivo suficiente registrado en el turno para este reembolso. Revisa el arqueo de Caja."],
+    ["abrir un turno","Caja está cerrada. Abre un turno antes de registrar la devolución."],
+    ["Inconsistencia contable","Los pagos no coinciden con el saldo de la venta. Revisa la venta antes de continuar."],
+    ["ya fue anulada o devuelta","Esta venta ya fue anulada o devuelta. Actualiza el historial."],
+    ["No autorizado","La sesión no tiene permiso para registrar devoluciones."],
+    ["motivo y destino","Verifica el motivo (10 a 300 caracteres), el reintegro y la confirmación del reembolso."]
+   ];
+   $("resultado").textContent=known.find(([key])=>reason.includes(key))?.[1]||
+    "No se pudo confirmar la devolución ("+(error?.code||"sin código")+"). Consulta el historial antes de repetirla.";
+   console.error("Devolución rechazada",error?.code,error?.message);
+   return;
+  }
   token=crypto.randomUUID();selected=null;$("form").hidden=true;$("form").reset();$("sin-seleccion").hidden=false;
   $("resultado").textContent="Devolución registrada. Consulta el historial.";
   window.dispatchEvent(new Event("tsys:ventas-actualizadas"));window.dispatchEvent(new Event("tsys:inventario-refrescar"));
