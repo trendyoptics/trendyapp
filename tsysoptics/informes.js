@@ -28,6 +28,7 @@ function localMonth(){
  return m===1?(y-1)+"-12":y+"-"+String(m-1).padStart(2,"0");
 }
 monthInput.value=localMonth();
+monthInput.max=bogotaDay().slice(0,7);
 function monthBounds(month){
  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw Error("Selecciona un mes válido.");
  const [y,m]=month.split("-").map(Number);
@@ -47,6 +48,7 @@ function setReady(ok){
 }
 function clear(){
  authorized=false;report=null;requestSeq++;
+ $("informe-generar").disabled=true;
  setReady(false);$("informe-resultado").hidden=true;
  status("Acceso reservado al administrador. Inicia sesión para consultar los informes.");
 }
@@ -81,8 +83,8 @@ async function collect(month){
   fetchAll("ventas_tsysoptics","id,numero,fecha,total,abonado,saldo,estado",during("fecha"),"fecha"),
   fetchAll("pagos_ventas_tsysoptics","id,venta_id,monto,medio,registrado_en",during("registrado_en"),"id"),
   fetchAll("productos_tsysoptics","id,codigo,nombre,tipo,cantidad,stock_minimo,costo_compra,precio_venta,activo",q=>q,"codigo"),
-  fetchAll("movimientos_inventario_tsysoptics","id,producto_id,diferencia,creado_en",during("creado_en"),"id"),
-  fetchAll("movimientos_caja_tsysoptics","id,tipo,monto,fecha",during("fecha"),"id"),
+  fetchAll("movimientos_inventario_tsysoptics","id,producto_id,diferencia,motivo,creado_en",during("creado_en"),"id"),
+  fetchAll("movimientos_caja_tsysoptics","id,tipo,monto,motivo,fecha",during("fecha"),"id"),
   fetchAll("turnos_caja_tsysoptics","id,estado,cerrada_en,diferencia",during("cerrada_en"),"cerrada_en"),
   fetchAll("ordenes_laboratorio_tsysoptics","id,estado,creado_en,fecha_entrega_estimada,fecha_entrega_paciente",q=>q,"creado_en")
  ]);
@@ -248,10 +250,10 @@ function sections(r){
    ...r.stock.map(p=>[p.codigo,p.nombre,p.tipo,p.cantidad,p.stock_minimo,p.costo_compra,p.precio_venta,p.activo?"SI":"NO"])]},
   {title:"LABORATORIO PEDIDOS CREADOS EN EL MES",rows:[["Estado actual","Entrega estimada","Entrega paciente"],
    ...r.orderMonth.map(o=>[o.estado,o.fecha_entrega_estimada,o.fecha_entrega_paciente||""])]},
-  {title:"MOVIMIENTOS DE INVENTARIO DEL MES",rows:[["Producto ID","Diferencia de unidades","Fecha"],
-   ...r.stockMoves.map(x=>[x.producto_id,x.diferencia,fmtDate(x.creado_en)])]},
-  {title:"MOVIMIENTOS MANUALES DE CAJA DEL MES",rows:[["Tipo","Monto COP","Fecha"],
-   ...r.cashMoves.map(x=>[x.tipo,x.monto,fmtDate(x.fecha)])]},
+  {title:"MOVIMIENTOS DE INVENTARIO DEL MES",rows:[["Producto ID","Diferencia de unidades","Motivo","Fecha"],
+   ...r.stockMoves.map(x=>[x.producto_id,x.diferencia,x.motivo,fmtDate(x.creado_en)])]},
+  {title:"MOVIMIENTOS MANUALES DE CAJA DEL MES",rows:[["Tipo","Monto COP","Motivo","Fecha"],
+   ...r.cashMoves.map(x=>[x.tipo,x.monto,x.motivo,fmtDate(x.fecha)])]},
   {title:"NOTAS DE INTERPRETACIÓN",rows:[
    ["Ventas","Se muestran las ventas creadas en el mes. Totales vigentes excluyen anuladas y devueltas según su estado a la fecha de consulta."],
    ["Recaudos","Pagos registrados en el mes, incluyendo abonos de ventas anteriores. No son necesariamente cobros netos de devoluciones."],
