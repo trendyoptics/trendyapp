@@ -190,6 +190,7 @@ $("posventa-venta").addEventListener("change",renderRelations);
 $("posventa-consulta-paciente").addEventListener("change",renderHistory);
 $("posventa-filtro").addEventListener("change",renderOverview);
 $("posventa-refrescar").addEventListener("click",()=>void load());
+window.addEventListener("tsys:laboratorio-actualizado",()=>{if(allowed)void load();});
 $("posventa-form").addEventListener("submit",e=>void save(e));
 window.addEventListener("tsys:locked",logout);
 window.addEventListener("tsys:role",async e=>{const ok=e.detail?.role==="administrador"&&await auth();allowed=ok;disable(!ok);if(ok)void load();else logout()});
