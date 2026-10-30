@@ -38,9 +38,18 @@ function setControls(){
  $("caja-abrir-btn").disabled=!canOpen||doing!==null;
  $("caja-movimiento-btn").disabled=!open||doing!==null;
  $("caja-cierre-btn").disabled=!open||doing!==null;
- $("caja-abrir-form").hidden=!canOpen;
+ // Nunca ocultar las tres acciones si el estado todavía no pudo verificarse.
+ // Mostrar la apertura deshabilitada permite al usuario identificar el problema.
+ $("caja-abrir-form").hidden=stateKnown?!canOpen:false;
  $("caja-movimiento-form").hidden=!open;
  $("caja-cierre-form").hidden=!open;
+ status("caja-accion-disponible",!admin
+  ?"Acciones bloqueadas: se requiere una cuenta administradora activa."
+  :!stateKnown
+  ?"No se pudo verificar el turno. Usa Actualizar estado de caja; no se permite operar hasta confirmar Supabase."
+  :open
+  ?"Hay un turno abierto. Disponibles: movimientos de efectivo y cierre con arqueo. No puedes abrir un segundo turno."
+  :"No hay un turno abierto. Disponible: Abrir caja para comenzar la jornada.");
 }
 async function verify(){
  const {data,error}=await db.auth.getUser();
@@ -108,6 +117,7 @@ async function refresh(){
   }
   snapshot=Array.isArray(r.data)&&r.data.length?r.data[0]:null;
   stateKnown=true;
+  setControls();
   try{
    renderSummary();
   }catch(error){
@@ -269,4 +279,5 @@ async function activate(){
 }
 window.addEventListener("tsys:role",e=>{if(e.detail?.role==="administrador")void activate();else reset()});
 window.addEventListener("tsys:locked",reset);
+window.addEventListener("tsys:ventas-actualizadas",()=>{if(admin&&!loading)void refresh();});
 if($("tsys-app")?.dataset.role==="administrador")void activate();
