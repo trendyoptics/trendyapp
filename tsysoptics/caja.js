@@ -124,14 +124,14 @@ async function refresh(){
   try{
    renderSummary();
   }catch(error){
-   stateKnown=false;
+   // Un fallo al pintar indicadores no debe bloquear movimientos ni el cierre
+   // si Supabase ya confirmó el estado del turno.
    console.error("Caja: fallo al presentar el resumen",error);
-   // Intentar recuperar el estado, incluso si un detalle visual falló.
    state(snapshot?.estado==="abierta"
-    ?"Caja abierta. Algunos indicadores no pudieron mostrarse. Actualiza la página. (Vista C2)"
-    :"No se pudo mostrar el resumen de Caja. Actualiza la página. (Vista C2)");
+    ?"Caja ABIERTA. Hubo un problema al mostrar indicadores, pero el turno está verificado. Puedes usar Movimientos y Cierre. (Vista C2)"
+    :"No se pudieron mostrar algunos indicadores. El estado del turno sí fue verificado. (Vista C2)");
    setControls();
-   return;
+   notify();
   }
 
   // Fallar al mostrar el historial NO debe borrar ni inutilizar el turno válido.
