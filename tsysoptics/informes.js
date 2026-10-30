@@ -1,5 +1,7 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
+import {exportMonthlyXlsx} from "./informes-excel.js?v=20261030v1";
+import {createMonthlyPdf} from "./informes-pdf.js?v=20261030v1";
 
 // Informes de solo lectura. RLS de Supabase restringe las tablas al administrador.
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
@@ -44,7 +46,7 @@ async function checkAdmin(){
  return !profileError&&user?.rol==="administrador"&&user.activo===true;
 }
 function setReady(ok){
- $("informe-pdf").disabled=!ok;$("informe-csv").disabled=!ok;
+ $("informe-pdf").disabled=!ok;$("informe-csv").disabled=!ok;$("informe-xlsx").disabled=!ok;
 }
 function clear(){
  authorized=false;report=null;requestSeq++;
@@ -86,7 +88,7 @@ async function collect(month){
   fetchAll("movimientos_inventario_tsysoptics","id,producto_id,diferencia,motivo,creado_en",during("creado_en"),"id"),
   fetchAll("movimientos_caja_tsysoptics","id,tipo,monto,motivo,fecha",during("fecha"),"id"),
   fetchAll("turnos_caja_tsysoptics","id,estado,cerrada_en,diferencia",during("cerrada_en"),"cerrada_en"),
-  fetchAll("ordenes_laboratorio_tsysoptics","id,estado,creado_en,fecha_entrega_estimada,fecha_entrega_paciente",q=>q,"creado_en")
+  fetchAll("ordenes_laboratorio_tsysoptics","id,venta_id,laboratorio,estado,creado_en,fecha_entrega_estimada,fecha_entrega_paciente",q=>q,"creado_en")
  ]);
  const valid=sales.filter(x=>x.estado==="emitida");
  const lines=await fetchBySaleIds(valid.map(x=>x.id));
@@ -208,7 +210,7 @@ async function generate(){
   const result=await collect(month);
   if(seq!==requestSeq||!authorized)return;
   report=result;render(result);setReady(true);
-  status("Informe "+month+" generado correctamente. Puedes descargar PDF o Excel (CSV).");
+  status("Informe "+month+" generado correctamente. Puedes descargar Excel (.xlsx), PDF o CSV adicional.");
  }catch(e){if(seq===requestSeq)status("No se generó el informe: "+(e?.message||"Error de consulta."))}
  finally{loading=false;$("informe-generar").disabled=!authorized}
 }
@@ -280,45 +282,43 @@ function exportCsv(){
  const blob=new Blob(["\uFEFF",lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
  download(blob,"TsysOptics_Informe_Mensual_"+report.month+".csv");
 }
+async function readBrand(){
+ try{
+  const {data,error}=await db.from("identidad_optica_tsysoptics")
+   .select("nombre_optica,logo_data_url").eq("id",1).maybeSingle();
+  return error?{}:(data||{});
+ }catch{return {}}
+}
+async function exportXlsx(){
+ if(!report||!authorized)return;
+ const btn=$("informe-xlsx"),snapshot=report;
+ btn.disabled=true;status("Preparando libro Excel con hojas independientes…");
+ try{
+  if(!(await checkAdmin())){clear();return}
+  const brand=await readBrand();
+  if(!authorized||report!==snapshot)return;
+  const filename=await exportMonthlyXlsx(snapshot,brand.nombre_optica);
+  status("Excel generado: "+filename+". Incluye pestañas separadas para ventas, pagos, inventario, laboratorio y caja.");
+ }catch(e){status("No se pudo generar el Excel: "+(e?.message||"Error inesperado.")+" Puedes descargar CSV como alternativa.")}
+ finally{btn.disabled=!report||!authorized}
+}
 async function exportPdf(){
  if(!report||!authorized)return;
- const btn=$("informe-pdf");btn.disabled=true;
+ const btn=$("informe-pdf"),snapshot=report;
+ btn.disabled=true;status("Preparando informe ejecutivo en PDF…");
  try{
-  const {jsPDF}=await import("https://esm.sh/jspdf@2.5.2");
-  const pdf=new jsPDF({unit:"mm",format:"a4"});
-  const W=210,M=13,MAX=282;let y=16;
-  function line(text,weight=false){
-   if(y>MAX){pdf.addPage();y=16}
-   pdf.setFont("helvetica",weight?"bold":"normal");
-   pdf.setFontSize(weight?10:8);
-   const wrapped=pdf.splitTextToSize(String(text),W-2*M);
-   for(const t of wrapped){
-    if(y>MAX){pdf.addPage();y=16}
-    pdf.text(t,M,y);y+=weight?5:4.1;
-   }
-  }
-  function heading(t){y+=3;line(t,true);pdf.setDrawColor(190,199,210);pdf.line(M,y,W-M,y);y+=4}
-  line("TsysOptics · Sistema de gestión",true);
-  line("INFORME ADMINISTRATIVO MENSUAL · "+report.month,true);
-  line("Generado: "+new Date(report.generatedAt).toLocaleString("es-CO"));
-  heading("RESUMEN");
-  const sec=sections(report);
-  for(const item of sec[0].rows)line(item[0]+": "+(typeof item[1]==="number"?number(item[1]):item[1]));
-  heading("RECAUDOS POR MEDIO");
-  for(const [medium,amount] of report.methods)line(medium.toUpperCase()+": "+money(amount));
-  heading("PRODUCTOS MÁS VENDIDOS (hasta 20)");
-  for(const x of report.top.slice(0,20))line((x.codigo||"")+" · "+x.nombre+" · "+x.unidades+" uds · "+money(x.valor));
-  heading("ALERTAS DE STOCK ACTUAL (hasta 25)");
-  for(const x of report.lowStock.slice(0,25))line(x.codigo+" · "+x.nombre+" · "+x.cantidad+" uds, mínimo "+x.stock_minimo);
-  heading("ADVERTENCIAS DEL REPORTE");
-  for(const item of sec.at(-1).rows)line(item[0]+": "+item[1]);
-  line("Para el detalle completo de ventas, productos, inventario y movimientos, descarga Excel (CSV).");
-  download(pdf.output("blob"),"TsysOptics_Informe_Mensual_"+report.month+".pdf");
+  if(!(await checkAdmin())){clear();return}
+  const identity=await readBrand();
+  if(!authorized||report!==snapshot)return;
+  const file=await createMonthlyPdf(snapshot,identity);
+  download(file.blob,file.filename);
+  status("PDF ejecutivo generado con resumen, ventas, pagos, inventario y laboratorio.");
  }catch(e){status("No se pudo exportar el PDF: "+(e?.message||"Error inesperado."))}
  finally{btn.disabled=!report||!authorized}
 }
 $("informe-generar").addEventListener("click",()=>void generate());
 $("informe-csv").addEventListener("click",exportCsv);
+$("informe-xlsx").addEventListener("click",()=>void exportXlsx());
 $("informe-pdf").addEventListener("click",()=>void exportPdf());
 monthInput.addEventListener("change",()=>{requestSeq++;report=null;setReady(false);$("informe-resultado").hidden=true;status("Mes modificado. Genera nuevamente el informe para exportarlo.");});
 window.addEventListener("tsys:locked",clear);
