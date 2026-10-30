@@ -19,6 +19,7 @@ const lensPrice=$("venta-lente-precio-manual");
 const lensQuantity=$("venta-lente-cantidad");
 let creatingLens=false,confirmingLens=false;
 let cotizacionPreparada=null;
+let cotizacionAsignaciones=null;
 let receiptContext=null,receiptRequest=0;
 const LENS_CATALOG=[
  ["CR BLUE",100000],["CR FOTO BLUE",220000],["POLY BLUE",180000],
@@ -154,7 +155,7 @@ function renderCart(){
    element("small",(p?.nombre||"Referencia")+" · "+money((p?.precio_venta||0)*item.cantidad)));
   const rm=element("button","Quitar","btn alt");
   rm.type="button";
-  rm.addEventListener("click",()=>{cart=cart.filter(x=>x.producto_id!==item.producto_id);cotizacionPreparada=null;renderCart()});
+  rm.addEventListener("click",()=>{cart=cart.filter(x=>x.producto_id!==item.producto_id);cotizacionPreparada=null;cotizacionAsignaciones=null;renderCart()});
   row.append(info,rm);cartRoot.append(row);
  }
  if(!cart.length)cartRoot.append(element("p","Carrito vacío. Selecciona una referencia y agrégala.","muted"));
@@ -293,7 +294,7 @@ $("venta-agregar-lente").addEventListener("click",async()=>{
   if(!data?.id){displayStatus("venta-lente-status","No llegó confirmación del guardado. Revisa Inventario antes de repetir.");return}
   products.push(data);
   cart.push({producto_id:data.id,cantidad});
-  if(cotizacionPreparada)cotizacionPreparada=null;
+  if(cotizacionPreparada){cotizacionPreparada=null;cotizacionAsignaciones=null;}
   fillOptions();renderCart();
   lensCatalog.value="";lensName.value="";lensPrice.value="";lensQuantity.value="1";
   window.dispatchEvent(new Event("tsys:inventario-refrescar"));
@@ -535,7 +536,7 @@ $("venta-agregar-producto").addEventListener("click",()=>{
  }
  if(existing)existing.cantidad=sum;
  else cart.push({producto_id:id,cantidad:qty});
- if(cotizacionPreparada){cotizacionPreparada=null;displayStatus("venta-form-status","Modificaste el carrito: la cotización ya no quedará vinculada a esta venta.");}
+ if(cotizacionPreparada){cotizacionPreparada=null;cotizacionAsignaciones=null;displayStatus("venta-form-status","Modificaste el carrito: la cotización ya no quedará vinculada a esta venta.");}
  displayStatus("venta-form-status",p.codigo+" agregado al carrito.");
  renderCart();
 });
@@ -573,10 +574,11 @@ form.addEventListener("submit",async e=>{
   cotizacionPreparada=null;
   let cotizacionError="";
   if(cotizacionId){
-   const linked=await sb.rpc("vincular_cotizacion_venta_tsysoptics",{p_cotizacion_id:cotizacionId,p_venta_id:data});
+   const linked=await sb.rpc("vincular_cotizacion_venta_mapeada_tsysoptics",{p_cotizacion_id:cotizacionId,p_venta_id:data,p_asignaciones:cotizacionAsignaciones});
    if(linked.error)cotizacionError=linked.error.message;
    else window.dispatchEvent(new Event("tsys:cotizaciones-refrescar"));
   }
+  cotizacionAsignaciones=null;
   saleToken=crypto.randomUUID();cart=[];
   form.reset();form.elements.cantidad.value="1";form.elements.abono.value="0";
   window.tsysFormatCOPInputs(form);
@@ -627,7 +629,7 @@ paymentsForm.addEventListener("submit",async e=>{
  }
 });
 function reset(){
- cotizacionPreparada=null;
+ cotizacionPreparada=null;cotizacionAsignaciones=null;
  isActive=false;isStarting=false;generation++;
  voiding=false;voidModal.hidden=true;saleToVoid=null;voidToken=crypto.randomUUID();voidForm.reset();
  setCajaEstado(false);
@@ -682,10 +684,11 @@ window.addEventListener("tsys:cotizacion-preparar-venta",event=>{
  if(cart.length&&!window.confirm("Se reemplazará el carrito actual por la cotización. ¿Continuar?"))return;
  cart=requested.map(x=>({producto_id:x.producto_id,cantidad:x.cantidad}));
  cotizacionPreparada=detail.id;
+ cotizacionAsignaciones=Array.isArray(detail.asignaciones)?detail.asignaciones.map(x=>({producto_id:x.producto_id,cantidad:x.cantidad})):requested.map(x=>({producto_id:x.producto_id,cantidad:x.cantidad}));
  patientSelect.value=detail.paciente_id||"";
  form.elements.abono.value="0";form.elements.medio.value="";
  renderCart();
- displayStatus("venta-form-status","Cotización cargada. Comprueba TOTAL actualizado, paciente y stock antes de registrar la venta. La cotización se vinculará después del registro exitoso.");
+ displayStatus("venta-form-status","Cotización preparada: precio negociado "+money(detail.total_cotizado)+", precio actual "+money(cartTotal())+". Revisa el paciente y el stock. Al confirmar, se venderá al PRECIO ACTUAL y se vinculará la cotización.");
 });
 window.addEventListener("tsys:role",e=>{
  if(e.detail?.role==="administrador")void activate();
