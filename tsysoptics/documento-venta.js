@@ -95,13 +95,14 @@ export async function createSalePdf(ctx){
  const logo=await printableLogo(config.logo_data_url);
  const W=215.9,H=279.4,L=12,R=203.9,CW=R-L;
  const NAVY=[11,28,64],GREY=[75,89,111],PALE=[233,238,246];
- const LIMIT=206,SALE_TOP=210,SALE_BOTTOM=270;
+ const LIMIT=196,SALE_TOP=207,SALE_BOTTOM=270;
  const d=history?.datos_clinicos||{};
  const continuation=[];
  function color(rgb=NAVY){pdf.setTextColor(...rgb)}
  function font(size=8,bold=false){pdf.setFont("helvetica",bold?"bold":"normal");pdf.setFontSize(size)}
  function rule(y){pdf.setDrawColor(...NAVY);pdf.setLineWidth(.25);pdf.line(L,y,R,y)}
  function section(name,y,x=L,width=CW){
+  if(y>=LIMIT&&name.startsWith("0")&&!name.startsWith("03"))return y;
   pdf.setFillColor(...PALE);pdf.rect(x,y-3.5,width,5.5,"F");
   color();font(8,true);pdf.text(name,x+2,y);return y+5;
  }
@@ -136,6 +137,7 @@ export async function createSalePdf(ctx){
  function headingBlock(title,entries,y,options={}){
   const items=entries.filter(([k,v])=>txt(v));
   if(!items.length)return y;
+  if(y+8>LIMIT){continuation.push(title+": "+items.map(([k,v])=>k+" "+txt(v)).join("; "));return y;}
   y=addHeading(title,y);
   for(const [key,val] of items)y=clinicalLine(key,val,y,options);
   return y+1;
@@ -189,101 +191,102 @@ export async function createSalePdf(ctx){
    for(const row of rows){x=L;font(7);color(GREY);row.forEach((v,i)=>{pdf.text(txt(v)||"—",x+1,y,{maxWidth:widths[i]-2});x+=widths[i]});y+=5}
    y+=1;
   }
-  if(y+23<LIMIT){
+  if(y+30<LIMIT){
    y=section("FÓRMULA ÓPTICA",y);
    const widths=[15,32,32,28,36,48];let x=L;
    font(6.7,true);color();
    ["OJO","ESFERA","CILINDRO","EJE","ADICIÓN","DNP"].forEach((v,i)=>{pdf.text(v,x+1,y);x+=widths[i]});
    y+=5;
    const rows=[["OD",d.odEsfera,d.odCilindro,d.odEje,d.odAdicion,d.odDnp],["OI",d.oiEsfera,d.oiCilindro,d.oiEje,d.oiAdicion,d.oiDnp]];
-   for(const row of rows){x=L;font(7.6);color(GREY);row.forEach((v,i)=>{pdf.text(txt(v)||"—",x+1,y,{maxWidth:widths[i]-2});x+=widths[i]});y+=5}
+   const dioptrias=value=>{
+    const raw=txt(value).replace(",",".");
+    if(!raw||raw==="—"||raw.toUpperCase()==="NO APLICA")return raw||"—";
+    const number=Number(raw);
+    if(!Number.isFinite(number))return raw;
+    return (number>0?"+":"")+number.toFixed(2);
+   };
+   for(const row of rows){
+    x=L;font(7.6);color(GREY);
+    row.forEach((v,i)=>{
+     const display=i===1||i===2||i===4?dioptrias(v):txt(v)||"—";
+     pdf.text(display,x+1,y,{maxWidth:widths[i]-2});x+=widths[i];
+    });y+=5
+   }
    y=clinicalLine("DISTANCIA PUPILAR",d.dp,y);
   }else continuation.push("FÓRMULA: OD "+[d.odEsfera,d.odCilindro,d.odEje,d.odAdicion,d.odDnp].join(" / ")+"; OI "+[d.oiEsfera,d.oiCilindro,d.oiEje,d.oiAdicion,d.oiDnp].join(" / "));
-  y=headingBlock("HALLAZGOS DEL EXAMEN",[
-   ["BIOMICROSCOPÍA",d.biomicroscopia],["OFTALMOSCOPÍA",d.oftalmoscopia],
-   ["MOTILIDAD",d.motilidad],["LENSOMETRÍA OD",d.lensoOd],["LENSOMETRÍA OI",d.lensoOi]
-  ],y,{size:7,maxLines:3});
   y=headingBlock("DIAGNÓSTICO, REMISIONES Y OBSERVACIONES",[
    ["DIAGNÓSTICO",d.diagnostico],
    ["CIE-10",[d.cie1,d.cie2,d.cie3,d.cie4,d.cie5].filter(Boolean).join("; ")],
    ["NOTAS / CONDUCTA",d.notas],["REMISIONES",d.remisiones||d.remision||d.recomendaciones],
    ["CONTROL",d.control||d.proximoControl]
   ],y,{size:7,maxLines:4});
+  y=headingBlock("HALLAZGOS DEL EXAMEN",[
+   ["BIOMICROSCOPÍA",d.biomicroscopia],["OFTALMOSCOPÍA",d.oftalmoscopia],
+   ["MOTILIDAD",d.motilidad],["LENSOMETRÍA OD",d.lensoOd],["LENSOMETRÍA OI",d.lensoOi]
+  ],y,{size:7,maxLines:3});
   const covered=new Set(["motivoConsulta","motivo","antecedentes","ocupacion","avScOdLejos","avScOiLejos","avScOdCerca","avScOiCerca","odAvLejos","oiAvLejos","odAvCerca","oiAvCerca","odEsfera","odCilindro","odEje","odAdicion","odDnp","oiEsfera","oiCilindro","oiEje","oiAdicion","oiDnp","dp","biomicroscopia","oftalmoscopia","motilidad","lensoOd","lensoOi","diagnostico","cie1","cie2","cie3","cie4","cie5","notas","remisiones","remision","recomendaciones","control","proximoControl",...exclusion]);
   const extra=Object.entries(d).filter(([key,value])=>!covered.has(key)&&txt(value)&&typeof value!=="object");
-  if(extra.length)y=headingBlock("OTROS DATOS CLÍNICOS",extra,y,{size:6.9,maxLines:2});
+  if(extra.length&&y<165)y=headingBlock("OTROS DATOS CLÍNICOS",extra.slice(0,8),y,{size:6.6,maxLines:1});
  }else{
   y=section("02  ·  HISTORIA CLÍNICA",y);
   y=clinicalLine("ESTADO",patient?"No hay consulta finalizada para este paciente.":"Venta sin paciente registrado.",y);
  }
- // El bloque comercial ocupa el cuarto inferior de la primera hoja, incluso si
- // existen hallazgos extensos. Nunca se pierde información: pasa a anexos.
- pdf.setDrawColor(...NAVY);pdf.setLineWidth(.6);pdf.line(L,SALE_TOP-2,R,SALE_TOP-2);
+ // Resumen clínico-comercial en una hoja carta. La historia completa permanece
+ // en el expediente digital; no se genera una segunda hoja ni se superponen textos.
+ if(continuation.length){
+  font(6.5,true);color(GREY);
+  pdf.text("EL DETALLE CLÍNICO COMPLETO SE CONSERVA EN LA HISTORIA DIGITAL.",L+2,202);
+ }
+ pdf.setDrawColor(...NAVY);pdf.setLineWidth(.4);
+ pdf.line(L,SALE_TOP-2,R,SALE_TOP-2);
  y=section("03  ·  DETALLE DE VENTA Y GARANTÍAS",SALE_TOP+3);
  font(7);color();
  pdf.text("VENTA V-"+String(sale.numero).padStart(6,"0")+"  ·  "+fecha(sale.fecha),L+2,y);
- y+=5;
- const lines=sale.lineas||[];
- font(7,true);color();pdf.text("PRODUCTO / LENTE / MONTURA",L+2,y);pdf.text("CANT.",L+112,y);pdf.text("TOTAL",R-2,y,{align:"right"});
- y+=4;pdf.setDrawColor(200);pdf.line(L,y-1,R,y-1);
- for(const [index,line] of lines.entries()){
-  const description=txt(line.nombre_snapshot||line.codigo_snapshot);
-  const parts=fitLines(description,104,7);
-  if(y+4*Math.max(1,parts.length)>SALE_TOP+27){
-   continuation.push("VENTA · "+description+" · Cantidad: "+line.cantidad+" · Unitario: "+money(line.precio_unitario)+" · Total: "+money(line.total_linea));
-   continue;
-  }
-  font(7);color(GREY);
-  parts.forEach((part,n)=>pdf.text(part,L+2,y+n*3.4));
-  pdf.text(String(line.cantidad),L+114,y);
-  pdf.text(money(line.total_linea),R-2,y,{align:"right"});
-  y+=Math.max(1,parts.length)*3.4+1;
+ y+=4;
+ font(6.6,true);color();
+ pdf.text("PRODUCTO / LENTE / MONTURA",L+2,y);
+ pdf.text("CANT.",L+119,y);
+ pdf.text("VALOR",R-2,y,{align:"right"});
+ y+=3.4;
+ const saleLines=sale.lineas||[];
+ for(const item of saleLines.slice(0,3)){
+  font(6.6);color(GREY);
+  const label=txt(item.nombre_snapshot||item.codigo_snapshot);
+  const maxLen=80;
+  const display=label.length>maxLen?label.slice(0,maxLen-1)+"…":label;
+  pdf.text(display,L+2,y,{maxWidth:114});
+  pdf.text(txt(item.cantidad)||"1",L+121,y);
+  pdf.text(money(item.total_linea),R-2,y,{align:"right"});
+  y+=3.7;
  }
- const sumY=SALE_TOP+31;
- pdf.setFillColor(...PALE);pdf.rect(L,sumY-3,CW,12,"F");
- color();font(8.4,true);
- pdf.text("TOTAL: "+money(sale.total),L+2,sumY+1);
- pdf.text("ABONADO: "+money(sale.abonado),L+68,sumY+1);
- pdf.text("SALDO: "+money(sale.saldo),R-2,sumY+1,{align:"right"});
- font(6.6);color(GREY);
- const payments=(sale.pagos||[]).map(p=>p.medio+" "+money(p.monto)).join(" · ");
+ if(saleLines.length>3){font(6.2);color(GREY);pdf.text("Y "+(saleLines.length-3)+" REFERENCIA(S) MÁS. TOTAL INCLUIDO EN EL RESUMEN.",L+2,y);}
+ const sumY=SALE_TOP+29;
+ pdf.setFillColor(...PALE);pdf.rect(L,sumY-3,CW,10,"F");
+ font(7.7,true);color();
+ pdf.text("TOTAL",L+2,sumY);
+ pdf.text(money(sale.total),L+18,sumY);
+ pdf.text("ABONADO",L+74,sumY);
+ pdf.text(money(sale.abonado),L+99,sumY);
+ pdf.text("SALDO",L+151,sumY);
+ pdf.text(money(sale.saldo),R-2,sumY+4,{align:"right"});
+ const payments=(sale.pagos||[]).map(p=>p.medio+": "+money(p.monto)).join(" · ");
+ font(6.2);color(GREY);
  const paytext=payments?"PAGOS: "+payments:"PAGOS: SIN PAGOS REGISTRADOS";
- const paylines=fitLines(paytext,CW-4,6.6);
- pdf.text(paylines.slice(0,2),L+2,sumY+5);
- if(paylines.length>2)continuation.push("PAGOS: "+payments);
- let gy=SALE_TOP+47;
- const warranties=[
+ pdf.text(fitLines(paytext,CW-4,6.2).slice(0,1),L+2,SALE_TOP+39);
+ const guarantees=[
   "LENTES: GARANTÍA DE 6 MESES, EXCEPTO DAÑOS POR MAL USO.",
   "MONTURAS: GARANTÍA DE 4 MESES, EXCEPTO DAÑOS POR MAL USO.",
   txt(config.nota_garantia)||"NO SE DA GARANTÍA POR FÓRMULAS DE OTRO LUGAR."
  ];
- font(6.9,true);color();
- for(const warranty of warranties){
-  const wrap=fitLines(warranty,CW-3,6.9);
-  for(const line of wrap.slice(0,2)){pdf.text(line,L+1,gy);gy+=3}
-  if(wrap.length>2)continuation.push("GARANTÍA: "+warranty);
+ font(6.5,true);color();
+ let warrantyY=SALE_TOP+45;
+ for(const statement of guarantees){
+  const wrapped=fitLines(statement,CW-3,6.5);
+  pdf.text(wrapped.slice(0,2),L+2,warrantyY);
+  warrantyY+=wrapped.slice(0,2).length*2.8+1;
  }
- if(txt(config.pie_documento))continuation.push("CONDICIONES ADICIONALES: "+config.pie_documento);
- if((sale.pagos||[]).length)continuation.push(...sale.pagos.map(p=>"PAGO: "+fecha(p.registrado_en)+" · "+p.medio+" · "+money(p.monto)));
- // Anexos: tantos como requiera el contenido, sin truncar hallazgos ni alterar el bloque comercial.
- let cy=0;
- function annexPage(){
-  pdf.addPage();cy=22;font(12,true);color();pdf.text(txt(config.nombre_optica||"ÓPTICA"),L,13);
-  pdf.text("ANEXO CLÍNICO Y COMERCIAL · V-"+String(sale.numero).padStart(6,"0"),L,19,{maxWidth:CW});
-  rule(21);cy=28;
- }
- if(continuation.length){
-  annexPage();
-  for(const item of continuation){
-   const isHeading=item.startsWith("§ ");
-   font(isHeading?9:7.7,isHeading);color(isHeading?NAVY:GREY);
-   const lines=fitLines(isHeading?item.slice(2):item,CW-4,isHeading?9:7.7);
-   for(const line of lines){
-    if(cy+5>H-19)annexPage();
-    pdf.text(line,L+2,cy);cy+=isHeading?4.5:4;
-   }
-   cy+=2;
-  }
+ if(txt(config.pie_documento)&&warrantyY<268){
+  font(6);color(GREY);pdf.text(fitLines(config.pie_documento,CW-4,6).slice(0,1),L+2,warrantyY+1);
  }
  const count=pdf.getNumberOfPages();
  for(let k=1;k<=count;k++){
