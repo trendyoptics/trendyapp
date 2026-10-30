@@ -1131,7 +1131,7 @@ async function actualizarPersonalizacionImpresion(){
  if(n&&data.nombre_optica)n.textContent=data.nombre_optica;
  if(note&&data.nota_garantia!==null)note.textContent=data.nota_garantia;
  if(logo&&typeof data.logo_data_url==="string"&&
-   /^data:image\\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.logo_data_url)&&data.logo_data_url.length<210000)logo.src=data.logo_data_url;
+   /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.logo_data_url)&&data.logo_data_url.length<210000)logo.src=data.logo_data_url;
 }
 void actualizarPersonalizacionImpresion();
 function clinicalMessage(message) {
