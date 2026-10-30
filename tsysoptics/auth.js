@@ -54,6 +54,7 @@ function applyRole(role) {
     const isLocked = restricted && ["ventas", "inventario", "caja", "laboratorio", "posventa", "cotizaciones", "informes"].includes(section);
     if ("disabled" in element) element.disabled = isLocked;
     element.classList.toggle("role-locked", isLocked);
+    if (section === "cotizaciones") element.hidden = isLocked;
     element.setAttribute("aria-disabled", String(isLocked));
     if (isLocked) element.title = "Acceso exclusivo del administrador";
     else element.removeAttribute("title");
