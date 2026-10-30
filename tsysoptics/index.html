@@ -152,9 +152,9 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </section>
 <div id="tsys-app" hidden><div class="layout">
 <aside class="sidebar"><div class="brand"><img src="logo.svg" data-tsys-logo alt="Logo de la óptica"><span><b>TsysOptics</b><small data-tsys-business>Trendy Optics</small><small class="brand-attribution">Sistema de gestión</small></span></div><nav aria-label="Módulos">
-<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><button type="button" data-page="pacientes">♙ &nbsp; Pacientes</button><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
+<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><button type="button" data-page="pacientes">♙ &nbsp; Pacientes</button><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="laboratorio">▤ &nbsp; Laboratorio</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
 <div class="main"><header class="top"><strong data-tsys-page-title>TsysOptics | Trendy Optics</strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
-<div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><button type="button" data-page="pacientes">Pacientes</button><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">Clínica ↗</a></div>
+<div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><button type="button" data-page="pacientes">Pacientes</button><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="laboratorio">Pedidos</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">Clínica ↗</a></div>
 <main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda, Inventario, Ventas y Caja de prueba utilizan Supabase. <strong>Simulador óptico sigue siendo un esquema de demostración.</strong> Caja dispone de apertura, arqueo y cierre de turnos en modalidad de prueba. No incluye facturación electrónica DIAN ni autorización para uso en producción.</div>
 <section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historias, agenda, inventario y ventas de prueba centralizados en Supabase.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small id="metric-ventas-origen">Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><button type="button" data-page="pacientes">Pacientes (Supabase)</button><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="caja">▣ &nbsp; Abrir Caja</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
 <section class="page" id="pacientes"><div class="patients-spa-content"><div id="loading" class="card" role="status">Verificando permisos de acceso…</div>
@@ -396,6 +396,39 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  </div>
 </div>
 </section>
+<section class="page" id="laboratorio">
+ <span class="label">CICLO 3 · PEDIDOS EN SUPABASE</span>
+ <h1>Laboratorio, pedidos y entregas</h1>
+ <p class="muted">Crea órdenes a partir de ventas registradas, asigna un laboratorio y sigue su fabricación, recepción y entrega. Las ventas y sus pagos no cambian al modificar un pedido.</p>
+ <div class="cols">
+  <form class="card form" id="lab-form">
+   <h2>Nueva orden de laboratorio</h2>
+   <label>Venta registrada <select id="lab-venta" required><option value="">Seleccionar venta</option></select></label>
+   <label>Laboratorio responsable <input id="lab-nombre" type="text" minlength="3" maxlength="120" autocomplete="off" required placeholder="NOMBRE DEL LABORATORIO"></label>
+   <label>Entrega estimada <input id="lab-fecha" type="date" required></label>
+   <label>Observaciones <textarea id="lab-observaciones" rows="3" maxlength="1000" placeholder="TIPO DE TRABAJO, MATERIAL, INDICACIONES"></textarea></label>
+   <button class="btn" id="lab-guardar" type="submit">Registrar orden</button>
+   <p id="lab-form-status" class="muted" role="status" aria-live="polite"></p>
+  </form>
+  <div class="card">
+   <h2>Seguimiento de órdenes</h2>
+   <div class="form">
+    <label>Filtrar por estado <select id="lab-filtro">
+     <option value="">Todos los estados</option>
+     <option value="pendiente">Pendiente</option>
+     <option value="en_fabricacion">En fabricación</option>
+     <option value="recibido">Recibido</option>
+     <option value="listo_para_entrega">Listo para entrega</option>
+     <option value="entregado">Entregado</option>
+     <option value="cancelado">Cancelado</option>
+    </select></label>
+    <button type="button" class="btn alt" id="lab-actualizar">Actualizar pedidos</button>
+   </div>
+   <p id="lab-list-status" class="muted" role="status" aria-live="polite"></p>
+   <div class="list" id="lab-lista"></div>
+  </div>
+ </div>
+</section>
 <section class="page" id="caja">
  <span class="label">CAJA · TURNOS Y ARQUEO · SUPABASE</span>
  <h1>Control de caja</h1>
@@ -574,7 +607,7 @@ const $=id=>document.getElementById(id),cop=n=>new Intl.NumberFormat("es-CO",{st
 const node=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;return e};
 const save=()=>{try{localStorage.setItem(key,JSON.stringify(data));toast("Guardado localmente como prueba.")}catch{toast("No se pudo guardar en este navegador.")}};
 let timer;function toast(s){$("notice").textContent=s;$("notice").hidden=false;clearTimeout(timer);timer=setTimeout(()=>$("notice").hidden=true,3000)}
-function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas","caja"].includes(page)}
+function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas","caja","laboratorio"].includes(page)}
 let patientsModuleStarted=false;
 function navigate(p){if(p==="pacientes"&&!patientsModuleStarted){patientsModuleStarted=true;import("./pacientes-spa.js?v=1").catch(()=>{patientsModuleStarted=false;toast("No se pudo cargar Pacientes. Intenta de nuevo.");});}if(!canNavigate(p)){toast("Módulo reservado al administrador.");return;}document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===p));document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===p));scrollTo({top:0,behavior:"instant"})}
 document.querySelectorAll("[data-page]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.page)));
@@ -628,12 +661,12 @@ render();lens();
 // No se permite activar páginas inexistentes ni eludir los permisos por URL.
 const params=new URLSearchParams(location.search);
 const requestedModule=params.get("modulo") || (params.get("vista")==="apariencia"?"apariencia":null);
-if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja","simulador","apariencia"].includes(requestedModule)) {
+if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","simulador","apariencia"].includes(requestedModule)) {
  if(canNavigate(requestedModule)) navigate(requestedModule);
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030lentes3"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030a"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030lentes3"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
