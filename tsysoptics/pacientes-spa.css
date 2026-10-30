@@ -138,3 +138,11 @@ main{max-width:1600px!important;width:100%;padding:22px clamp(16px,3vw,48px)!imp
 #pacientes{width:100%;min-width:0}
 #pacientes .patients-spa-content{max-width:1600px!important;width:100%;padding:0!important;margin:0 auto}
 #pacientes #panel[hidden],#pacientes #loading[hidden]{display:none!important}
+
+/* Ciclo 9: la regla general .layout { min-height:100vh } no aplica al formulario SPA. */
+#pacientes #panel .layout{min-height:0!important;height:auto!important;align-content:start}
+#pacientes #panel #patient-profile{scroll-margin-top:145px}
+@media(max-width:820px){
+ #pacientes #panel .layout{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:0!important}
+ #pacientes #panel #patient-profile{margin-top:8px!important}
+}
