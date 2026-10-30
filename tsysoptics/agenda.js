@@ -19,6 +19,49 @@ let adminReady=false;
 let initializing=false;
 let saving=false;
 let lastRequests=0;
+let editingId=null,editingState=null;
+
+function bogotaNow(){
+ const fields=new Intl.DateTimeFormat("en-GB",{
+  timeZone:"America/Bogota",year:"numeric",month:"2-digit",day:"2-digit",
+  hour:"2-digit",minute:"2-digit",hourCycle:"h23"
+ }).formatToParts(new Date());
+ const v=Object.fromEntries(fields.filter(p=>p.type!=="literal").map(p=>[p.type,p.value]));
+ return v.year+"-"+v.month+"-"+v.day+"T"+v.hour+":"+v.minute;
+}
+const todayBogota=()=>bogotaNow().slice(0,10);
+function validDate(d){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return false;
+ const v=new Date(d+"T00:00:00Z");
+ return !Number.isNaN(v.getTime())&&v.toISOString().slice(0,10)===d;
+}
+function resetEditor(){
+ editingId=null;editingState=null;
+ form.reset();
+ $("agenda-form-title").textContent="Nueva cita";
+ saveButton.textContent="Guardar cita";
+ $("agenda-cancel-edit").hidden=true;
+}
+function openEditor(item){
+ if(!adminReady||!["programada","confirmada"].includes(item.estado))return;
+ editingId=item.id;editingState=item.estado;
+ form.elements.referencia.value=item.referencia;
+ form.elements.fecha.value=item.fecha;
+ form.elements.hora.value=String(item.hora).slice(0,5);
+ form.elements.tipo.value=item.tipo;
+ if(item.paciente_id&&!Array.from(patientSelect.options).some(o=>o.value===item.paciente_id)){
+  const o=new Option((item.paciente?.nombre_completo||"Paciente registrado")+" · asociado a esta cita",item.paciente_id);
+  patientSelect.append(o);
+ }
+ patientSelect.value=item.paciente_id||"";
+ $("agenda-form-title").textContent="Reprogramar cita";
+ saveButton.textContent="Guardar nueva fecha";
+ $("agenda-cancel-edit").hidden=false;
+ status("agenda-save-status","Ajusta la fecha u hora y guarda. No se creará otra cita.");
+ window.tsysAgendaMobileGoToForm?.();
+ form.elements.fecha.focus({preventScroll:true});
+}
+
 
 function status(id,message){$(id).textContent=message}
 function textNode(tag,content,cssClass){
@@ -37,6 +80,8 @@ function resetAdministrativeView(){
  window.tsysAgendaMobileReset?.();
  $("agenda-filtro-estado").value="";
  patientSelect.replaceChildren(new Option("Sin paciente registrado",""));
+ list.replaceChildren();
+ resetEditor();
 }
 function showError(error,action){
  if(error?.code==="23505")return "Ese horario ya tiene una cita activa. Selecciona otra hora.";
