@@ -145,6 +145,7 @@ export async function createSalePdf(ctx){
  function headline(){
   color();font(13,true);
   pdf.text(txt(config.nombre_optica||"ÓPTICA").slice(0,58),L,15);
+  font(6.5);color(GREY);pdf.text("TsysOptics - Sistema de gestión",L,9);
   font(8,true);pdf.text(txt(config.titulo_documento||"HISTORIA CLÍNICA Y COMPROBANTE DE VENTA").slice(0,96),L,20);
   if(logo){try{pdf.addImage(logo,"PNG",R-19,8,18,18)}catch{}}
   const contact=[config.nit_optica?"NIT: "+config.nit_optica:"",
@@ -292,7 +293,7 @@ export async function createSalePdf(ctx){
  for(let k=1;k<=count;k++){
   pdf.setPage(k);font(7);color(GREY);
   pdf.text("PÁGINA "+k+" DE "+count,R,H-9,{align:"right"});
-  if(k===1)pdf.text("COMPROBANTE INTERNO. NO EQUIVALE A FACTURA ELECTRÓNICA DIAN.",L,H-9);
+  if(k===1)pdf.text("TsysOptics - Sistema de gestión · COMPROBANTE INTERNO. NO EQUIVALE A FACTURA ELECTRÓNICA DIAN.",L,H-9);
  }
  return {blob:pdf.output("blob"),filename:"TsysOptics_V-"+String(sale.numero).padStart(6,"0")+".pdf"};
 }
