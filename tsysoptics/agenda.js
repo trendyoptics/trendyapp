@@ -70,6 +70,15 @@ function textNode(tag,content,cssClass){
  node.textContent=content;
  return node;
 }
+const indicatorIds={
+ total:"agenda-count-total",programada:"agenda-count-pending",
+ confirmada:"agenda-count-confirmed",atendida:"agenda-count-attended"
+};
+function updateIndicators(items){
+ const counts={total:items.length,programada:0,confirmada:0,atendida:0};
+ for(const item of items)if(Object.hasOwn(counts,item.estado))counts[item.estado]++;
+ for(const [key,id] of Object.entries(indicatorIds))$(id).textContent=String(counts[key]);
+}
 function resetAdministrativeView(){
  adminReady=false;
  initializing=false;
@@ -84,6 +93,7 @@ function resetAdministrativeView(){
  patientSearch.value="";status("agenda-paciente-status","");
  patientSelect.replaceChildren(new Option("Sin paciente registrado",""));
  list.replaceChildren();
+ updateIndicators([]);
  resetEditor();
 }
 function showError(error,action){
@@ -174,24 +184,30 @@ async function loadCitas(){
  ]);
  if(!adminReady||generation!==lastRequests)return;
  if(rows.error || totals.error){
+  list.replaceChildren();
+  updateIndicators([]);
   status("agenda-list-status","No se pudo consultar la agenda. Comprueba la conexión y los permisos.");
   return;
  }
  if(typeof window.tsysAgendaSetCount==="function")window.tsysAgendaSetCount(totals.count||0);
  list.replaceChildren();
  const items=rows.data||[];
+ updateIndicators(items);
  window.tsysAgendaMobileSync?.(items);
  status("agenda-list-status",items.length+" citas mostradas"+(items.length===150?" (límite de 150; usa los filtros para buscar otras fechas)":"")+".");
  if(!items.length){list.append(textNode("p","Sin citas para los filtros seleccionados."));return}
  for(const item of items){
   const row=textNode("div","","item");
   row.classList.add("agenda-mobile-state-"+item.estado);
+  const overdue=["programada","confirmada"].includes(item.estado)&&
+   item.fecha+"T"+String(item.hora).slice(0,5)<bogotaNow();
   const info=document.createElement("div");
   info.append(
     textNode("strong",item.referencia),
     textNode("small",item.fecha+" · "+String(item.hora).slice(0,5)+" · "+item.tipo),
     textNode("span",STATE_LABELS[item.estado]||item.estado,"agenda-mobile-chip"),
   );
+  if(overdue)info.append(textNode("span","Hora prevista superada · requiere seguimiento","agenda-overdue"));
   if(item.paciente?.nombre_completo){
     info.append(textNode("small","Paciente asociado: "+item.paciente.nombre_completo));
     const clinical=document.createElement("a");
@@ -211,7 +227,7 @@ async function loadCitas(){
    actions.append(edit);
   }
   const choices=item.estado==="programada"
-   ? [["confirmada","Confirmar"],["atendida","Atendida"],["cancelada","Cancelar"]]
+   ? [["confirmada","Confirmar"],["atendida","Atendida"],["no_asistio","No asistió"],["cancelada","Cancelar"]]
    : item.estado==="confirmada"
    ? [["atendida","Atendida"],["cancelada","Cancelar"],["no_asistio","No asistió"]]
    : [];
@@ -305,6 +321,16 @@ $("agenda-refresh").addEventListener("click",loadCitas);
 $("agenda-filtro-fecha").addEventListener("change",loadCitas);
 $("agenda-filtro-estado").addEventListener("change",loadCitas);
 $("agenda-filtro-vista").addEventListener("change",loadCitas);
+function showAgendaSelection({fecha="",estado="",vista="proximas"}={}){
+ $("agenda-filtro-vista").value=vista;
+ $("agenda-filtro-estado").value=estado;
+ $("agenda-filtro-fecha").value=fecha;
+ $("agenda-filtro-fecha").dispatchEvent(new Event("change",{bubbles:false}));
+ void loadCitas();
+}
+$("agenda-ver-hoy").addEventListener("click",()=>showAgendaSelection({fecha:todayBogota()}));
+$("agenda-ver-pendientes").addEventListener("click",()=>showAgendaSelection({estado:"programada"}));
+$("agenda-ver-todas").addEventListener("click",()=>showAgendaSelection({vista:"todas"}));
 
 async function activate(){
  if(adminReady||initializing)return;
