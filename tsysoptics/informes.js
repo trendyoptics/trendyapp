@@ -81,14 +81,16 @@ async function fetchBySaleIds(ids){
 async function collect(month){
  const {start,end,next}=monthBounds(month);
  const during=(col)=>q=>q.gte(col,start).lt(col,end);
- const [sales,payments,stock,stockMoves,cashMoves,shifts,orders]=await Promise.all([
+ const [sales,payments,stock,stockMoves,cashMoves,shifts,orders,expenses,storedClose]=await Promise.all([
   fetchAll("ventas_tsysoptics","id,numero,fecha,total,abonado,saldo,estado",during("fecha"),"fecha"),
   fetchAll("pagos_ventas_tsysoptics","id,venta_id,monto,medio,registrado_en",during("registrado_en"),"id"),
   fetchAll("productos_tsysoptics","id,codigo,nombre,tipo,cantidad,stock_minimo,costo_compra,precio_venta,activo",q=>q,"codigo"),
   fetchAll("movimientos_inventario_tsysoptics","id,producto_id,diferencia,motivo,creado_en",during("creado_en"),"id"),
   fetchAll("movimientos_caja_tsysoptics","id,tipo,monto,motivo,fecha",during("fecha"),"id"),
   fetchAll("turnos_caja_tsysoptics","id,estado,cerrada_en,diferencia",during("cerrada_en"),"cerrada_en"),
-  fetchAll("ordenes_laboratorio_tsysoptics","id,venta_id,laboratorio,estado,creado_en,fecha_entrega_estimada,fecha_entrega_paciente",q=>q,"creado_en")
+  fetchAll("ordenes_laboratorio_tsysoptics","id,venta_id,laboratorio,estado,creado_en,fecha_entrega_estimada,fecha_entrega_paciente",q=>q,"creado_en"),
+  fetchAll("gastos_tsysoptics","id,fecha,categoria,descripcion,monto,medio,referencia",q=>q.gte("fecha",month+"-01").lt("fecha",next+"-01"),"fecha"),
+  db.from("cierres_mensuales_tsysoptics").select("periodo,datos,cerrado_en").eq("periodo",month).maybeSingle().then(({data,error})=>{if(error)throw Error("No se pudo consultar cierre histórico. "+error.message);return data})
  ]);
  const valid=sales.filter(x=>x.estado==="emitida");
  const lines=await fetchBySaleIds(valid.map(x=>x.id));
@@ -127,11 +129,13 @@ async function collect(month){
   stockOut:-sum(stockMoves.filter(x=>Number(x.diferencia)<0),x=>x.diferencia),
   cashIn:sum(cashMoves.filter(x=>x.tipo==="ingreso"),x=>x.monto),
   cashOut:sum(cashMoves.filter(x=>x.tipo==="egreso"),x=>x.monto),
+  expensesTotal:sum(expenses,x=>x.monto),
+  operatingResult:sum(valid,x=>x.total)-sum(lines,x=>(Number(x.costo_unitario)||0)*(Number(x.cantidad)||0))-sum(expenses,x=>x.monto),
   shiftsClosed:shifts.length,shiftsDifference:sum(shifts,x=>x.diferencia),
   labCreated:orderMonth.length,labOpenNow:orders.filter(o=>activeStates.has(o.estado)).length,
   labOverdueNow:overdue.length
  };
- return {month,after:next,generatedAt:new Date().toISOString(),sales,payments,stock,stockMoves,cashMoves,
+ return {month,after:next,generatedAt:new Date().toISOString(),sales,payments,stock,stockMoves,cashMoves,expenses,storedClose,
   shifts,orders,orderMonth,valid,lines,lowStock,methods:[...methodTotals.entries()].sort((a,b)=>b[1]-a[1]),
   top:[...totals.values()].sort((a,b)=>b.valor-a.valor),labStatus:[...labStatus.entries()],totals:computed};
 }
@@ -164,6 +168,8 @@ function render(r){
   ["Existencias actuales",number(t.stockUnits),"Al consultar, NO al cierre histórico"],
   ["Inventario a costo",money(t.stockCost),"Valoración actual estimada"],
   ["Órdenes del mes",number(t.labCreated),number(t.labOpenNow)+" órdenes abiertas actualmente"],
+  ["Gastos registrados",money(t.expensesTotal),"Gastos operativos del mes"],
+  ["Resultado estimado",money(t.operatingResult),"Ventas menos costo vendido y gastos; no es utilidad neta"],
   ["Caja: cierres",number(t.shiftsClosed),"Diferencia acumulada: "+money(t.shiftsDifference)]
  ];
  for(const m of metrics)box.append(metric(...m));
@@ -231,6 +237,9 @@ function sections(r){
    ["Unidades vendidas en ventas vigentes",t.unitsSold],
    ["Costo estimado de unidades vendidas (COP)",t.estimatedCost],
    ["Margen bruto estimado (COP)",t.salesTotal-t.estimatedCost],
+   ["Gastos registrados del periodo (COP)",t.expensesTotal],
+   ["Resultado operativo estimado (COP)",t.operatingResult],
+   ["Cierre histórico guardado",r.storedClose?"SI":"NO"],
    ["Unidades inventario ACTUAL",t.stockUnits],
    ["Costo inventario ACTUAL (COP)",t.stockCost],
    ["Valor de venta inventario ACTUAL (COP)",t.stockRetail],
@@ -254,6 +263,12 @@ function sections(r){
    ...r.orderMonth.map(o=>[o.estado,o.fecha_entrega_estimada,o.fecha_entrega_paciente||""])]},
   {title:"MOVIMIENTOS DE INVENTARIO DEL MES",rows:[["Producto ID","Diferencia de unidades","Motivo","Fecha"],
    ...r.stockMoves.map(x=>[x.producto_id,x.diferencia,x.motivo,fmtDate(x.creado_en)])]},
+  {title:"GASTOS DEL MES",rows:[["Fecha","Categoría","Descripción","Monto COP","Medio","Referencia"],
+   ...r.expenses.map(x=>[x.fecha,x.categoria,x.descripcion,x.monto,x.medio,x.referencia||""])]},
+  {title:"CIERRE HISTORICO",rows:[["Indicador","Valor"],
+   ["Cierre guardado",r.storedClose?"SI":"NO"],["Fecha cierre",r.storedClose?.cerrado_en||""],
+   ["Inventario unidades al ejecutar cierre",r.storedClose?.datos?.inventario_unidades??""],
+   ["Inventario valor a costo al ejecutar cierre",r.storedClose?.datos?.inventario_costo??""]]},
   {title:"MOVIMIENTOS MANUALES DE CAJA DEL MES",rows:[["Tipo","Monto COP","Motivo","Fecha"],
    ...r.cashMoves.map(x=>[x.tipo,x.monto,x.motivo,fmtDate(x.fecha)])]},
   {title:"NOTAS DE INTERPRETACIÓN",rows:[
@@ -261,7 +276,8 @@ function sections(r){
    ["Recaudos","Pagos registrados en el mes, incluyendo abonos de ventas anteriores. No son necesariamente cobros netos de devoluciones."],
    ["Inventario","Existencias y valoración ACTUALES en la fecha de generación. No se presentan como foto histórica del último día del mes."],
    ["Saldos","Saldo ACTUAL de ventas originadas en el periodo."],
-   ["Margen","Estimación de ventas menos costo de artículos; no incluye gastos, impuestos ni ajustes contables."],
+   ["Margen","El resultado operativo estimado resta gastos registrados, sin impuestos, conciliación, ajustes, ni deduplicación con caja."],
+   ["Cierre histórico","Las cifras del cierre histórico se congelan una sola vez. El inventario se captura en la fecha de EJECUCIÓN del cierre."],
    ["Alcance","Informe operativo de TsysOptics. No equivale a cierre contable ni declaración tributaria."]
   ]}
  ];
