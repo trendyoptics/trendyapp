@@ -124,7 +124,7 @@ function renderQuotes(){
   };
   if(q.estado==="borrador"){transition("Marcar enviada","enviada");if(!expired)transition("Aprobar","aprobada");transition("Rechazar","rechazada")}
   if(q.estado==="enviada"){if(!expired)transition("Aprobar","aprobada");transition("Rechazar","rechazada")}
-  if(q.estado==="aprobada"){if(!expired&&q.items.every(x=>Boolean(x.producto_id))){const convert=el("button","Preparar venta","btn");convert.type="button";convert.addEventListener("click",()=>prepare(q));actions.append(convert)}else if(!expired){info.append(el("small","Cotización descriptiva: venta manual desde Inventario, sin conversión automática."))}transition("Rechazar","rechazada")}
+  if(q.estado==="aprobada"){if(!expired){const convert=el("button","Preparar venta","btn");convert.type="button";convert.addEventListener("click",()=>prepare(q));actions.append(convert)}transition("Rechazar","rechazada")}
   if(q.estado==="convertida"&&q.venta_id)info.append(el("small","Venta vinculada: "+q.venta_id));
   row.append(info,actions);root.append(row);
  }
@@ -174,17 +174,71 @@ async function changeState(q,next,button){
  finally{busy=false;button.disabled=false}
 }
 function prepare(q){
- if(!allowed)return;
- if(q.estado!=="aprobada"||q.vigente_hasta<today()){set("cot-status","Solo las cotizaciones aprobadas y vigentes pueden convertirse.");return}
- if(q.items.some(x=>!x.producto_id)){
-  set("cot-status","La cotización contiene descripciones libres. Para facturarla, registra los productos en Inventario y prepara la venta manualmente. No se descuenta stock ni se crea una referencia desde Cotizaciones.");return;
+ if(!allowed||q.estado!=="aprobada"||q.vigente_hasta<today()){
+  set("cot-status","Solo las cotizaciones aprobadas y vigentes pueden prepararse para venta.");return;
  }
- const invalid=q.items.find(x=>{const p=products.find(p=>p.id===x.producto_id);return !p||p.cantidad<x.cantidad});
- if(invalid){set("cot-status","No hay existencias suficientes de "+invalid.nombre+". Debes revisar Inventario antes de vender.");return}
- if(!window.confirm("Se preparará una venta con las referencias cotizadas. El importe final se calculará con precios ACTUALES de Inventario y el stock se descontará solo al confirmar la venta. ¿Continuar?"))return;
- window.dispatchEvent(new CustomEvent("tsys:cotizacion-preparar-venta",{detail:{id:q.id,paciente_id:q.paciente_id,items:q.items.map(x=>({producto_id:x.producto_id,cantidad:x.cantidad}))}}));
- document.querySelector('.sidebar button[data-page="ventas"]')?.click();
- set("cot-status","Ve a Ventas para revisar el carrito y confirmar la venta.");
+ const overlay=el("div",undefined,"cot-map-overlay");overlay.setAttribute("role","dialog");
+ overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label","Revisar productos y precios de la cotización");
+ Object.assign(overlay.style,{position:"fixed",inset:"0",zIndex:"10000",background:"rgba(8,18,38,.67)",overflowY:"auto",padding:"20px 12px"});
+ const panel=el("div",undefined,"cot-map-panel");
+ Object.assign(panel.style,{maxWidth:"640px",margin:"20px auto",background:"#fff",borderRadius:"14px",padding:"20px",color:"#081226"});
+ panel.append(el("h2","Preparar venta de COT-"+formatNum(q.numero)));
+ panel.append(el("p","Asigna un producto REAL del inventario a cada concepto. Compara el valor negociado con el precio actual y las existencias. Ningún cambio de inventario ocurre hasta confirmar la venta.","muted"));
+ const selectors=[];
+ const available=products.filter(p=>p.activo).sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
+ for(const [i,item] of q.items.entries()){
+  const wrapper=el("div",undefined,"card form");wrapper.style.marginBottom="12px";
+  wrapper.append(el("strong",(i+1)+". "+(item.tipo||"Producto")+" · "+item.nombre));
+  wrapper.append(el("small","Cantidad: "+item.cantidad+" · Precio negociado: "+money(item.precio_unitario)+" cada uno"));
+  const select=document.createElement("select");select.style.width="100%";select.style.minHeight="46px";select.setAttribute("aria-label","Producto real de inventario para "+item.nombre);
+  select.append(new Option("Seleccionar producto real",""));
+  for(const p of available.filter(p=>!item.tipo||p.tipo===item.tipo)){
+   select.append(new Option(p.codigo+" · "+p.nombre+" · "+money(p.precio_venta)+" · Stock "+p.cantidad,p.id));
+  }
+  if(item.producto_id&&Array.from(select.options).some(x=>x.value===item.producto_id))select.value=item.producto_id;
+  const indicator=el("p","","muted");
+  function update(){
+   const p=products.find(x=>x.id===select.value);
+   if(!p){indicator.textContent="Selecciona la referencia real correspondiente.";return}
+   const qty=Number(item.cantidad);
+   const delta=Number(p.precio_venta)-Number(item.precio_unitario);
+   indicator.textContent="Precio actual: "+money(p.precio_venta)+" · Diferencia por unidad: "+money(delta)+" · Existencias: "+p.cantidad+" · "+(p.cantidad>=qty?"Stock suficiente":"STOCK INSUFICIENTE");
+   indicator.style.color=p.cantidad>=qty?"#286843":"#a33221";
+  }
+  select.addEventListener("change",update);update();
+  wrapper.append(select,indicator);panel.append(wrapper);
+  selectors.push(select);
+ }
+ const total=el("strong","",null),message=el("p","","muted");
+ function updateTotal(){
+  const now=q.items.reduce((a,x,i)=>a+Number(x.cantidad)*Number(products.find(p=>p.id===selectors[i].value)?.precio_venta||0),0);
+  total.textContent="Total cotizado: "+money(q.total)+" · Total actual de venta: "+money(now)+" · Diferencia: "+money(now-Number(q.total));
+ }
+ for(const sel of selectors)sel.addEventListener("change",updateTotal);updateTotal();panel.append(total,message);
+ const actions=el("div",undefined,"cot-actions");actions.style.marginTop="16px";
+ const cancel=el("button","Cancelar","btn alt"),confirm=el("button","Confirmar y preparar venta","btn");
+ cancel.type="button";confirm.type="button";
+ function close(){document.removeEventListener("keydown",escape);overlay.remove()}
+ function escape(e){if(e.key==="Escape")close()}
+ document.addEventListener("keydown",escape);
+ cancel.addEventListener("click",close);
+ confirm.addEventListener("click",()=>{
+  const selected=q.items.map((x,i)=>({producto_id:selectors[i].value,cantidad:Number(x.cantidad)}));
+  if(selected.some(x=>!x.producto_id)||new Set(selected.map(x=>x.producto_id)).size!==selected.length){
+   message.textContent="Asigna una referencia diferente a cada concepto.";return;
+  }
+  const noStock=selected.find(x=>{const p=products.find(p=>p.id===x.producto_id);return !p||p.cantidad<x.cantidad});
+  if(noStock){message.textContent="Hay productos sin existencias suficientes. Revisa Inventario.";return}
+  if(!window.confirm("¿Preparar la venta con el PRECIO ACTUAL mostrado, aunque sea distinto al negociado? El inventario solo se descuenta al registrar la venta."))return;
+  window.dispatchEvent(new CustomEvent("tsys:cotizacion-preparar-venta",{detail:{
+   id:q.id,paciente_id:q.paciente_id,items:selected,asignaciones:selected,
+   total_cotizado:Number(q.total)
+  }}));
+  close();
+  document.querySelector('.sidebar button[data-page="ventas"]')?.click();
+  set("cot-status","Cotización preparada. Comprueba el carrito y confirma la venta cuando corresponda.");
+ });
+ actions.append(cancel,confirm);panel.append(actions);overlay.append(panel);document.body.append(overlay);selectors[0]?.focus();
 }
 $("cot-agregar-montura").addEventListener("click",()=>addItem("Montura"));
 $("cot-agregar-lente").addEventListener("click",()=>addItem("Lente oftálmico"));
