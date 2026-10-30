@@ -283,6 +283,7 @@ function renderSales(){
   info.append(element("strong",salesNumber(sale.numero)+" · "+money(sale.total)+(sale.estado==="anulada"?" · ANULADA":sale.estado==="devuelta"?" · DEVUELTA":"")),
    element("small",new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"})+" · "+(sale.paciente?.nombre_completo||"Consumidor final")),
    element("small",labels),
+   element("small","Pagos registrados: "+(sale.pagos||[]).length+" · Total cobrado: "+money((sale.pagos||[]).reduce((n,p)=>n+Number(p.monto||0),0))),
    element("small",sale.estado==="anulada"
     ?"Sin saldo exigible · Motivo: "+(sale.motivo_anulacion||"Auditoría registrada")
     :sale.estado==="devuelta"
@@ -344,6 +345,12 @@ async function refreshSales(){
  if(!isActive||mine!==generation)return;
  if(error){displayStatus("ventas-list-status","No se pudieron cargar las ventas. Verifica la conexión y los permisos.");return}
  sales=data||[];
+ const pagos=sales.reduce((n,v)=>n+(v.pagos||[]).length,0);
+ const saldoPendiente=sales.filter(v=>v.estado==="emitida"&&Number(v.saldo)>0).length;
+ displayStatus("ventas-conciliacion","En las ventas cargadas hay "+pagos+
+   " pago(s) registrado(s). "+(saldoPendiente
+   ?saldoPendiente+" venta(s) con saldo pendiente: usa Registrar abono."
+   :"No hay saldos pendientes entre estas ventas. Los cobros anteriores aparecen en el comprobante de cada venta."));
  const selected=paymentSaleSelect.value;
  renderSales();
  window.dispatchEvent(new CustomEvent("tsys:ventas-lista"));
@@ -412,6 +419,8 @@ form.addEventListener("submit",async e=>{
   window.tsysFormatCOPInputs(form);
   displayStatus("venta-form-status","Venta registrada y existencias descontadas en Supabase.");
   await refresh();
+  window.dispatchEvent(new Event("tsys:ventas-actualizadas"));
+  window.dispatchEvent(new Event("tsys:inventario-refrescar"));
   const receiptSale=sales.find(s=>s.id===data);
   if(receiptSale)receiptOpen(receiptSale);
  }catch{
@@ -445,6 +454,7 @@ paymentsForm.addEventListener("submit",async e=>{
   paymentsForm.reset();window.tsysFormatCOPInputs(paymentsForm);
   displayStatus("ventas-abono-status","Abono registrado correctamente en Supabase.");
   await refreshSales();
+  window.dispatchEvent(new Event("tsys:ventas-actualizadas"));
   const updated=sales.find(s=>s.id===sale.id);
   if(updated)receiptOpen(updated);
  }catch{
@@ -469,6 +479,7 @@ function reset(){
  displayStatus("venta-form-status","");
  displayStatus("ventas-list-status","");
  displayStatus("ventas-abono-status","");
+ displayStatus("ventas-conciliacion","");
 }
 function addNotesLink(){
  const title=document.querySelector("#ventas h1");
