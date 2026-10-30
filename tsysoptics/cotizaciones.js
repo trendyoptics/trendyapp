@@ -197,6 +197,7 @@ $("cot-filtro").addEventListener("change",renderQuotes);
 window.addEventListener("tsys:cotizaciones-ver-pendientes",()=>{$("cot-filtro").value="pendiente";renderQuotes()});
 window.addEventListener("tsys:cotizaciones-ver-vencidas",()=>{$("cot-filtro").value="vencida";renderQuotes()});
 window.addEventListener("tsys:cotizaciones-ver-aprobadas",()=>{$("cot-filtro").value="aprobada";renderQuotes()});
+window.addEventListener("tsys:cotizaciones-nueva",()=>{if(!allowed)return;const nombre=$("cot-cliente-nombre");if(nombre){nombre.scrollIntoView({behavior:"smooth",block:"center"});nombre.focus({preventScroll:true});}});
 $("cot-refrescar").addEventListener("click",()=>void load());
 $("cot-form").addEventListener("submit",e=>void save(e));
 window.addEventListener("tsys:cotizaciones-refrescar",()=>void load());
