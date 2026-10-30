@@ -66,9 +66,9 @@
       @page { size: letter portrait; margin: 0.55cm 0.65cm; }
       html, body { background:#fff!important;color:#000!important;margin:0!important;padding:0!important; }
       .no-print { display:none!important; }
-      #print-area { display:flex!important; flex-direction:column; width:100%!important; min-height:25.9cm; box-sizing:border-box; padding:0!important; font-size:9pt; line-height:1.28; color:#000; break-inside:auto; }
-      .print-clinical { flex:1 0 auto; min-height:19.2cm; }
-      .print-treatment { min-height:6.2cm; border-top:2px solid #0B1C40; padding-top:0.18cm; break-inside:avoid; }
+      #print-area { display:flex!important; flex-direction:column; width:100%!important; height:25.9cm; box-sizing:border-box; padding:0!important; font-size:9pt; line-height:1.28; color:#000; break-inside:auto; }
+      .print-clinical { flex:1 1 auto; min-height:0; }
+      .print-treatment { height:6.4cm; flex:0 0 6.4cm; border-top:2px solid #0B1C40; padding-top:0.18cm; break-inside:avoid; }
       .print-section-title { font-size:9pt; font-weight:800; letter-spacing:.025em; padding:0.09cm 0.13cm; margin:0.12cm 0; color:#0B1C40; background:#e9edf5; border-left:3px solid #0B1C40; }
       .print-treatment-grid { display:grid;grid-template-columns: 1.65fr 1fr;gap:0.25cm;align-items:stretch; }
       .print-treatment-spec { border:1px solid #94a3b8;border-radius:4px;padding:0.2cm;display:grid;gap:0.14cm; }
@@ -689,13 +689,7 @@ id="print-area" class="hidden bg-white text-black p-2">
         <div><strong>CONDUCTA / RECOMENDACIONES:</strong> <span id="p_notas"></span></div>
       </div>
 
-      <div class="col-span-4 border border-slate-800 rounded p-1.5 bg-slate-50 flex flex-col justify-between">
-        <div class="font-bold uppercase text-[8.5px] border-b border-slate-400 pb-0.5 mb-0.5">Estado de Cuenta (COP)</div>
-        <div class="flex justify-between"><span>VALOR TOTAL:</span> <strong id="p_total"></strong></div>
-        <div class="flex justify-between"><span>ABONO HOY:</span> <strong id="p_abono"></strong></div>
-        <div class="flex justify-between text-[9.5px] border-t border-slate-300 pt-0.5"><span>SALDO PENDIENTE:</span> <strong id="p_saldo"></strong></div>
-        <div class="text-[8px] text-right">MÉTODO PAGO: <span id="p_metodo" class="font-semibold"></span></div>
-      </div>
+
     </div>
 
     </div>
@@ -708,7 +702,9 @@ id="print-area" class="hidden bg-white text-black p-2">
           <div><strong>CONTROL / INDICACIONES:</strong> <span id="p_control"></span></div>
         </div>
 
-      </div>
+      </div>    </div>
+
+    </div>
     <!-- Firmas Legales -->
     <div class="grid grid-cols-2 gap-6 pt-3 mt-1 text-[8.5px] text-center">
       <div class="border-t border-slate-700 pt-0.5">
