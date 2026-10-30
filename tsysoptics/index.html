@@ -761,7 +761,7 @@ const $=id=>document.getElementById(id),cop=n=>new Intl.NumberFormat("es-CO",{st
 const node=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;return e};
 const save=()=>{try{localStorage.setItem(key,JSON.stringify(data));toast("Guardado localmente como prueba.")}catch{toast("No se pudo guardar en este navegador.")}};
 let timer;function toast(s){$("notice").textContent=s;$("notice").hidden=false;clearTimeout(timer);timer=setTimeout(()=>$("notice").hidden=true,3000)}
-function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas","caja","laboratorio","informes"].includes(page)}
+function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas","caja","laboratorio","posventa","informes"].includes(page)}
 let patientsModuleStarted=false;
 function navigate(p){if(p==="pacientes"&&!patientsModuleStarted){patientsModuleStarted=true;import("./pacientes-spa.js?v=1").catch(()=>{patientsModuleStarted=false;toast("No se pudo cargar Pacientes. Intenta de nuevo.");});}if(!canNavigate(p)){toast("Módulo reservado al administrador.");return;}document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===p));document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===p));scrollTo({top:0,behavior:"instant"})}
 document.querySelectorAll("[data-page]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.page)));
@@ -815,7 +815,7 @@ render();lens();
 // No se permite activar páginas inexistentes ni eludir los permisos por URL.
 const params=new URLSearchParams(location.search);
 const requestedModule=params.get("modulo") || (params.get("vista")==="apariencia"?"apariencia":null);
-if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","informes","simulador","apariencia"].includes(requestedModule)) {
+if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","posventa","informes","simulador","apariencia"].includes(requestedModule)) {
  if(canNavigate(requestedModule)) navigate(requestedModule);
  else navigate("inicio");
 }
