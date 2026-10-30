@@ -35,7 +35,7 @@ function renderItems(){
   del.addEventListener("click",()=>{items.splice(index,1);renderItems()});
   row.append(info,del);box.append(row);
  }
- if(!items.length)box.append(el("p","Sin productos cotizados. Añade monturas o lentes del catálogo.","muted"));
+ if(!items.length)box.append(el("p","Sin conceptos. Escribe la descripción y el precio negociado de la montura, el lente o ambos.","muted"));
  set("cot-total",money(items.reduce((sum,x)=>sum+x.cantidad*x.precio_unitario,0)));
 }
 function addItem(tipo){
@@ -51,7 +51,7 @@ function addItem(tipo){
  }
  if(items.length>=20){set("cot-form-status","Máximo 20 conceptos por cotización.");return}
  items.push({tipo,nombre,cantidad:n,precio_unitario:unit});
- descripcion.value="";cantidad.value="1";precio.value="";
+ descripcion.value="";cantidad.value="";precio.value="";
  renderItems();
  set("cot-form-status",(montura?"Montura":"Lente")+" agregado sin crear referencias de inventario.");
 }
@@ -194,5 +194,7 @@ $("cot-form").addEventListener("submit",e=>void save(e));
 window.addEventListener("tsys:cotizaciones-refrescar",()=>void load());
 window.addEventListener("tsys:locked",reset);
 window.addEventListener("tsys:role",async e=>{const ok=e.detail?.role==="administrador"&&await isAdmin();allowed=ok;$("cot-guardar").disabled=!ok;$("cot-refrescar").disabled=!ok;if(ok)void load();else reset()});
-$("cot-vigencia").value=today();renderItems();reset();
+$("cot-vigencia").value=today();
+for(const id of ["cot-montura-descripcion","cot-montura-cantidad","cot-montura-precio","cot-lente-descripcion","cot-lente-cantidad","cot-lente-precio"]){$(id).value=""}
+renderItems();reset();
 if($("tsys-app")?.dataset.role==="administrador")void isAdmin().then(ok=>{allowed=ok;$("cot-guardar").disabled=!ok;$("cot-refrescar").disabled=!ok;if(ok)void load()});
