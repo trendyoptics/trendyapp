@@ -46,6 +46,16 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 #agenda .agenda-clinical-link:hover{color:#264c8b}
 #agenda .agenda-clinical-link:focus-visible,#agenda .agenda-action:focus-visible{outline:3px solid #4e83c4;outline-offset:2px}
 #agenda .agenda-actions button{min-height:38px}
+#agenda .agenda-indicators{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0 16px}
+#agenda .agenda-indicators>div{border:1px solid #dce2ec;border-radius:12px;background:#f5f7fb;padding:12px;min-width:0}
+#agenda .agenda-indicators span{display:block;color:#585F73;font-size:12px;font-weight:650}
+#agenda .agenda-indicators strong{display:block;color:#0B1C40;font-size:24px;line-height:1.35}
+#agenda .agenda-shortcuts{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+#agenda .agenda-shortcuts .btn{min-height:42px}
+#agenda .agenda-overdue{display:inline-block;color:#8f3018;background:#fff0e7;border:1px solid #e9b79d;border-radius:7px;padding:3px 7px;font-size:12px;font-weight:750;margin-top:6px}
+#agenda .agenda-shortcuts .btn:focus-visible{outline:3px solid #4e83c4;outline-offset:2px}
+@media(max-width:650px){#agenda .agenda-indicators{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#agenda .agenda-shortcuts .btn{flex:1 1 auto}}
+
 @media(max-width:650px){#agenda .agenda-form-actions>.btn{flex:1 1 100%}#agenda .agenda-actions{width:100%;justify-content:flex-start}}
 
 @media(max-width:650px){#agenda .item{flex-direction:column;align-items:flex-start}.agenda-actions{justify-content:start}}
@@ -226,6 +236,19 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  <p id="agenda-save-status" class="muted" role="status" aria-live="polite"></p>
 </form>
 <div class="card">
+ <h2>Seguimiento de citas</h2>
+ <p class="muted">Contadores de las citas cargadas con los filtros actuales. No son totales históricos.</p>
+ <div class="agenda-indicators" aria-live="polite">
+  <div><span>Mostradas</span><strong id="agenda-count-total">0</strong></div>
+  <div><span>Por confirmar</span><strong id="agenda-count-pending">0</strong></div>
+  <div><span>Confirmadas</span><strong id="agenda-count-confirmed">0</strong></div>
+  <div><span>Atendidas</span><strong id="agenda-count-attended">0</strong></div>
+ </div>
+ <div class="agenda-shortcuts">
+  <button type="button" class="btn alt" id="agenda-ver-hoy">Ver hoy</button>
+  <button type="button" class="btn alt" id="agenda-ver-pendientes">Por confirmar</button>
+  <button type="button" class="btn alt" id="agenda-ver-todas">Quitar filtros</button>
+ </div>
  <h2>Citas registradas</h2>
  <div class="form" style="margin-bottom:14px">
   <label>Filtrar por fecha (opcional)<input id="agenda-filtro-fecha" type="date"></label>
@@ -561,7 +584,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c2"></script><script type="module" src="./inventario.js?v=20261029a"></script><script type="module" src="./ventas.js?v=20261029a"></script><script type="module" src="./caja.js?v=20261029g"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261029a"></script><script type="module" src="./ventas.js?v=20261029a"></script><script type="module" src="./caja.js?v=20261029g"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
