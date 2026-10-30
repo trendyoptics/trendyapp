@@ -16,6 +16,6 @@
 <circle cx="152" cy="148" r="24" fill="none" stroke="#081226" stroke-width="4.5"/>
 <path d="M112 146Q120 135 128 146" fill="none" stroke="#081226" stroke-width="4.5" stroke-linecap="round"/>
 <path d="M34 158A94 94 0 0 0 206 158L190 180A112 112 0 0 1 50 180Z" fill="#BFBFBF" opacity=".95"/>
-<path id="bottomArc" d="M38 162A88 88 0 0 0 202 162" fill="none"/>
-<text font-family="Georgia,serif" font-size="13.5" font-weight="bold" fill="#081226" letter-spacing="1.5"><textPath href="#bottomArc" startOffset="50%" text-anchor="middle">LENTES EN TENDENCIA</textPath></text>
+<path id="bottomArc" d="M33 164A92 92 0 0 0 207 164" fill="none"/>
+<text font-family="Georgia,serif" font-size="12" font-weight="bold" fill="#081226" letter-spacing=".65"><textPath href="#bottomArc" startOffset="50%" text-anchor="middle">LENTES EN TENDENCIA</textPath></text>
 </svg>
