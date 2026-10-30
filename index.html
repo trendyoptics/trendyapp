@@ -70,7 +70,7 @@
       .print-clinical { flex:1 1 auto; min-height:0; }
       .print-treatment { height:6.4cm; flex:0 0 6.4cm; border-top:2px solid #0B1C40; padding-top:0.18cm; break-inside:avoid; }
       .print-section-title { font-size:9pt; font-weight:800; letter-spacing:.025em; padding:0.09cm 0.13cm; margin:0.12cm 0; color:#0B1C40; background:#e9edf5; border-left:3px solid #0B1C40; }
-      .print-treatment-grid { display:grid;grid-template-columns: 1.65fr 1fr;gap:0.25cm;align-items:stretch; }
+      .print-treatment-grid { display:grid;grid-template-columns: 1fr;gap:0.25cm;align-items:stretch; }
       .print-treatment-spec { border:1px solid #94a3b8;border-radius:4px;padding:0.2cm;display:grid;gap:0.14cm; }
       .print-finance { border:1px solid #475569;border-radius:4px;padding:0.2cm;display:flex;flex-direction:column;gap:0.13cm; }
       .print-evaluation{border:1px solid #94a3b8;border-radius:4px;padding:0.18cm;display:grid;gap:0.1cm;overflow-wrap:anywhere}\n      #print-area table { width:100%; table-layout:fixed; }
@@ -95,31 +95,8 @@
       <div class="flex items-center gap-3">
         <div class="relative group cursor-pointer" onclick="document.getElementById('logoUploader').click()" title="Haz clic si deseas subir el archivo de imagen de tu logo">
           <input type="file" id="logoUploader" accept="image/*" class="hidden" onchange="handleCustomLogo(event)">
-          <div id="logoContainer" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white p-0.5 shadow-md flex items-center justify-center overflow-hidden">
-            <svg id="defaultLogoSvg" viewBox="0 0 240 240" class="w-full h-full">
-              <circle cx="120" cy="120" r="116" fill="#0B1F3F" stroke="#08152C" stroke-width="3"/>
-              <circle cx="120" cy="120" r="108" fill="none" stroke="#CBD5E1" stroke-width="2"/>
-              <circle cx="120" cy="120" r="78" fill="#D1D5DB" stroke="#060D1A" stroke-width="3"/>
-              <path d="M 75,38 Q 120,24 165,38 L 160,56 Q 120,44 80,56 Z" fill="#CBD5E1"/>
-              <path id="topArc" d="M 75,49 Q 120,35 165,49" fill="none"/>
-              <text font-family="'Courier Prime', monospace" font-size="19" font-weight="bold" fill="#0B1F3F" letter-spacing="2">
-                <textPath href="#topArc" startOffset="50%" text-anchor="middle">ÓPTICA</textPath>
-              </text>
-              <polygon points="8,108 62,108 55,120 62,132 8,132" fill="#CBD5E1" stroke="#FFFFFF" stroke-width="1.5"/>
-              <text x="33" y="124" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0B1F3F" text-anchor="middle">Clear</text>
-              <polygon points="232,108 178,108 185,120 178,132 232,132" fill="#CBD5E1" stroke="#FFFFFF" stroke-width="1.5"/>
-              <text x="207" y="124" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0B1F3F" text-anchor="middle">Vision</text>
-              <text x="120" y="88" font-family="'Playfair Display', serif" font-style="italic" font-size="25" font-weight="600" fill="#000000" text-anchor="middle">Trendy</text>
-              <text x="120" y="116" font-family="'Playfair Display', serif" font-style="italic" font-size="33" font-weight="600" fill="#000000" text-anchor="middle">Optics</text>
-              <circle cx="88" cy="148" r="24" fill="none" stroke="#000000" stroke-width="4.5"/>
-              <circle cx="152" cy="148" r="24" fill="none" stroke="#000000" stroke-width="4.5"/>
-              <path d="M 112,146 Q 120,135 128,146" fill="none" stroke="#000000" stroke-width="4.5" stroke-linecap="round"/>
-              <path d="M 34,158 A 94,94 0 0,0 206,158 L 190,180 A 112,112 0 0,1 50,180 Z" fill="#CBD5E1" opacity="0.95"/>
-              <path id="bottomArc" d="M 38,162 A 88,88 0 0,0 202,162" fill="none"/>
-              <text font-family="'Courier Prime', monospace" font-size="13.5" font-weight="bold" fill="#0B1F3F" letter-spacing="1.5">
-                <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">LENTES EN TENDENCIA</textPath>
-              </text>
-            </svg>
+          <div id="logoContainer" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white p-0.5 shadow-md flex items-center justify-center">
+            <img id="defaultLogoSvg" src="./tsysoptics/logo.svg" alt="TrendyOptics · Lentes en tendencia" class="w-full h-full object-contain" />
             <img id="customLogoImg" src="" alt="Logo" class="hidden w-full h-full object-contain rounded-full" />
           </div>
         </div>
@@ -451,7 +428,8 @@
           </datalist>
         </div>
 
-        <!-- FINANZAS DE CAJA -->
+        <!-- Campos históricos conservados para compatibilidad; la venta se gestiona en Ventas/Caja. -->
+        <div hidden aria-hidden="true">        <!-- FINANZAS DE CAJA -->
         <div class="bg-amber-50/70 border-2 border-dashed border-amber-300 rounded-xl p-4 space-y-3">
           <h3 class="text-xs font-extrabold uppercase text-amber-900">Finanzas de Caja y Abonos (COP $)</h3>
           <div>
@@ -485,7 +463,7 @@
     </form>
   </main>
 
-  <!-- BARRA INFERIOR FIJA CON LOS 3 BOTONES PRINCIPALES -->
+  <!-- BARRA INFERIOR: GUARDAR HISTORIA CLÍNICA -->
   <footer class="no-print fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 shadow-xl z-30">
     <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-2">
       <div class="hidden md:flex items-center gap-2 text-xs text-slate-500">
@@ -494,16 +472,6 @@
       </div>
 
       <div class="grid grid-cols-3 sm:flex items-center gap-2 w-full sm:w-auto justify-end">
-        <button type="button" onclick="imprimirMediaCarta()" class="flex items-center justify-center gap-1.5 bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs sm:text-sm px-3 sm:px-5 py-2.5 rounded-xl shadow transition">
-          <i data-lucide="printer" class="w-4 h-4 shrink-0"></i>
-          <span>Imprimir Media Carta</span>
-        </button>
-
-        <button type="button" onclick="enviarWhatsApp()" class="flex items-center justify-center gap-1.5 bg-[#16A34A] hover:bg-[#15803D] text-white font-bold text-xs sm:text-sm px-3 sm:px-5 py-2.5 rounded-xl shadow transition">
-          <i data-lucide="message-circle" class="w-4 h-4 shrink-0"></i>
-          <span>Enviar WhatsApp (+57)</span>
-        </button>
-
         <button type="button" id="btnGuardarHistoria" onclick="guardarHistoriaClinica()" class="flex items-center justify-center gap-1.5 bg-[#0B172A] hover:bg-[#1E293B] text-white font-bold text-xs sm:text-sm px-3 sm:px-5 py-2.5 rounded-xl shadow transition">
           <i data-lucide="save" class="w-4 h-4 shrink-0 text-sky-400"></i>
           <span id="btnGuardarTexto">Guardar historia clínica</span>
@@ -517,12 +485,12 @@
        ======================================================================== -->
   <section id="print-area" class="hidden bg-white text-black p-2">
     <div class="print-clinical">
-    <!-- Encabezado Media Carta -->
+    <!-- Encabezado historia clínica tamaño carta -->
     <div class="flex items-center justify-between border-b-2 border-slate-900 pb-1.5 mb-1.5">
       <div class="flex items-center gap-2.5">
-        <div id="printLogoHolder" class="w-12 h-12 rounded-full overflow-hidden shrink-0"></div>
+        <div id="printLogoHolder" class="w-16 h-16 shrink-0 flex items-center justify-center"><img src="./tsysoptics/logo.svg" alt="TrendyOptics · Lentes en tendencia" style="width:100%;height:100%;object-fit:contain"></div>
         <div>
-          <h1 class="text-base font-extrabold uppercase tracking-tight leading-none">ÓPTICA TRENDYOPTICS - LENTES EN TENDENCIA</h1>
+          <h1 class="text-base font-extrabold uppercase tracking-tight leading-none">TrendyOptics · Lentes en tendencia</h1>
           <p class="text-[9px] font-semibold text-slate-700">Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá D.C. &bull; NIT: 1073263942-5 &bull; Cel/WhatsApp: +57 3003391055</p>
           <p class="text-[8.5px] text-slate-600">HISTORIA CLÍNICA OPTOMÉTRICA Y FÓRMULA DE LENTES (Resolución 1995 de 1999)</p>
         </div>
@@ -602,20 +570,14 @@
     </div>
     </div>
     <div class="print-treatment">
-      <div class="print-section-title">03 · TRATAMIENTO, LENTES, MONTURA, CONTROL Y VENTA</div>
+      <div class="print-section-title">03 · TRATAMIENTO, LENTES, MONTURA Y CONTROL</div>
       <div class="print-treatment-grid">
         <div class="print-treatment-spec">
           <div><strong>LENTE / MATERIAL / FILTROS:</strong> <span id="p_lente"></span></div>
           <div><strong>MONTURA:</strong> <span id="p_montura"></span></div>
           <div><strong>CONTROL / INDICACIONES:</strong> <span id="p_control"></span></div>
         </div>
-        <div class="print-finance">
-          <strong>ESTADO DE CUENTA (COP)</strong>
-          <div>VALOR TOTAL: <strong id="p_total"></strong></div>
-          <div>ABONO: <strong id="p_abono"></strong></div>
-          <div>SALDO PENDIENTE: <strong id="p_saldo"></strong></div>
-          <div>MÉTODO DE PAGO: <strong id="p_metodo"></strong></div>
-        </div>
+
       </div>
       <div class="grid grid-cols-2 gap-6 pt-3 mt-1 text-[8.5px] text-center">
         <div class="border-t border-slate-700 pt-0.5"><strong id="p_optometra"></strong><div>OPTÓMETRA EXAMINADOR · REGISTRO PROFESIONAL</div></div>
@@ -921,7 +883,7 @@
         return;
       }
 
-      document.getElementById('printLogoHolder').innerHTML = document.getElementById('logoContainer').innerHTML;
+      // Logo vectorial completo, sin recorte y con la leyenda inferior visible.
 
       document.getElementById('p_consecutivo').textContent = d.id;
       document.getElementById('p_fecha').textContent = d.fechaConsulta || '-';
@@ -1523,4 +1485,5 @@ try {
 }
 </script>
 </body>
-</html>
+</html></div>
+
