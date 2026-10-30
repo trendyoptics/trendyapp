@@ -487,25 +487,25 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <div class="tile"><span>Convertidas</span><strong id="cot-ind-convertidas">0</strong></div>
  </div>
  <div class="cols" style="align-items:start">
-  <form class="card form" id="cot-form">
+  <form class="card form" id="cot-form" autocomplete="off">
    <h2>Nueva cotización</h2>
    <p class="muted"><strong>Cliente ocasional:</strong> no necesitas seleccionar ni registrar una persona para hacer un presupuesto.</p>
    <label>Válida hasta <input type="date" id="cot-vigencia" required></label>
    <div class="card" style="background:#f4f7fb;box-shadow:none">
     <h3>Montura</h3>
-    <label>Descripción de la montura <input id="cot-montura-descripcion" type="text" minlength="3" maxlength="120" placeholder="EJ. MONTURA METÁLICA DORADA"></label>
-    <label>Cantidad <input id="cot-montura-cantidad" type="number" min="1" max="100" value="1" step="1"></label>
-    <label>Precio de la montura (COP) <input id="cot-montura-precio" type="text" data-tsys-cop inputmode="decimal" placeholder="EJ. 150.000"></label>
+    <label>Descripción de la montura <input id="cot-montura-descripcion" type="text" minlength="3" maxlength="120" autocomplete="off"></label>
+    <label>Cantidad <input id="cot-montura-cantidad" type="number" min="1" max="100" step="1" inputmode="numeric" autocomplete="off"></label>
+    <label>Precio de la montura (COP) <input id="cot-montura-precio" type="text" data-tsys-cop inputmode="decimal" autocomplete="off"></label>
     <button id="cot-agregar-montura" type="button" class="btn alt">Agregar montura</button>
    </div>
    <div class="card" style="background:#f4f7fb;box-shadow:none">
     <h3>Lente oftálmico</h3>
-    <label>Descripción del lente <input id="cot-lente-descripcion" type="text" minlength="3" maxlength="120" placeholder="EJ. PROGRESIVO AR BLUE TRANSITIONS"></label>
-    <label>Cantidad <input id="cot-lente-cantidad" type="number" min="1" max="100" value="1" step="1"></label>
-    <label>Precio del lente (COP) <input id="cot-lente-precio" type="text" data-tsys-cop inputmode="decimal" placeholder="EJ. 350.000"></label>
+    <label>Descripción del lente <input id="cot-lente-descripcion" type="text" minlength="3" maxlength="120" autocomplete="off"></label>
+    <label>Cantidad <input id="cot-lente-cantidad" type="number" min="1" max="100" step="1" inputmode="numeric" autocomplete="off"></label>
+    <label>Precio del lente (COP) <input id="cot-lente-precio" type="text" data-tsys-cop inputmode="decimal" autocomplete="off"></label>
     <button id="cot-agregar-lente" type="button" class="btn alt">Agregar lente</button>
    </div>
-   <p class="muted">Escribe libremente las descripciones y los precios. No se crean referencias, no se afectan existencias ni se necesita paciente. Para vender, registra los productos en el módulo Ventas.</p>
+   <p class="muted">Montura y lente son campos independientes. Los espacios empiezan vacíos y los valores los defines tú según la negociación. Puedes cotizar solo una montura, solo lentes o ambos. No se registran existencias ni pacientes.</p>
    <div class="list" id="cot-items"></div>
    <div class="money">Total cotizado <strong id="cot-total">$ 0</strong></div>
    <label>Observaciones <textarea id="cot-observaciones" rows="3" maxlength="1000" placeholder="CONDICIONES Y CARACTERÍSTICAS"></textarea></label>
@@ -867,7 +867,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
 })();
 </script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script>
 <script type="module" src="./posventa.js?v=20261030c6"></script>
-<script type="module" src="./cotizaciones.js?v=20261030descripciones"></script><script type="module" src="./informes.js?v=20261030c5"></script>
+<script type="module" src="./cotizaciones.js?v=20261030campos-vacios"></script><script type="module" src="./informes.js?v=20261030c5"></script>
 <script type="module" src="./finanzas.js?v=20261030c5"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030cotizaciones"></script><script type="module" src="./caja.js?v=20261030cotizaciones"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
