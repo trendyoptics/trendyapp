@@ -342,4 +342,6 @@ window.addEventListener("tsys:role",e=>{
  if(e.detail?.role==="administrador")void activate();else reset();
 });
 window.addEventListener("tsys:locked",reset);
+// Una venta confirmada por Supabase actualiza la existencia visible sin recargar la página.
+window.addEventListener("tsys:inventario-refrescar",()=>{if(adminReady)void refresh();});
 if($("tsys-app")?.dataset.role==="administrador")void activate();
