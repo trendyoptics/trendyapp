@@ -174,7 +174,7 @@ const docDefaults={
  titulo_documento:"HISTORIA CLÍNICA Y COMPROBANTE DE VENTA",
  nota_garantia:"NO SE DA GARANTÍA POR FÓRMULAS DE OTRO LUGAR.",
  pie_documento:"Comprobante comercial interno. No equivale a factura electrónica DIAN.",
- mensaje_whatsapp:"Gracias por elegir {optica}. Te compartimos la información de tu compra {venta} en PDF."
+ mensaje_whatsapp:"¡Nos alegra que nos hayas elegido! Gracias por confiar en {optica}. Te compartimos tu documento de compra {venta} en PDF. ¡Disfruta tus nuevos lentes!"
 };
 let docPrefs={...docDefaults},savingDocs=false;
 function fillDocPrefs(){
