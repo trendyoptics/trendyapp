@@ -139,6 +139,12 @@ export async function createMonthlyPdf(report,identity={}){
   [["Devueltas",INT(t.returnedCount)],["Costo de productos vendidos",COP(t.estimatedCost)]],
   [["Margen bruto estimado",COP(t.salesTotal-t.estimatedCost)],["Sin impuestos ni gastos","Estimación operativa"]]
  ]);
+ title("Gastos y resultado operativo");
+ twoCols([
+  [["Gastos registrados",COP(t.expensesTotal||0)],["Resultado operativo estimado",COP(t.operatingResult||0)]],
+  [["Cierre histórico",report.storedClose?"REGISTRADO":"SIN CERRAR"],["Fecha de cierre",report.storedClose?labelDate(report.storedClose.cerrado_en):"—"]]
+ ]);
+ paragraph("El resultado operativo estimado descuenta los costos de los productos vendidos y los gastos registrados; no equivale a utilidad neta.",{size:7});
  title("Cobros por medio de pago");
  table(["Medio de pago","Recaudado COP"],report.methods.map(([medio,monto])=>[
   str(medio).toLocaleUpperCase("es-CO"),COP(monto)
@@ -158,6 +164,12 @@ export async function createMonthlyPdf(report,identity={}){
  table(["Alerta de inventario actual","Existencia","Mínimo"],report.lowStock.slice(0,12).map(x=>[
   str(x.codigo)+" · "+str(x.nombre),INT(x.cantidad),INT(x.stock_minimo)
  ]),[.70,.15,.15],[1,2]);
+ title("Gastos por categoría");
+ {
+  const categories=new Map();
+  for(const g of report.expenses||[])categories.set(g.categoria,(categories.get(g.categoria)||0)+Number(g.monto||0));
+  table(["Categoría","Total COP"],[...categories.entries()].sort((a,b)=>b[1]-a[1]).map(([c,n])=>[c,COP(n)]),[.58,.42],[1]);
+ }
  title("Laboratorio y caja");
  twoCols([
   [["Órdenes creadas en el mes",INT(t.labCreated)],["Órdenes abiertas actualmente",INT(t.labOpenNow)]],
@@ -167,6 +179,7 @@ export async function createMonthlyPdf(report,identity={}){
  ]);
  title("Alcance y advertencias");
  paragraph("Ventas: se cuentan las ventas creadas en el mes y vigentes al consultar. Los saldos son los actuales, no los existentes al cierre del periodo. Los recaudos son pagos registrados durante el mes, incluidos abonos de ventas anteriores.",{size:7});
+ paragraph("Si existe un cierre histórico, el inventario se congeló en la fecha en que se ejecutó, que puede ser posterior al último día del periodo. Los movimientos de caja y gastos pueden reflejar la misma salida y no deben sumarse sin conciliar.",{size:7});
  paragraph("El margen es una estimación basada en costo de productos y no equivale a utilidad neta. El reporte es administrativo y NO reemplaza cierre contable, conciliación bancaria, obligaciones tributarias ni factura electrónica DIAN.",{size:7});
  paragraph("Para consultar todas las ventas, pagos, productos, inventario y movimientos por separado, descarga el libro Excel (.xlsx).",{size:7});
  const total=pdf.getNumberOfPages();

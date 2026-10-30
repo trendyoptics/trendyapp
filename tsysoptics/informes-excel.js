@@ -110,6 +110,9 @@ function build(book,r,company){
   row("UNIDADES VENDIDAS",t.unitsSold,"Detalle de ventas vigentes"),
   row("COSTO ESTIMADO VENDIDO (COP)",cop(t.estimatedCost),"Costos históricos de productos vendidos"),
   row("MARGEN BRUTO ESTIMADO (COP)",cop(t.salesTotal-t.estimatedCost),"Sin gastos, impuestos ni ajustes"),
+  row("GASTOS DEL MES (COP)",cop(t.expensesTotal),"Gastos operativos registrados"),
+  row("RESULTADO OPERATIVO ESTIMADO (COP)",cop(t.operatingResult),"Ventas menos costo de productos y gastos"),
+  row("CIERRE HISTÓRICO",r.storedClose?"REGISTRADO":"PENDIENTE","Una vez guardado no se recalcula"),
   row("REFERENCIAS ACTIVAS HOY",t.stockRefs,"Inventario actual, no histórico"),
   row("EXISTENCIAS HOY",t.stockUnits,"Inventario actual, no histórico"),
   row("VALOR A COSTO HOY (COP)",cop(t.stockCost),"Valoración actual estimada"),
@@ -161,6 +164,22 @@ function build(book,r,company){
  ],rows:r.orderMonth.map(x=>[x.id,x.venta_id||"",x.laboratorio||"",bogotaDate(x.creado_en),
   x.estado,x.fecha_entrega_estimada||"",x.fecha_entrega_paciente||""])});
  const names=new Map(r.stock.map(p=>[p.id,p.codigo+" · "+p.nombre]));
+ makeSheet(book,{...common,name:"Gastos",title:"GASTOS ADMINISTRATIVOS DEL MES",cols:[
+  {label:"Fecha",width:"date"},{label:"Categoría",width:"normal"},{label:"Descripción",width:"text"},
+  {label:"Monto COP",width:"money",type:"money"},{label:"Medio",width:"normal"},{label:"Referencia",width:"normal"}
+ ],rows:(r.expenses||[]).map(g=>[g.fecha,g.categoria,g.descripcion,cop(g.monto),g.medio,g.referencia||""]),
+ totals:[{column:3,value:t.expensesTotal||0}]});
+ makeSheet(book,{...common,name:"Cierre histórico",title:"CIERRE MENSUAL HISTÓRICO",cols:[
+  {label:"Indicador",width:48},{label:"Valor",width:"money"},{label:"Interpretación",width:75}
+ ],rows:r.storedClose?[
+  ["Fecha del cierre",bogotaDate(r.storedClose.cerrado_en),"Fecha real en que se congelaron los datos"],
+  ["Ventas al guardar cierre COP",cop(r.storedClose.datos?.ventas_total),"Ventas vigentes al capturar"],
+  ["Recaudos COP",cop(r.storedClose.datos?.recaudos_total),"Pagos recibidos durante el mes"],
+  ["Gastos COP",cop(r.storedClose.datos?.gastos_total),"Gastos registrados en el periodo"],
+  ["Inventario unidades",cop(r.storedClose.datos?.inventario_unidades),"Fotografía tomada en la fecha de cierre"],
+  ["Inventario valor a costo COP",cop(r.storedClose.datos?.inventario_costo),"Fotografía tomada en la fecha de cierre"],
+  ["Diferencia en arqueos COP",cop(r.storedClose.datos?.arqueo_diferencia),"Requiere conciliación si es distinta de cero"]
+ ]:[["Estado","NO SE HA REALIZADO CIERRE","El informe corriente puede cambiar con nuevas operaciones"] ]});
  makeSheet(book,{...common,name:"Mov. inventario",title:"MOVIMIENTOS DE INVENTARIO DEL MES",cols:[
   {label:"Fecha (Bogotá)",width:"date"},{label:"Producto",width:"name"},
   {label:"Diferencia unidades",width:"number",type:"integer"},{label:"Motivo",width:"text"}
@@ -183,7 +202,8 @@ function build(book,r,company){
   ["Saldos","Son los saldos actuales de ventas originadas en el periodo consultado."],
   ["Inventario","Es una fotografía del inventario ACTUAL. No es un cierre histórico del último día del mes consultado."],
   ["Laboratorio","Órdenes creadas en el periodo; su estado mostrado es el actual."],
-  ["Margen","Margen bruto estimado sin gastos, impuestos, costos indirectos ni ajustes contables."],
+  ["Rentabilidad","Resultado operativo estimado: ventas menos costo vendido y gastos registrados; no es utilidad neta ni sustituye conciliación."],
+  ["Cierre histórico","Si existe, la fotografía del inventario fue tomada AL EJECUTAR el cierre, no necesariamente el último día del mes."],
   ["Caja","Los ingresos y egresos manuales no deben agregarse automáticamente a los recaudos de ventas, para evitar doble contabilización."],
   ["Alcance","Documento operativo interno; no reemplaza contabilidad, conciliación bancaria ni factura electrónica DIAN."]
  ]});
