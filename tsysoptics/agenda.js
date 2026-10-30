@@ -211,7 +211,7 @@ async function changeState(item,newState,button){
 }
 
 form.addEventListener("submit",async event=>{
- if(!adminReady)return; // El panel conserva una demo local para otros perfiles.
+ if(!adminReady)return; // Otros perfiles mantienen la interfaz de demostración.
  event.preventDefault();
  if(saving)return;
  const values=new FormData(form);
@@ -220,25 +220,49 @@ form.addEventListener("submit",async event=>{
  const hora=String(values.get("hora")||"");
  const tipo=String(values.get("tipo")||"");
  const paciente=String(values.get("paciente_id")||"");
- if(referencia.length<2||referencia.length>100||!/\d{4}-\d{2}-\d{2}/.test(fecha)||!/\d{2}:\d{2}/.test(hora)){
-  status("agenda-save-status","Completa el nombre o referencia, fecha y hora.");
+ if(referencia.length<2||referencia.length>100||!validDate(fecha)||
+    !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(hora)||
+    !["Optometría","Entrega de lentes","Control"].includes(tipo)){
+  status("agenda-save-status","Verifica la referencia, la fecha, la hora y el tipo de atención.");
+  return;
+ }
+ if(fecha+"T"+hora<bogotaNow()){
+  status("agenda-save-status","No es posible programar ni reprogramar una cita a una fecha u hora pasada.");
   return;
  }
  saving=true;saveButton.disabled=true;
- status("agenda-save-status","Guardando cita…");
+ const editing=Boolean(editingId),id=editingId,originalState=editingState;
+ status("agenda-save-status",editing?"Reprogramando cita…":"Guardando cita…");
  try{
-  const {error}=await sb.from("citas_tsysoptics").insert({
-   referencia,fecha,hora,tipo,estado:"programada",
-   paciente_id:paciente||null
-  });
-  if(error){status("agenda-save-status",showError(error,"guardar"));return}
-  form.reset();
+  if(!(await verifyAdmin())){
+   resetAdministrativeView();
+   status("agenda-save-status","Tu sesión ya no tiene autorización para guardar citas.");
+   return;
+  }
+  const changes={referencia,fecha,hora,tipo,paciente_id:paciente||null};
+  const {data,error}=editing
+   ?await sb.from("citas_tsysoptics").update(changes)
+      .eq("id",id).eq("estado",originalState).select("id").maybeSingle()
+   :await sb.from("citas_tsysoptics").insert({...changes,estado:"programada"})
+      .select("id").maybeSingle();
+  if(error||!data){
+   status("agenda-save-status",error?showError(error,"guardar"):
+    "No se pudo confirmar la cita. Actualiza la agenda antes de volver a intentarlo.");
+   return;
+  }
+  resetEditor();
   window.tsysAgendaMobileAfterCreate?.(fecha);
-  status("agenda-save-status","Cita guardada correctamente en Supabase.");
+  status("agenda-save-status",editing
+   ?"Cita reprogramada correctamente. Se conservó su registro."
+   :"Cita guardada correctamente en Supabase.");
   await loadCitas();
  }catch{
-  status("agenda-save-status","No se pudo guardar la cita. Revisa la conexión.");
+  status("agenda-save-status","No se pudo confirmar el guardado. Actualiza la agenda antes de repetir la operación.");
  }finally{saving=false;saveButton.disabled=false}
+});
+$("agenda-cancel-edit").addEventListener("click",()=>{
+ resetEditor();
+ status("agenda-save-status","Edición cancelada. No se cambiaron citas.");
 });
 $("agenda-refresh").addEventListener("click",loadCitas);
 $("agenda-filtro-fecha").addEventListener("change",loadCitas);
