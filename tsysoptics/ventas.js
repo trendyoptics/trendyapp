@@ -1,6 +1,7 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
 import "./ventas-movil.js?v=20261029a";
+import {loadDocumentContext,previewDocument,createSalePdf,savePdf,shareSalePdf} from "./documento-venta.js?v=20261030";
 
 const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
  auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
@@ -12,10 +13,20 @@ const receipt=$("venta-comprobante");
 const cartRoot=$("venta-carrito");
 const saleList=$("lista-ventas");
 const productSelect=$("venta-producto");
+const lensCatalog=$("venta-lente-catalogo");
 const lensName=$("venta-lente-descripcion");
 const lensPrice=$("venta-lente-precio-manual");
 const lensQuantity=$("venta-lente-cantidad");
 let creatingLens=false;
+let receiptContext=null,receiptRequest=0;
+const LENS_CATALOG=[
+ ["CR BLUE",100000],["CR FOTO BLUE",220000],["POLY BLUE",180000],
+ ["POLY FOTO BLUE",250000],["CR TRANSITIONS + AR",460000],
+ ["POLY TRANSITIONS + AR",520000],["PROGRESIVO GAMA MEDIA BLUE",480000],
+ ["PROGRESIVO GAMA ALTA BLUE",580000],["PROGRESIVO GAMA MEDIA BLUE + FOTO",570000],
+ ["PROGRESIVO GAMA ALTA BLUE + FOTO",710000],["PROGRESIVO GAMA TRANSITION",870000],
+ ["PROGRESIVO GAMA ALTA BLUE + TRANS",1070000]
+];
 const patientSelect=$("venta-paciente");
 const paymentSaleSelect=$("ventas-abono-venta");
 const money=n=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:2}).format(Number(n)||0);
@@ -175,6 +186,18 @@ function fillOptions(){
  for(const p of patients)patientSelect.append(new Option(p.nombre_completo+" · "+p.tipo_documento+" "+p.documento,p.id));
  if(Array.from(patientSelect.options).some(o=>o.value===current))patientSelect.value=current;
 }
+for(const [label,price] of LENS_CATALOG){
+ const option=new Option(label+" · "+money(price),label);
+ option.dataset.price=String(price);lensCatalog.append(option);
+}
+lensCatalog.addEventListener("change",()=>{
+ const choice=lensCatalog.selectedOptions[0];
+ if(!choice?.value)return;
+ lensName.value=choice.value;
+ lensPrice.value=choice.dataset.price||"";
+ window.tsysFormatCOPInput?.(lensPrice);
+ displayStatus("venta-lente-status","Precio cargado del catálogo. Puedes editar tanto la descripción como el precio antes de agregar.");
+});
 // El lente personalizado se registra como referencia de Inventario antes de venderlo.
 // No se inventan líneas de venta sin existencias ni se cambian precios sólo en el navegador.
 $("venta-agregar-lente").addEventListener("click",async()=>{
@@ -212,7 +235,7 @@ $("venta-agregar-lente").addEventListener("click",async()=>{
   products.push(data);
   cart.push({producto_id:data.id,cantidad});
   fillOptions();renderCart();
-  lensName.value="";lensPrice.value="";lensQuantity.value="1";
+  lensCatalog.value="";lensName.value="";lensPrice.value="";lensQuantity.value="1";
   window.dispatchEvent(new Event("tsys:inventario-refrescar"));
   displayStatus("venta-lente-status","Lente registrado con código "+codigo+
    " y agregado al carrito. Al confirmar la venta se descontarán sus existencias.");
@@ -250,6 +273,24 @@ function appendCell(row,value){
 function receiptOpen(sale){
  if(!sale)return;
  receiptSaleCurrent=sale;
+ receiptContext=null;
+ const mine=++receiptRequest;
+ $("venta-recibo-clinico-aviso").textContent="Consultando última historia clínica finalizada…";
+ $("venta-recibo-historia").replaceChildren();
+ $("venta-recibo-titulo").textContent="Comprobante interno";
+ $("venta-recibo-garantia").textContent="";
+ $("venta-recibo-pie").textContent="";
+ void loadDocumentContext(sb,sale).then(ctx=>{
+  if(mine!==receiptRequest||receiptSaleCurrent?.id!==sale.id)return;
+  receiptContext=ctx;
+  $("venta-recibo-titulo").textContent=ctx.config.nombre_optica+" · "+ctx.config.titulo_documento;
+  $("venta-recibo-garantia").textContent=ctx.config.nota_garantia;
+  $("venta-recibo-pie").textContent=ctx.config.pie_documento;
+  previewDocument(ctx,$("venta-recibo-historia"),$("venta-recibo-clinico-aviso"));
+ }).catch(error=>{
+  if(mine!==receiptRequest)return;
+  $("venta-recibo-clinico-aviso").textContent=error.message+" Intenta abrir de nuevo el comprobante.";
+ });
  const devuelta=sale.estado==="devuelta";
  $("venta-recibo-meta").textContent=(sale.estado==="anulada"?"ANULADA · Documento histórico · ":devuelta?"DEVUELTA · Comprobante original · ":"Comprobante ")+salesNumber(sale.numero)+" · "+new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"});
  $("venta-recibo-paciente").textContent="Paciente/cliente: "+(sale.paciente?.nombre_completo||"Consumidor final");
@@ -281,36 +322,38 @@ function receiptOpen(sale){
  receipt.hidden=false;
 }
 function receiptClose(){
+ receiptRequest++;
+ receiptContext=null;
  receipt.hidden=true;
  receiptSaleCurrent=null;
  document.body.classList.remove("venta-imprimiendo");
 }
 $("venta-cerrar-comprobante").addEventListener("click",receiptClose);
-$("venta-imprimir-comprobante").addEventListener("click",()=>{
- document.body.classList.add("venta-imprimiendo");
- window.print();
-});
-window.addEventListener("afterprint",()=>document.body.classList.remove("venta-imprimiendo"));
-$("venta-whatsapp-comprobante").addEventListener("click",()=>{
- const sale=receiptSaleCurrent;
- if(!sale)return;
- if(!window.confirm("¿Preparar un mensaje comercial de esta venta para compartir manualmente en WhatsApp? Revisa el destinatario y los importes antes de enviarlo."))return;
- const lineas=(sale.lineas||[]).map(l=>"- "+l.nombre_snapshot+" × "+l.cantidad+": "+money(l.total_linea)).join("\n");
- const msg=[
-  "TRENDYOPTICS · COMPROBANTE INTERNO",
-  "Venta: "+salesNumber(sale.numero),
-  "Cliente: "+(sale.paciente?.nombre_completo||"Consumidor final"),
-  "Productos:\n"+(lineas||"Sin detalle"),
-  "Total: "+money(sale.total),
-  "Abonado: "+money(sale.abonado),
-  "Saldo pendiente: "+money(sale.saldo),
-  "Documento comercial interno. No equivale a factura electrónica DIAN."
- ].join("\n");
- const url="https://wa.me/?text="+encodeURIComponent(msg);
- const share=document.createElement("a");
- share.href=url;share.target="_blank";share.rel="noopener noreferrer";
- share.click();
-});
+async function salePdfAction(share=false){
+ const ctx=receiptContext;
+ const statusEl=$("venta-recibo-clinico-aviso");
+ if(!ctx){statusEl.textContent="El documento todavía no está listo o no se pudo consultar la historia. No se compartirá un documento incompleto.";return;}
+ const button=$(share?"venta-whatsapp-comprobante":"venta-imprimir-comprobante");
+ button.disabled=true;statusEl.textContent="Generando documento PDF…";
+ try{
+  const file=await createSalePdf(ctx);
+  if(share){
+   if(!window.confirm("¿Compartir el PDF con datos del paciente e historia clínica? Confirma que el destinatario tiene autorización para recibir información de salud."))return;
+   statusEl.textContent=await shareSalePdf(ctx,file);
+  }else{
+   savePdf(file.blob,file.filename);
+   const url=URL.createObjectURL(file.blob);
+   window.open(url,"_blank","noopener,noreferrer");
+   setTimeout(()=>URL.revokeObjectURL(url),60000);
+   statusEl.textContent="PDF descargado y abierto para imprimir. Es el mismo archivo usado al compartir.";
+  }
+ }catch(error){
+  if(error?.name==="AbortError")statusEl.textContent="Compartir cancelado.";
+  else statusEl.textContent="No se pudo preparar el PDF. Comprueba la conexión y vuelve a intentarlo.";
+ }finally{button.disabled=false}
+}
+$("venta-imprimir-comprobante").addEventListener("click",()=>{void salePdfAction(false)});
+$("venta-whatsapp-comprobante").addEventListener("click",()=>{void salePdfAction(true)});
 receipt.addEventListener("click",e=>{if(e.target===receipt)receiptClose()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!receipt.hidden)receiptClose()});
 
@@ -521,7 +564,7 @@ function reset(){
  receiptClose();
  saleList.replaceChildren();cartRoot.replaceChildren();
  productSelect.replaceChildren(new Option("Seleccionar referencia",""));
- lensName.value="";lensPrice.value="";lensQuantity.value="1";
+ lensCatalog.value="";lensName.value="";lensPrice.value="";lensQuantity.value="1";
  displayStatus("venta-lente-status","");
  window.dispatchEvent(new CustomEvent("tsys:ventas-carrito",{detail:{unidades:0,total:0}}));
  window.dispatchEvent(new CustomEvent("tsys:ventas-lista"));

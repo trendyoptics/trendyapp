@@ -105,7 +105,7 @@
             <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white">TrendyOptics</h1>
             <span id="storageStatus" class="text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full">Conectando Supabase</span>
           </div>
-          <p class="text-[11px] text-slate-300 leading-tight">Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá &bull; NIT: 1073263942-5 &bull; Cel: +57 3003391055</p>
+          <p id="tsys-app-contacto" class="text-[11px] text-slate-300 leading-tight"></p>
         </div>
       </div>
 
@@ -496,8 +496,8 @@
       <div class="flex items-center gap-2.5">
         <div id="printLogoHolder" class="w-16 h-16 shrink-0 flex items-center justify-center"><img src="./tsysoptics/logo.svg" alt="TrendyOptics · Lentes en tendencia" style="width:100%;height:100%;object-fit:contain"></div>
         <div>
-          <h1 class="text-base font-extrabold uppercase tracking-tight leading-none">TrendyOptics · Lentes en tendencia</h1>
-          <p class="text-[9px] font-semibold text-slate-700">Calle 39a Sur N 87d - 58 | Patio Bonito, Bogotá D.C. &bull; NIT: 1073263942-5 &bull; Cel/WhatsApp: +57 3003391055</p>
+          <h1 id="tsys-print-nombre-optica" class="text-base font-extrabold uppercase tracking-tight leading-none">TrendyOptics · Lentes en tendencia</h1>
+          <p id="tsys-print-datos-optica" class="text-[9px] font-semibold text-slate-700"></p>
           <p class="text-[8.5px] text-slate-600">HISTORIA CLÍNICA OPTOMÉTRICA Y FÓRMULA DE LENTES (Resolución 1995 de 1999)</p>
         </div>
       </div>
@@ -585,6 +585,7 @@
         </div>
 
       </div>
+      <p id="tsys-print-garantia" class="text-[8.5px] font-semibold text-slate-700 mt-2">NO SE DA GARANTÍA POR FÓRMULAS DE OTRO LUGAR.</p>
       <div class="grid grid-cols-2 gap-6 pt-3 mt-1 text-[8.5px] text-center">
         <div class="border-t border-slate-700 pt-0.5"><strong id="p_optometra"></strong><div>OPTÓMETRA EXAMINADOR · REGISTRO PROFESIONAL</div></div>
         <div class="border-t border-slate-700 pt-0.5"><strong>FIRMA DEL PACIENTE / ACOMPAÑANTE</strong><div>ACEPTACIÓN Y CONSENTIMIENTO</div></div>
@@ -1120,6 +1121,26 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: { flowType: "pkce", autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
 });
 
+async function actualizarPersonalizacionImpresion(){
+ const {data,error}=await supabase.from("identidad_optica_tsysoptics")
+  .select("nombre_optica,logo_data_url,nota_garantia,nit_optica,direccion_optica,telefono_optica").eq("id",1).maybeSingle();
+ if(error||!data)return;
+ const n=document.getElementById("tsys-print-nombre-optica");
+ const note=document.getElementById("tsys-print-garantia");
+ const contacto=document.getElementById("tsys-print-datos-optica");
+ const appContacto=document.getElementById("tsys-app-contacto");
+ if(appContacto)appContacto.textContent=[data.direccion_optica||"",data.nit_optica?"NIT: "+data.nit_optica:"",data.telefono_optica?"TEL: "+data.telefono_optica:""].filter(Boolean).join(" · ");
+ if(contacto)contacto.textContent=[
+  data.direccion_optica||"",data.nit_optica?"NIT: "+data.nit_optica:"",
+  data.telefono_optica?"TEL: "+data.telefono_optica:""
+ ].filter(Boolean).join(" · ");
+ const logo=document.querySelector("#printLogoHolder img");
+ if(n&&data.nombre_optica)n.textContent=data.nombre_optica;
+ if(note&&data.nota_garantia!==null)note.textContent=data.nota_garantia;
+ if(logo&&typeof data.logo_data_url==="string"&&
+   /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.logo_data_url)&&data.logo_data_url.length<210000)logo.src=data.logo_data_url;
+}
+void actualizarPersonalizacionImpresion();
 function clinicalMessage(message) {
   if (typeof window.mostrarToast === "function") window.mostrarToast(message);
 }
