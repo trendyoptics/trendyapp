@@ -331,6 +331,9 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <div class="card" style="background:#f1f5fa;border:1px solid #d4deec;padding:12px">
    <h3 style="margin:0">Lente oftálmico personalizado</h3>
    <p class="muted">Escribe el tipo de lente y el precio de venta. Al pulsar Agregar, se crea una referencia en Inventario con existencia inicial para esta venta y después se agrega al carrito.</p>
+   <label>Catálogo de lentes con precio automático
+    <select id="venta-lente-catalogo"><option value="">Elegir lente o escribir uno personalizado</option></select>
+   </label>
    <label>Descripción del lente
     <input id="venta-lente-descripcion" type="text" maxlength="120" minlength="3" autocomplete="off" placeholder="EJ. PROGRESIVO ANTIRREFLEJO BLUE CUT" />
    </label>
@@ -341,7 +344,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
     <input id="venta-lente-cantidad" type="number" min="1" max="20" step="1" value="1" />
    </label>
    <button type="button" class="btn alt" id="venta-agregar-lente">Registrar lente y agregar al carrito</button>
-   <p id="venta-lente-status" class="muted" role="status" aria-live="polite"></p>
+   <p id="venta-lente-status" class="muted" role="status" aria-live="polite">Puedes modificar el nombre y el precio después de seleccionar un lente.</p>
   </div>
   <label>Cantidad <input name="cantidad" id="venta-cantidad" type="number" min="1" step="1" value="1" required></label>
   <button class="btn alt" type="button" id="venta-agregar-producto">Agregar al carrito</button>
@@ -510,6 +513,21 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
    </fieldset>
    <p class="muted" id="identidad-permisos">Solo el administrador puede modificar la identidad.</p>
    <p id="identidad-status" role="status" aria-live="polite" class="muted"></p>
+  <div class="card" style="margin-top:16px">
+   <h2>Personalización de documentos y mensajes</h2>
+   <p class="muted">Estos textos aparecen con el nombre y logo de la óptica en comprobantes y documentos combinados. Cada instalación puede tener sus propios valores.</p>
+   <form id="documentos-config-form" class="form">
+    <fieldset id="documentos-config-editor" disabled>
+     <label>Título del documento <input id="documentos-titulo" maxlength="100" type="text"></label>
+     <label>Nota de garantía <textarea id="documentos-garantia" rows="2" maxlength="500"></textarea></label>
+     <label>Pie de página adicional <textarea id="documentos-pie" rows="2" maxlength="500"></textarea></label>
+     <label>Mensaje para compartir por WhatsApp <textarea id="documentos-whatsapp" rows="3" maxlength="700"></textarea></label>
+     <p class="muted">Variables disponibles: {optica}, {paciente}, {venta}. El sistema nunca envía mensajes automáticamente.</p>
+     <button class="btn" type="submit" id="documentos-guardar">Guardar personalización</button>
+    </fieldset>
+    <p id="documentos-config-status" class="muted" role="status"></p>
+   </form>
+  </div>
   </form>
   <div class="identidad-preview" aria-label="Vista previa de marca">
    <img id="identidad-preview-logo" src="./logo.svg" alt="Vista previa de logo">
@@ -613,7 +631,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030lentes3"></script><script type="module" src="./caja.js?v=20261030lentes3"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030catalogopdf"></script><script type="module" src="./caja.js?v=20261030lentes3"></script><script type="module" src="./identidad.js?v=20261030docs"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
@@ -637,7 +655,9 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
    <button class="btn" id="venta-imprimir-comprobante" type="button">Imprimir / guardar PDF</button>
    <button class="btn alt" id="venta-whatsapp-comprobante" type="button">Compartir por WhatsApp</button>
   </div>
-  <h2 id="venta-recibo-titulo">Trendy Optics · Comprobante interno</h2>
+  <h2 id="venta-recibo-titulo">Comprobante interno</h2>
+  <p id="venta-recibo-clinico-aviso" class="muted" role="status">Preparando documento…</p>
+  <div id="venta-recibo-historia"></div>
   <p id="venta-recibo-meta"></p>
   <p id="venta-recibo-paciente"></p>
   <table><thead><tr><th>Referencia</th><th>Cant.</th><th>Valor</th><th>Total</th></tr></thead>
@@ -645,7 +665,9 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
   <p id="venta-recibo-totales"></p>
   <p id="venta-recibo-pagos"></p>
   <p id="venta-recibo-anulacion" hidden></p>
-  <p><strong>Comprobante interno de prueba. No equivale a factura electrónica DIAN.</strong></p>
+  <p id="venta-recibo-garantia"></p>
+  <p id="venta-recibo-pie"></p>
+  <p><strong>Comprobante interno. No equivale a factura electrónica DIAN.</strong></p>
  </div>
 </div>
 </body></html>
