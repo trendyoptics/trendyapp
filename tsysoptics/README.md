@@ -1,35 +1,46 @@
-# TsysOptics · Piloto aislado
+# TsysOptics · Piloto integral para ópticas
 
-Este directorio contiene una **prueba funcional administrativa** para Óptica Trendy Optics.
+**Estado:** piloto funcional para TrendyOptics, **no habilitado para comercialización multiempresa**.
 
-- Entrada: `tsysoptics/index.html`
-- Imagen de marca: `tsysoptics/logo.svg` (adaptación vectorial del logotipo incluido en el código clínico existente)
-- Historia clínica original: `../index.html` (sin cambios)
+TsysOptics es una aplicación web de gestión de óptica construida sobre GitHub Pages (frontend) y Supabase (Auth, PostgreSQL/RLS y funciones RPC). Se accede desde computador, tableta y móvil.
 
-## Funciones disponibles
+## Accesos y módulos
 
-- Panel de indicadores de demostración
-- Agenda ficticia con almacenamiento local
-- Inventario y venta de productos ficticios, con abonos, saldo y descuento de existencias
-- Simulador esquemático de lente positivo/negativo, **no** cálculo físico
-- Acceso directo a la historia clínica original, que sigue siendo `index.html`
+- `tsysoptics/index.html`: panel, agenda, inventario, ventas y cobros, caja, laboratorio, informes y configuración del negocio.
+- `tsysoptics/pacientes.html`: administración de pacientes autorizada.
+- `index.html`: historia clínica principal integrada con Supabase y protegida con comprobación de sesión y rol administrativo.
+- `tsysoptics/doctor.html` y `tsysoptics/clinica-completa-demo.html`: experiencias externas **limitadas a datos de demostración**.
+- `tsysoptics/informes.js`: informes mensuales operativos, PDF ejecutivo y libro Excel .xlsx por secciones.
+- `tsysoptics/orden-laboratorio-pdf.js`: orden de laboratorio media carta horizontal.
 
-## Alcance y seguridad
+Los datos operativos están en Supabase. Los archivos fuente son públicos, por lo que **nunca** deben contener contraseñas, claves secretas, JWT ni `service_role`. `supabase-config.js` contiene únicamente la URL y clave publicable para navegador; la autorización depende de políticas RLS y funciones verificadas en el servidor.
 
-No usar información personal, historias clínicas, datos de pacientes ni cobros reales en los módulos de prueba. Los registros quedan en el almacenamiento de **este navegador**, sin autenticación, API ni sincronización entre dispositivos. Es un prototipo de interfaz, no un producto listo para el manejo seguro de datos de salud.
+## Roles actuales
 
-La historia clínica original tiene un webhook Apps Script con escritura de tipo `no-cors`. Esta modalidad no permite al navegador comprobar si Google Sheets guardó el registro. El botón original de historial lee el `localStorage` del equipo, no el histórico central de Google Sheets.
+- **Administrador:** operaciones del piloto autorizado.
+- **Externo:** experiencia clínica DEMO limitada; no dispone de acceso a ventas/inventario/caja. No es el módulo definitivo del optómetra de una óptica comercial.
+- Los demás perfiles y los permisos comerciales entre ópticas siguen pendientes de implementación y pruebas de acceso cruzado.
 
-Antes de una integración productiva: respaldar el repositorio y Sheet, obtener el código del Apps Script, verificar mapeo de columnas y confirmación de operaciones, implementar API privada y autenticada, controles de autorización, auditoría, respaldo y migración verificable. No exponer API keys ni nuevos datos clínicos en GitHub Pages.
+## Informes y datos clínicos
 
-## Probar desde el móvil
+Los informes administrativos no reemplazan documentos fiscales o cierres contables. Las cifras del **inventario actual** no equivalen a existencias históricas del último día de un mes. Las historias clínicas son datos personales sensibles y requieren controles específicos de acceso, retención, trazabilidad y recuperación.
 
-Mientras esta rama está en revisión, abre el archivo desde la pestaña *Files changed* del pull request para inspeccionar el código. GitHub Pages normalmente publica la rama configurada (en este proyecto `main`), de modo que **la demo no aparecerá en la página pública hasta aprobar y fusionar la rama**. La ruta prevista después de fusionarla es:
+## Seguridad y comercialización
 
-`https://trendyoptics.github.io/trendyapp/tsysoptics/`
+Ver:
 
-El sitio clínico original permanecerá en `https://trendyoptics.github.io/trendyapp/`.
+- [Informe precomercial](./auditoria/INFORME_PRECOMERCIAL.md): alcance, pruebas y bloqueos.
+- [QA SQL de solo lectura](./auditoria/QA_SQL_SOLO_LECTURA.md): verificación reproducible de RLS e integridad.
+- [Acceso y perfiles](./ACCESO.md): configuración y limitaciones actuales.
 
-## Próxima iteración
+Pruebas estáticas sin acceso a pacientes ni Supabase:
 
-Extraer los componentes de HTML monolítico, crear backend con PostgreSQL, permisos clínicos, módulos separados, sincronización central de paciente/consulta, controles de privacidad y copias de seguridad.
+```bash
+node --test tsysoptics/auditoria/controles-estaticos.test.mjs
+```
+
+GitHub Actions ejecuta estos controles cuando cambian archivos de TsysOptics. **Son controles de regresión de código, no un pentest ni la certificación de que RLS sea correcto**.
+
+**Pendiente para vender:** aislamiento por óptica, matriz completa de roles, revisión de RPC privilegiadas, contraseñas seguras, auditoría y privacidad, respaldo verificable y restauración ensayada, contrato y operación de soporte.
+
+No incorporar datos de otras ópticas a la misma base hasta superar estas condiciones.
