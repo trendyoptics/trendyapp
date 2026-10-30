@@ -425,6 +425,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
     <button type="button" class="btn alt" id="lab-actualizar">Actualizar pedidos</button>
    </div>
    <p id="lab-list-status" class="muted" role="status" aria-live="polite"></p>
+   <p class="muted">Cada pedido tiene un botón <strong>Orden media carta (PDF)</strong> para imprimir la fórmula y las especificaciones y acompañar la montura al laboratorio. No incluye precios ni abonos.</p>
    <div class="list" id="lab-lista"></div>
   </div>
  </div>
@@ -666,7 +667,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030a"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030lentes3"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030ordenpdf"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030lentes3"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
