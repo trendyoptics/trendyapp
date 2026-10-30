@@ -8,6 +8,21 @@ const signed=value=>{
  const n=Number(v);
  return Number.isFinite(n)?(n>0?"+":"")+n.toFixed(2):v;
 };
+async function printableLogo(source){
+ if(typeof source!=="string"||!/^data:image\\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(source)||source.length>210000)return null;
+ const image=new Image();image.src=source;
+ try{
+  await image.decode();
+  const canvas=document.createElement("canvas");
+  const scale=Math.min(1,300/Math.max(image.naturalWidth,image.naturalHeight));
+  canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));
+  canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
+  const context=canvas.getContext("2d");
+  if(!context)return null;
+  context.drawImage(image,0,0,canvas.width,canvas.height);
+  return {data:canvas.toDataURL("image/png"),ratio:canvas.width/canvas.height};
+ }catch{return null;}
+}
 export async function generateLabOrderPdf(db,order){
  const saleResult=await db.from("ventas_tsysoptics")
   .select("id,numero,fecha,paciente_id,estado,lineas:detalle_ventas_tsysoptics(codigo_snapshot,nombre_snapshot,cantidad)")
@@ -24,6 +39,7 @@ export async function generateLabOrderPdf(db,order){
  const history=historyRes.data?.[0];
  if(!history)throw Error("El paciente no tiene una historia clínica finalizada. No se generará una orden sin fórmula.");
  const patient=patientRes.data,identity=identityRes.data||{},d=history.datos_clinicos||{};
+ const logo=await printableLogo(identity.logo_data_url);
  const {jsPDF}=await import("https://esm.sh/jspdf@2.5.2");
  const pdf=new jsPDF({orientation:"landscape",unit:"mm",format:[215.9,139.7]});
  // Media carta REAL, apaisada: 21,59 x 13,97 cm.
@@ -53,6 +69,12 @@ export async function generateLabOrderPdf(db,order){
  font(9,true);write(identity.nombre_optica||"ÓPTICA",M,22);
  font(7);write("VENTA V-"+String(sale.numero).padStart(6,"0")+" · ORDEN "+order.id.slice(0,8).toUpperCase(),right,12);
  font(7);write("FECHA PREVISTA: "+date(order.fecha_entrega_estimada),right,18);
+ if(logo){
+  const maxWidth=20,maxHeight=20;
+  const width=Math.min(maxWidth,maxHeight*logo.ratio);
+  const height=width/logo.ratio;
+  try{pdf.addImage(logo.data,"PNG",215.9-M-width,3,width,height);}catch{}
+ }
  pdf.setDrawColor(...navy);pdf.setLineWidth(.25);pdf.line(M,26,215.9-M,26);
  let ly=section("PACIENTE Y LABORATORIO",left,33);
  ly=field("PACIENTE",patient.nombre_completo,left,ly);
