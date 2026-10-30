@@ -104,7 +104,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 @view-transition { navigation: auto; }
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.16s;animation-timing-function:ease-out}
 @media(prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation-duration:0s}}
-</style></head><body>
+</style><link rel="stylesheet" href="./pacientes-spa.css?v=1"></head><body>
 <div id="tsys-auth-loading" role="status" aria-live="polite" style="min-height:100dvh;background:#F2F2F2"></div>
 <section id="auth-root" hidden class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
@@ -133,11 +133,73 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </section>
 <div id="tsys-app" hidden><div class="layout">
 <aside class="sidebar"><div class="brand"><img src="logo.svg" data-tsys-logo alt="Logo de la óptica"><span><b>TsysOptics</b><small data-tsys-business>Trendy Optics</small><small class="brand-attribution">by TrendyOptics</small></span></div><nav aria-label="Módulos">
-<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><a data-access-target="pacientes" href="./pacientes.html">♙ &nbsp; Pacientes</a><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
+<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><button type="button" data-page="pacientes">♙ &nbsp; Pacientes</button><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
 <div class="main"><header class="top"><strong data-tsys-page-title>TsysOptics | Trendy Optics</strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
-<div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><a data-access-target="pacientes" href="./pacientes.html">Pacientes</a><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">Clínica ↗</a></div>
+<div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><button type="button" data-page="pacientes">Pacientes</button><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">Clínica ↗</a></div>
 <main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda, Inventario, Ventas y Caja de prueba utilizan Supabase. <strong>Simulador óptico sigue siendo un esquema de demostración.</strong> Caja dispone de apertura, arqueo y cierre de turnos en modalidad de prueba. No incluye facturación electrónica DIAN ni autorización para uso en producción.</div>
-<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historias, agenda, inventario y ventas de prueba centralizados en Supabase.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small id="metric-ventas-origen">Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><a class="btn" data-access-target="pacientes" href="./pacientes.html">Pacientes (Supabase)</a><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="caja">▣ &nbsp; Abrir Caja</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
+<section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historias, agenda, inventario y ventas de prueba centralizados en Supabase.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small id="metric-ventas-origen">Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><button type="button" data-page="pacientes">Pacientes (Supabase)</button><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="caja">▣ &nbsp; Abrir Caja</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
+<section class="page" id="pacientes"><div class="patients-spa-content"><div id="loading" class="card" role="status">Verificando permisos de acceso…</div>
+<section id="panel" hidden>
+<div class="row"><div><h1>Pacientes</h1><p>Registro centralizado de pacientes en Supabase.</p></div><span class="small">Módulo clínico</span></div>
+<p class="notice"><strong>Antes de registrar:</strong> comprueba la identidad y el documento. Desde la ficha puedes consultar las fechas de atención y abrir el formulario clínico completo. Continúa usando datos de prueba hasta validar el flujo asistencial.</p>
+<nav id="patient-tabs" class="patient-tabs" aria-label="Secciones de pacientes" role="tablist">
+ <button type="button" data-view="buscar" role="tab" aria-controls="patient-search-card" aria-selected="true">Buscar</button>
+ <button type="button" data-view="registrar" role="tab" aria-controls="patient-registration-card" aria-selected="false">Registrar</button>
+ <button type="button" data-view="ficha" role="tab" aria-controls="patient-profile" aria-selected="false" disabled>Ficha</button>
+</nav>
+<div class="layout">
+<div class="card" id="patient-registration-card">
+<h2 id="form-title">Nuevo paciente</h2>
+<form id="patient-form">
+<label>Tipo de documento<select name="tipo_documento" required><option>CC</option><option>TI</option><option>CE</option><option>PA</option><option>OTRO</option></select></label>
+<label>Documento<input name="documento" placeholder="Número de documento" required minlength="3" maxlength="30" pattern="[A-Za-z0-9 .-]{3,30}" autocomplete="off"></label>
+<label>Nombre completo<input name="nombre_completo" placeholder="Nombre y apellidos" maxlength="100" required autocomplete="off"></label>
+<label>Fecha de nacimiento<input name="fecha_nacimiento" type="date"></label>
+<label>Teléfono (opcional)<input name="telefono" maxlength="30" autocomplete="off"></label>
+<label>Dirección (opcional)<input name="direccion" maxlength="120" autocomplete="off"></label>
+<label>EPS (opcional)<input name="eps" maxlength="80" autocomplete="off"></label>
+<div class="actions"><button type="submit" id="save">Guardar paciente</button><button type="button" class="alt" id="cancel" hidden>Cancelar edición</button><a id="history-link" hidden class="patient-link-clinical" href="../index.html" target="_blank" rel="noopener noreferrer">Abrir módulo clínico</a></div>
+</form>
+<p class="small">No se permite cambiar el documento de un paciente ya registrado en esta etapa.</p>
+</div>
+<div class="card" id="patient-search-card">
+<h2>Buscar pacientes</h2>
+<label for="search">Nombre o documento</label>
+<div class="inline"><input id="search" placeholder="Escribe un nombre o documento" inputmode="search" autocomplete="off" maxlength="70" aria-label="Buscar pacientes por nombre o documento"><button id="find" type="button">Buscar</button></div>
+<p id="status" class="status" role="status" aria-live="polite"></p>
+<div id="results" class="entries" aria-label="Resultados de la búsqueda"></div>
+</div>
+</div>
+<section id="patient-profile" class="card patient-profile" hidden aria-labelledby="patient-profile-name">
+ <div class="patient-profile-header">
+  <div>
+   <span class="patient-eyebrow">Paciente seleccionado</span>
+   <h2 id="patient-profile-name">Ficha del paciente</h2>
+   <p id="patient-profile-document" class="small"></p>
+  </div>
+  <div class="patient-profile-actions">
+   <button type="button" id="profile-edit" class="alt">Editar datos</button>
+   <a id="profile-clinical" class="patient-link-clinical" href="../index.html" target="_blank" rel="noopener noreferrer">Abrir historia clínica</a>
+  </div>
+ </div>
+ <div class="patient-profile-data" aria-label="Datos del paciente">
+  <div><small>Teléfono</small><strong id="profile-phone">Sin registrar</strong></div>
+  <div><small>Fecha de nacimiento</small><strong id="profile-birth">Sin registrar</strong></div>
+  <div><small>EPS</small><strong id="profile-eps">Sin registrar</strong></div>
+  <div><small>Dirección</small><strong id="profile-address">Sin registrar</strong></div>
+ </div>
+ <div class="patient-clinical-summary">
+  <h3>Consultas clínicas</h3>
+  <p id="patient-history-status" class="status" role="status" aria-live="polite">Selecciona un paciente para consultar el historial.</p>
+  <div id="patient-history-list" class="patient-history-list"></div>
+  <p class="small">Los datos de las consultas se abren en el módulo clínico protegido. Aquí solo se muestra fecha, estado y profesional.</p>
+ </div>
+ <div class="patient-profile-footer">
+  <button type="button" id="profile-back" class="alt">Volver a buscar</button>
+  <button type="button" id="profile-new" class="alt">Registrar otro paciente</button>
+ </div>
+</section>
+</section></div></section>
 <section class="page" id="agenda"><span class="label">AGENDA · SUPABASE</span><h1>Agenda de citas</h1>
 <p class="muted">Organiza las citas por fecha, hora y tipo de atención. El administrador puede asociarlas a pacientes de TsysOptics.</p>
 <div class="cols">
@@ -430,7 +492,8 @@ const node=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;r
 const save=()=>{try{localStorage.setItem(key,JSON.stringify(data));toast("Guardado localmente como prueba.")}catch{toast("No se pudo guardar en este navegador.")}};
 let timer;function toast(s){$("notice").textContent=s;$("notice").hidden=false;clearTimeout(timer);timer=setTimeout(()=>$("notice").hidden=true,3000)}
 function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas","caja"].includes(page)}
-function navigate(p){if(!canNavigate(p)){toast("Módulo reservado al administrador.");return;}document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===p));document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===p));scrollTo({top:0,behavior:"instant"})}
+let patientsModuleStarted=false;
+function navigate(p){if(p==="pacientes"&&!patientsModuleStarted){patientsModuleStarted=true;import("./pacientes-spa.js?v=1").catch(()=>{patientsModuleStarted=false;toast("No se pudo cargar Pacientes. Intenta de nuevo.");});}if(!canNavigate(p)){toast("Módulo reservado al administrador.");return;}document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===p));document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===p));scrollTo({top:0,behavior:"instant"})}
 document.querySelectorAll("[data-page]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.page)));
 document.querySelectorAll("[data-go]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.go)));
 function list(id,records,format,remove){const el=$(id);el.replaceChildren();if(!records.length){el.append(node("p","Sin registros de prueba."));return}for(const r of records){const row=node("div","");row.className="item";const info=node("div","");info.append(node("strong",format(r)[0]),node("small",format(r)[1]));row.append(info);if(remove){const b=node("button","Eliminar");b.type="button";b.addEventListener("click",()=>{data[remove]=data[remove].filter(x=>x.id!==r.id);save();render()});row.append(b)}el.append(row)}}
@@ -482,7 +545,7 @@ render();lens();
 // No se permite activar páginas inexistentes ni eludir los permisos por URL.
 const params=new URLSearchParams(location.search);
 const requestedModule=params.get("modulo") || (params.get("vista")==="apariencia"?"apariencia":null);
-if(requestedModule && ["inicio","agenda","inventario","ventas","caja","simulador","apariencia"].includes(requestedModule)) {
+if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja","simulador","apariencia"].includes(requestedModule)) {
  if(canNavigate(requestedModule)) navigate(requestedModule);
  else navigate("inicio");
 }
