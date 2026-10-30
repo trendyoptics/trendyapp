@@ -1450,11 +1450,11 @@ async function saveClinicalHistory() {
     currentHistoricalData = null;
     const confirmed = await supabase.from("historias_clinicas_tsysoptics")
       .select("id,paciente_id,fecha_consulta,datos_clinicos,estado").eq("id",data).maybeSingle();
-    const historyVerified = !confirmed.error && confirmed.data && confirmed.data.estado === "finalizada";
+    const historyVerified = !confirmed.error && confirmed.data && confirmed.data.estado === "finalizada" && (!currentPatientId || confirmed.data.paciente_id === currentPatientId);
     if (historyVerified) {
       fillClinicalForm(confirmed.data);
     } else {
-      clinicalMessage("Historia guardada. Abre la consulta desde el historial para confirmar los datos antes de imprimir.");
+      clinicalMessage("Guardado pendiente de verificación: confirma el paciente y el estado de la consulta en el historial antes de imprimir.");
     }
     const { data: patientRow } = await supabase.from("pacientes_tsysoptics")
       .select("id").eq("tipo_documento", type).eq("documento", documentNumber).maybeSingle();
