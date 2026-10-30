@@ -66,15 +66,15 @@
       @page { size: letter portrait; margin: 0.55cm 0.65cm; }
       html, body { background:#fff!important;color:#000!important;margin:0!important;padding:0!important; }
       .no-print { display:none!important; }
-      #print-area { display:flex!important; flex-direction:column; width:100%!important; height:25.9cm; box-sizing:border-box; padding:0!important; font-size:9pt; line-height:1.28; color:#000; break-inside:auto; }
+      #print-area { display:flex!important; flex-direction:column; width:100%!important; min-height:25.9cm; height:auto!important; box-sizing:border-box; padding:0!important; font-size:9pt; line-height:1.28; color:#000; break-inside:auto; }
       .print-clinical { flex:1 1 auto; min-height:0; }
-      .print-treatment { height:6.4cm; flex:0 0 6.4cm; border-top:2px solid #0B1C40; padding-top:0.18cm; break-inside:avoid; }
+      .print-treatment { min-height:6.4cm; height:auto; flex:0 0 auto; border-top:2px solid #0B1C40; padding-top:0.18cm; break-inside:avoid; }
       .print-section-title { font-size:9pt; font-weight:800; letter-spacing:.025em; padding:0.09cm 0.13cm; margin:0.12cm 0; color:#0B1C40; background:#e9edf5; border-left:3px solid #0B1C40; }
       .print-treatment-grid { display:grid;grid-template-columns: 1fr;gap:0.25cm;align-items:stretch; }
       .print-treatment-spec { border:1px solid #94a3b8;border-radius:4px;padding:0.2cm;display:grid;gap:0.14cm; }
       .print-finance { border:1px solid #475569;border-radius:4px;padding:0.2cm;display:flex;flex-direction:column;gap:0.13cm; }
       .print-evaluation{border:1px solid #94a3b8;border-radius:4px;padding:0.18cm;display:grid;gap:0.1cm;overflow-wrap:anywhere}\n      #print-area table { width:100%; table-layout:fixed; }
-      #print-area td,#print-area th { overflow-wrap:anywhere; }
+      #print-area td,#print-area th { overflow-wrap:anywhere; }\n      #print-area .print-clinical,#print-area .print-evaluation{overflow:visible!important}\n      #print-area .print-treatment{break-inside:avoid;page-break-inside:avoid}
       #print-area .print-treatment .grid { margin-top:0.38cm!important; }
     }
   </style>
