@@ -326,7 +326,6 @@ function showAgendaSelection({fecha="",estado="",vista="proximas"}={}){
  $("agenda-filtro-estado").value=estado;
  $("agenda-filtro-fecha").value=fecha;
  $("agenda-filtro-fecha").dispatchEvent(new Event("change",{bubbles:false}));
- void loadCitas();
 }
 $("agenda-ver-hoy").addEventListener("click",()=>showAgendaSelection({fecha:todayBogota()}));
 $("agenda-ver-pendientes").addEventListener("click",()=>showAgendaSelection({estado:"programada"}));
