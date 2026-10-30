@@ -1,6 +1,6 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
-import {generateLabOrderPdf,downloadLabPdf} from "./orden-laboratorio-pdf.js?v=2";
+import {generateLabOrderPdf,downloadLabPdf} from "./orden-laboratorio-pdf.js?v=3logo";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
  auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
 });
