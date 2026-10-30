@@ -100,8 +100,12 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 @media print{#venta-anular-modal{display:none!important}}
  
  #tsys-auth-loading[hidden],#auth-root[hidden]{display:none!important}
+</style><style>
+@view-transition { navigation: auto; }
+::view-transition-old(root),::view-transition-new(root){animation-duration:.16s;animation-timing-function:ease-out}
+@media(prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation-duration:0s}}
 </style></head><body>
-<div id="tsys-auth-loading" role="status" aria-live="polite" class="auth-shell" style="min-height:100dvh;place-items:center"><div class="auth-card" style="text-align:center"><img src="./logo.svg" alt="" style="width:52px;height:52px"><p>Abriendo TsysOptics…</p></div></div>
+<div id="tsys-auth-loading" role="status" aria-live="polite" style="min-height:100dvh;background:#F2F2F2"></div>
 <section id="auth-root" hidden class="auth-shell" aria-label="Acceso TsysOptics">
  <div class="auth-card">
   <img src="./logo.svg" data-tsys-logo alt="Logotipo de Trendy Optics">
