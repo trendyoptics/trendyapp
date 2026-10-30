@@ -51,7 +51,7 @@ function clear(){
  status("Acceso reservado al administrador. Inicia sesión para consultar los informes.");
 }
 // Paginación explícita; nunca calcular cifras con los 100/1.000 primeros registros.
-async function fetchAll(table,columns,setup=()=>{},sort="id"){
+async function fetchAll(table,columns,setup=q=>q,sort="id"){
  const result=[],pageSize=600,limit=18000;
  for(let offset=0;offset<limit;offset+=pageSize){
   let q=db.from(table).select(columns).order(sort,{ascending:true}).range(offset,offset+pageSize-1);
@@ -80,11 +80,11 @@ async function collect(month){
  const [sales,payments,stock,stockMoves,cashMoves,shifts,orders]=await Promise.all([
   fetchAll("ventas_tsysoptics","id,numero,fecha,total,abonado,saldo,estado",during("fecha"),"fecha"),
   fetchAll("pagos_ventas_tsysoptics","id,venta_id,monto,medio,registrado_en",during("registrado_en"),"id"),
-  fetchAll("productos_tsysoptics","id,codigo,nombre,tipo,cantidad,stock_minimo,costo_compra,precio_venta,activo",()=>{},"codigo"),
+  fetchAll("productos_tsysoptics","id,codigo,nombre,tipo,cantidad,stock_minimo,costo_compra,precio_venta,activo",q=>q,"codigo"),
   fetchAll("movimientos_inventario_tsysoptics","id,producto_id,diferencia,creado_en",during("creado_en"),"id"),
   fetchAll("movimientos_caja_tsysoptics","id,tipo,monto,fecha",during("fecha"),"id"),
   fetchAll("turnos_caja_tsysoptics","id,estado,cerrada_en,diferencia",during("cerrada_en"),"cerrada_en"),
-  fetchAll("ordenes_laboratorio_tsysoptics","id,estado,creado_en,fecha_entrega_estimada,fecha_entrega_paciente",()=>{},"creado_en")
+  fetchAll("ordenes_laboratorio_tsysoptics","id,estado,creado_en,fecha_entrega_estimada,fecha_entrega_paciente",q=>q,"creado_en")
  ]);
  const valid=sales.filter(x=>x.estado==="emitida");
  const lines=await fetchBySaleIds(valid.map(x=>x.id));
