@@ -146,3 +146,13 @@ main{max-width:1600px!important;width:100%;padding:22px clamp(16px,3vw,48px)!imp
  #pacientes #panel .layout{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:0!important}
  #pacientes #panel #patient-profile{margin-top:8px!important}
 }
+
+/* Pacientes integrado: no reservar altura de pantalla ni introducir huecos al cambiar vista. */
+#pacientes .patients-spa-content,#pacientes #panel,#pacientes #panel>.layout{min-height:0!important;height:auto!important}
+#pacientes #panel>.layout{align-items:start!important;align-content:start!important}
+#pacientes #patient-profile[hidden],#pacientes #patient-registration-card[hidden],#pacientes #patient-search-card[hidden]{display:none!important}
+@media(max-width:820px){
+ #pacientes #panel>.layout{display:block!important}
+ #pacientes #panel>.layout>.card{margin-bottom:12px}
+ #pacientes #patient-profile:not([hidden]){margin-top:12px!important}
+}
