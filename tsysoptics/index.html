@@ -518,6 +518,9 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
    <p class="muted">Estos textos aparecen con el nombre y logo de la óptica en comprobantes y documentos combinados. Cada instalación puede tener sus propios valores.</p>
    <form id="documentos-config-form" class="form">
     <fieldset id="documentos-config-editor" disabled>
+     <label>NIT / identificación tributaria <input id="documentos-nit" maxlength="35" type="text" autocomplete="off"></label>
+     <label>Dirección del establecimiento <input id="documentos-direccion" maxlength="180" type="text" autocomplete="off"></label>
+     <label>Teléfono / WhatsApp comercial <input id="documentos-telefono" maxlength="50" type="tel" autocomplete="off"></label>
      <label>Título del documento <input id="documentos-titulo" maxlength="100" type="text"></label>
      <label>Nota de garantía <textarea id="documentos-garantia" rows="2" maxlength="500"></textarea></label>
      <label>Pie de página adicional <textarea id="documentos-pie" rows="2" maxlength="500"></textarea></label>
