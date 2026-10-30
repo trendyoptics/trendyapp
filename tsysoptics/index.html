@@ -40,6 +40,14 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 .agenda-action:disabled,.agenda-action-cancel:disabled{opacity:.5;cursor:wait}
 #agenda .item{align-items:center;gap:10px}
 #agenda .item small{display:block;margin-top:4px}
+#agenda .agenda-form-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#agenda .agenda-form-actions [hidden]{display:none!important}
+#agenda .agenda-clinical-link{display:inline-block;margin-top:9px;font-size:12px;font-weight:700;color:#0B1C40;text-decoration:underline;text-underline-offset:3px}
+#agenda .agenda-clinical-link:hover{color:#264c8b}
+#agenda .agenda-clinical-link:focus-visible,#agenda .agenda-action:focus-visible{outline:3px solid #4e83c4;outline-offset:2px}
+#agenda .agenda-actions button{min-height:38px}
+@media(max-width:650px){#agenda .agenda-form-actions>.btn{flex:1 1 100%}#agenda .agenda-actions{width:100%;justify-content:flex-start}}
+
 @media(max-width:650px){#agenda .item{flex-direction:column;align-items:flex-start}.agenda-actions{justify-content:start}}
 .stock-danger{color:#a13d28;font-weight:700}
 .stock-ok{color:#24643c;font-weight:700}
