@@ -7,7 +7,7 @@ const today=()=>new Intl.DateTimeFormat("sv-SE",{timeZone:"America/Bogota",year:
 const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text??"");if(cls)e.className=cls;return e};
 const set=(id,text)=>{$(id).textContent=text};
 const formatNum=v=>String(v).padStart(6,"0");
-let allowed=false,busy=false,request=0,products=[],patients=[],quotes=[],items=[];
+let allowed=false,busy=false,request=0,patients=[],quotes=[],items=[];
 const states={borrador:"Borrador",enviada:"Enviada",aprobada:"Aprobada",rechazada:"Rechazada",convertida:"Convertida"};
 const num=(raw)=>{const v=window.tsysParseCOP?.(String(raw??"").trim());return Number.isFinite(v)?v:NaN};
 async function isAdmin(){
@@ -16,7 +16,7 @@ async function isAdmin(){
  return !e&&p?.activo&&p.rol==="administrador";
 }
 function reset(){
- allowed=false;request++;items=[];products=[];patients=[];quotes=[];
+ allowed=false;request++;items=[];patients=[];quotes=[];
  for(const id of ["cot-items","cot-lista"])$(id).replaceChildren();
  $("cot-guardar").disabled=true;$("cot-refrescar").disabled=true;set("cot-status","Acceso reservado al administrador.");
 }
@@ -76,8 +76,9 @@ async function printQuote(q,button){
   const patient=quotePatient(q);
   for(const line of [
     "Fecha: "+q.fecha+"   Válida hasta: "+q.vigente_hasta,
-    "Cliente: "+(patient?.nombre_completo||"Cliente ocasional"),
-    "Documento: "+(patient?.documento||"No requerido para cotizar"),
+    "Cliente: "+(q.cliente_nombre||patient?.nombre_completo||"No registrado"),
+    "Documento: "+(q.cliente_documento||patient?.documento||"No indicado"),
+    "Teléfono del cliente: "+(q.cliente_telefono||"No indicado"),
     "NIT: "+(business?.nit_optica||"No registrado"),
     "Dirección: "+(business?.direccion_optica||"") + "  Teléfono: "+(business?.telefono_optica||"")
   ]){doc.text(doc.splitTextToSize(line,178),16,y);y+=8;}
@@ -114,7 +115,7 @@ function renderQuotes(){
  for(const q of shown){
   const row=el("div",undefined,"item cot-item"),info=el("div"),actions=el("div",undefined,"cot-actions");
   const expired=q.vigente_hasta<today()&&!["convertida","rechazada"].includes(q.estado);
-  info.append(el("strong","COT-"+formatNum(q.numero)+" · "+(quotePatient(q)?.nombre_completo||"Consumidor final")));
+  info.append(el("strong","COT-"+formatNum(q.numero)+" · "+(q.cliente_nombre||quotePatient(q)?.nombre_completo||"Cliente sin nombre histórico")));
   info.append(el("small",(states[q.estado]||q.estado)+(expired?" · VENCIDA":"")+" · "+q.fecha+" → "+q.vigente_hasta+" · "+money(q.total)));
   info.append(el("small",q.items.map(x=>x.cantidad+"× "+(x.tipo?x.tipo+" · ":"")+x.nombre).join(", ")));
   const pdf=el("button","PDF","btn alt");pdf.type="button";pdf.addEventListener("click",()=>void printQuote(q,pdf));actions.append(pdf);
@@ -124,22 +125,21 @@ function renderQuotes(){
   };
   if(q.estado==="borrador"){transition("Marcar enviada","enviada");if(!expired)transition("Aprobar","aprobada");transition("Rechazar","rechazada")}
   if(q.estado==="enviada"){if(!expired)transition("Aprobar","aprobada");transition("Rechazar","rechazada")}
-  if(q.estado==="aprobada"){if(!expired){const convert=el("button","Preparar venta","btn");convert.type="button";convert.addEventListener("click",()=>prepare(q));actions.append(convert)}transition("Rechazar","rechazada")}
-  if(q.estado==="convertida"&&q.venta_id)info.append(el("small","Venta vinculada: "+q.venta_id));
+  if(q.estado==="aprobada"){transition("Rechazar","rechazada")}
+  if(q.estado==="convertida")info.append(el("small","Registro histórico convertido anteriormente. Las nuevas cotizaciones son independientes de Ventas."));
   row.append(info,actions);root.append(row);
  }
 }
 async function load(){
  if(!allowed)return;const t=++request;set("cot-status","Cargando catálogo, pacientes y cotizaciones…");
  try{
-  const [p,c,q]=await Promise.all([
-   db.from("productos_tsysoptics").select("id,codigo,nombre,tipo,precio_venta,activo,cantidad").eq("activo",true).order("nombre").limit(1000),
+  const [c,q]=await Promise.all([
    db.from("pacientes_tsysoptics").select("id,nombre_completo,documento").order("nombre_completo").limit(1500),
-   db.from("cotizaciones_tsysoptics").select("id,numero,paciente_id,fecha,vigente_hasta,estado,items,total,observaciones,venta_id").order("creado_en",{ascending:false}).limit(1000)
+   db.from("cotizaciones_tsysoptics").select("id,numero,paciente_id,cliente_nombre,cliente_documento,cliente_telefono,fecha,vigente_hasta,estado,items,total,observaciones,venta_id").order("creado_en",{ascending:false}).limit(1000)
   ]);
-  if(p.error||c.error||q.error)throw Error([p.error,c.error,q.error].filter(Boolean).map(x=>x.message).join("; "));
+  if(c.error||q.error)throw Error([c.error,q.error].filter(Boolean).map(x=>x.message).join("; "));
   if(t!==request||!allowed)return;
-  products=p.data||[];patients=c.data||[];quotes=q.data||[];
+  patients=c.data||[];quotes=q.data||[];
   renderQuotes();set("cot-status",quotes.length+" cotizaciones consultadas.");
  }catch(e){set("cot-status","Error al consultar cotizaciones: "+(e?.message||e))}
 }
@@ -150,13 +150,19 @@ async function save(event){
  busy=true;$("cot-guardar").disabled=true;
  try{
   if(!(await isAdmin())){reset();return}
-  const payload={paciente_id:null,vigente_hasta:$("cot-vigencia").value,
+  const cliente_nombre=$("cot-cliente-nombre").value.trim();
+  const cliente_documento=$("cot-cliente-documento").value.trim()||null;
+  const cliente_telefono=$("cot-cliente-telefono").value.trim()||null;
+  if(cliente_nombre.length<2||cliente_nombre.length>120)throw Error("Escribe el nombre del cliente (2 a 120 caracteres).");
+  if(cliente_documento&&(cliente_documento.length<3||cliente_documento.length>30))throw Error("Revisa el documento del cliente.");
+  if(cliente_telefono&&(cliente_telefono.length<7||cliente_telefono.length>30))throw Error("Revisa el teléfono del cliente.");
+  const payload={paciente_id:null,cliente_nombre,cliente_documento,cliente_telefono,vigente_hasta:$("cot-vigencia").value,
    items:items.map(x=>({...x})),total:items.reduce((a,x)=>a+x.cantidad*x.precio_unitario,0),
    observaciones:$("cot-observaciones").value.trim()};
   const {error}=await db.from("cotizaciones_tsysoptics").insert(payload);
   if(error)throw Error(error.message);
   items=[];renderItems();$("cot-form").reset();$("cot-vigencia").value=today();
-  set("cot-form-status","Cotización guardada sin mover inventario ni caja.");
+  set("cot-form-status","Cotización guardada a nombre del cliente. No se creó paciente ni venta, ni se modificó inventario o caja.");
   await load();
  }catch(e){set("cot-form-status","No se guardó: "+(e?.message||e))}
  finally{busy=false;$("cot-guardar").disabled=!allowed}
@@ -172,73 +178,6 @@ async function changeState(q,next,button){
   await load();set("cot-status","Estado actualizado correctamente.");
  }catch(e){set("cot-status","No se actualizó: "+(e?.message||e))}
  finally{busy=false;button.disabled=false}
-}
-function prepare(q){
- if(!allowed||q.estado!=="aprobada"||q.vigente_hasta<today()){
-  set("cot-status","Solo las cotizaciones aprobadas y vigentes pueden prepararse para venta.");return;
- }
- const overlay=el("div",undefined,"cot-map-overlay");overlay.setAttribute("role","dialog");
- overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label","Revisar productos y precios de la cotización");
- Object.assign(overlay.style,{position:"fixed",inset:"0",zIndex:"10000",background:"rgba(8,18,38,.67)",overflowY:"auto",padding:"20px 12px"});
- const panel=el("div",undefined,"cot-map-panel");
- Object.assign(panel.style,{maxWidth:"640px",margin:"20px auto",background:"#fff",borderRadius:"14px",padding:"20px",color:"#081226"});
- panel.append(el("h2","Preparar venta de COT-"+formatNum(q.numero)));
- panel.append(el("p","Asigna un producto REAL del inventario a cada concepto. Compara el valor negociado con el precio actual y las existencias. Ningún cambio de inventario ocurre hasta confirmar la venta.","muted"));
- const selectors=[];
- const available=products.filter(p=>p.activo).sort((a,b)=>a.nombre.localeCompare(b.nombre,"es"));
- for(const [i,item] of q.items.entries()){
-  const wrapper=el("div",undefined,"card form");wrapper.style.marginBottom="12px";
-  wrapper.append(el("strong",(i+1)+". "+(item.tipo||"Producto")+" · "+item.nombre));
-  wrapper.append(el("small","Cantidad: "+item.cantidad+" · Precio negociado: "+money(item.precio_unitario)+" cada uno"));
-  const select=document.createElement("select");select.style.width="100%";select.style.minHeight="46px";select.setAttribute("aria-label","Producto real de inventario para "+item.nombre);
-  select.append(new Option("Seleccionar producto real",""));
-  for(const p of available.filter(p=>!item.tipo||p.tipo===item.tipo)){
-   select.append(new Option(p.codigo+" · "+p.nombre+" · "+money(p.precio_venta)+" · Stock "+p.cantidad,p.id));
-  }
-  if(item.producto_id&&Array.from(select.options).some(x=>x.value===item.producto_id))select.value=item.producto_id;
-  const indicator=el("p","","muted");
-  function update(){
-   const p=products.find(x=>x.id===select.value);
-   if(!p){indicator.textContent="Selecciona la referencia real correspondiente.";return}
-   const qty=Number(item.cantidad);
-   const delta=Number(p.precio_venta)-Number(item.precio_unitario);
-   indicator.textContent="Precio actual: "+money(p.precio_venta)+" · Diferencia por unidad: "+money(delta)+" · Existencias: "+p.cantidad+" · "+(p.cantidad>=qty?"Stock suficiente":"STOCK INSUFICIENTE");
-   indicator.style.color=p.cantidad>=qty?"#286843":"#a33221";
-  }
-  select.addEventListener("change",update);update();
-  wrapper.append(select,indicator);panel.append(wrapper);
-  selectors.push(select);
- }
- const total=el("strong","",null),message=el("p","","muted");
- function updateTotal(){
-  const now=q.items.reduce((a,x,i)=>a+Number(x.cantidad)*Number(products.find(p=>p.id===selectors[i].value)?.precio_venta||0),0);
-  total.textContent="Total cotizado: "+money(q.total)+" · Total actual de venta: "+money(now)+" · Diferencia: "+money(now-Number(q.total));
- }
- for(const sel of selectors)sel.addEventListener("change",updateTotal);updateTotal();panel.append(total,message);
- const actions=el("div",undefined,"cot-actions");actions.style.marginTop="16px";
- const cancel=el("button","Cancelar","btn alt"),confirm=el("button","Confirmar y preparar venta","btn");
- cancel.type="button";confirm.type="button";
- function close(){document.removeEventListener("keydown",escape);overlay.remove()}
- function escape(e){if(e.key==="Escape")close()}
- document.addEventListener("keydown",escape);
- cancel.addEventListener("click",close);
- confirm.addEventListener("click",()=>{
-  const selected=q.items.map((x,i)=>({producto_id:selectors[i].value,cantidad:Number(x.cantidad)}));
-  if(selected.some(x=>!x.producto_id)||new Set(selected.map(x=>x.producto_id)).size!==selected.length){
-   message.textContent="Asigna una referencia diferente a cada concepto.";return;
-  }
-  const noStock=selected.find(x=>{const p=products.find(p=>p.id===x.producto_id);return !p||p.cantidad<x.cantidad});
-  if(noStock){message.textContent="Hay productos sin existencias suficientes. Revisa Inventario.";return}
-  if(!window.confirm("¿Preparar la venta con el PRECIO ACTUAL mostrado, aunque sea distinto al negociado? El inventario solo se descuenta al registrar la venta."))return;
-  window.dispatchEvent(new CustomEvent("tsys:cotizacion-preparar-venta",{detail:{
-   id:q.id,paciente_id:q.paciente_id,items:selected,asignaciones:selected,
-   total_cotizado:Number(q.total)
-  }}));
-  close();
-  document.querySelector('.sidebar button[data-page="ventas"]')?.click();
-  set("cot-status","Cotización preparada. Comprueba el carrito y confirma la venta cuando corresponda.");
- });
- actions.append(cancel,confirm);panel.append(actions);overlay.append(panel);document.body.append(overlay);selectors[0]?.focus();
 }
 $("cot-agregar-montura").addEventListener("click",()=>addItem("Montura"));
 $("cot-agregar-lente").addEventListener("click",()=>addItem("Lente oftálmico"));
