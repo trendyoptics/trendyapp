@@ -30,11 +30,11 @@ html[data-tsys-theme] .agenda-action,html[data-tsys-theme] .inv-actions button{c
  html[data-tsys-theme] body:has(#hcForm) .border-sky-500{border-color:var(--tsys-accent)!important}
 }
 /* Pacientes y recuperación: coherencia con la paleta elegida. */
-html[data-tsys-theme] body:has(#panel){background:var(--tsys-bg);color:var(--tsys-dark)}
-html[data-tsys-theme] body:has(#panel) header{background:var(--tsys-dark)}
-html[data-tsys-theme] body:has(#panel) h1,html[data-tsys-theme] body:has(#panel) h2{color:var(--tsys-primary)}
-html[data-tsys-theme] body:has(#panel) #panel button:not(.alt):not(.item){background:var(--tsys-primary)}
-html[data-tsys-theme] body:has(#panel) .alt{color:var(--tsys-primary)}
+html[data-tsys-theme] body:has(> main > #panel){background:var(--tsys-bg);color:var(--tsys-dark)}
+html[data-tsys-theme] body:has(> main > #panel) header{background:var(--tsys-dark)}
+html[data-tsys-theme] body:has(> main > #panel) h1,html[data-tsys-theme] body:has(> main > #panel) h2{color:var(--tsys-primary)}
+html[data-tsys-theme] body:has(> main > #panel) #panel button:not(.alt):not(.item){background:var(--tsys-primary)}
+html[data-tsys-theme] body:has(> main > #panel) .alt{color:var(--tsys-primary)}
 html[data-tsys-theme] body:has(#send-form){background:linear-gradient(135deg,var(--tsys-dark),var(--tsys-primary),var(--tsys-accent))}
 html[data-tsys-theme] body:has(#send-form) button{background:var(--tsys-primary)}
 /* Selector de paletas reutilizable. */
@@ -51,3 +51,10 @@ html[data-tsys-theme] body:has(#send-form) button{background:var(--tsys-primary)
 .theme-palette-choice[aria-pressed="true"]{border-color:var(--tsys-primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--tsys-primary) 13%,transparent)}
 .theme-palette-choice[aria-pressed="true"] .theme-meta:after{content:"✓ Seleccionado";font-size:11px;color:var(--tsys-primary);font-weight:700}
 @media print{.theme-palette-grid,.theme-palette-choice,.tsys-theme-link{display:none!important}}
+
+/* Contraste del dashboard, aislado de las reglas de la página Pacientes. */
+html[data-tsys-theme] #tsys-app .top{background:#fff;color:var(--tsys-dark)}
+html[data-tsys-theme] #tsys-app .top strong{color:var(--tsys-dark)!important}
+html[data-tsys-theme] #tsys-app #inicio .card.dark h2,
+html[data-tsys-theme] #tsys-app #inicio .card.dark p{color:#fff!important}
+html[data-tsys-theme] #tsys-app #inicio .card.dark .label{color:#d8e1ef!important}
