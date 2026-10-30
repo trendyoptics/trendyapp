@@ -19,6 +19,7 @@ async function admin(){
 }
 function clear(){
  authorized=false;orders=[];sales=[];counter++;
+ window.tsysLabResumen?.(null,null);
  $("lab-lista").replaceChildren();
  $("lab-venta").replaceChildren(new Option("Seleccionar venta",""));
  form.reset();form.querySelector("button[type=submit]").disabled=true;
@@ -79,6 +80,7 @@ async function load(){
   if(mine!==counter||!authorized)return;
   if(s.error||o.error)throw Error("No se pudieron consultar las órdenes.");
   sales=s.data||[];orders=o.data||[];
+  window.tsysLabResumen?.(orders.filter(x=>["pendiente","en_fabricacion","recibido"].includes(x.estado)).length,orders.filter(x=>x.estado==="listo_para_entrega").length);
   const current=$("lab-venta").value,ordered=new Set(orders.map(o=>o.venta_id));
   $("lab-venta").replaceChildren(new Option("Seleccionar venta",""));
   for(const sale of sales.filter(s=>s.estado==="emitida"&&!ordered.has(s.id)))
