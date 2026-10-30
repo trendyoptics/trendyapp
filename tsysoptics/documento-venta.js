@@ -73,8 +73,24 @@ export function shareMessage(ctx){
   .replaceAll("{paciente}",patient?.nombre_completo||sale.paciente?.nombre_completo||"cliente")
   .replaceAll("{venta}","V-"+String(sale.numero).padStart(6,"0"));
 }
+async function printableLogo(source){
+ if(typeof source!=="string"||!/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(source)||source.length>210000)return null;
+ const img=new Image();img.src=source;
+ try{
+  await img.decode();
+  const canvas=document.createElement("canvas");
+  const scale=Math.min(1,300/Math.max(img.naturalWidth,img.naturalHeight));
+  canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+  canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  const context=canvas.getContext("2d");
+  if(!context)return null;
+  context.drawImage(img,0,0,canvas.width,canvas.height);
+  return canvas.toDataURL("image/png");
+ }catch{return null;}
+}
 export async function createSalePdf(ctx){
  const {jsPDF}=await import("https://esm.sh/jspdf@2.5.2");
+ const logo=await printableLogo(ctx.config.logo_data_url);
  const pdf=new jsPDF({unit:"mm",format:"letter",orientation:"portrait"});
  const W=215.9,H=279.4,pad=15,max=W-pad*2;
  let y=18,page=0;
@@ -82,7 +98,8 @@ export async function createSalePdf(ctx){
  function header(){
   if(page++)pdf.addPage();
   y=18;pdf.setTextColor(...colors.dark);pdf.setFont("helvetica","bold");pdf.setFontSize(16);
-  pdf.text(txt(ctx.config.nombre_optica||"ÓPTICA").slice(0,70),pad,y);y+=7;
+  if(logo){try{pdf.addImage(logo,"PNG",W-pad-22,11,21,21)}catch{}}
+  pdf.text(txt(ctx.config.nombre_optica||"ÓPTICA").slice(0,55),pad,y);y+=7;
   pdf.setFontSize(10);pdf.text(txt(ctx.config.titulo_documento).slice(0,100),pad,y);y+=6;
   pdf.setDrawColor(150);pdf.line(pad,y,W-pad,y);y+=6;
  }
