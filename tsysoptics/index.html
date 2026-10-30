@@ -163,6 +163,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
  #informes .report-list .item{flex-direction:column;align-items:flex-start}
 }
 #finanzas-ciclo5{min-width:0}#finanzas-ciclo5 .fin-item{min-width:0;align-items:flex-start;overflow-wrap:anywhere}#finanzas-ciclo5 .fin-item small{display:block;margin:4px 0;font-size:11px;color:#66758a}#finanzas-ciclo5 .fin-item>div{min-width:0;flex:1}#finanzas-ciclo5 .fin-item>strong{text-align:right;font-size:12px;max-width:220px}#finanzas-ciclo5 input,#finanzas-ciclo5 select{font-size:16px}#finanzas-ciclo5 .report-toolbar{align-items:center}@media(max-width:650px){#finanzas-ciclo5 .fin-item{flex-direction:column}#finanzas-ciclo5 .fin-item>strong{text-align:left;max-width:100%}#finanzas-ciclo5 .cols{grid-template-columns:minmax(0,1fr)}#finanzas-ciclo5 .btn{min-height:48px;width:100%}}
+#posventa .posventa-resumen{grid-template-columns:repeat(4,minmax(0,1fr))}#posventa .posventa-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}#posventa .posventa-toolbar h2{margin:0}#posventa .posventa-item{align-items:start;min-width:0}#posventa .posventa-item>div:first-child{flex:1;min-width:0;overflow-wrap:anywhere}#posventa .posventa-item small{display:block;color:#68768a;margin-top:5px}#posventa .posventa-item p{margin:8px 0 0}#posventa .posventa-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}#posventa .posventa-actions .btn{min-height:42px;padding:8px 12px}#posventa textarea,#posventa select,#posventa input{font-size:16px}@media(max-width:850px){#posventa .posventa-resumen{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){#posventa .posventa-item{flex-direction:column;align-items:stretch}#posventa .posventa-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}#posventa .posventa-actions .btn{width:100%}#posventa .posventa-toolbar .btn{width:100%}#posventa .cols{grid-template-columns:minmax(0,1fr)}#posventa .tile{padding:13px}#posventa .tile strong{font-size:23px}}
 </style><style>
 @view-transition { navigation: auto; }
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.16s;animation-timing-function:ease-out}
@@ -196,9 +197,9 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
 </section>
 <div id="tsys-app" hidden><div class="layout">
 <aside class="sidebar"><div class="brand"><img src="logo.svg" data-tsys-logo alt="Logo de la óptica"><span><b>TsysOptics</b><small data-tsys-business>Trendy Optics</small><small class="brand-attribution">Sistema de gestión</small></span></div><nav aria-label="Módulos">
-<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><button type="button" data-page="pacientes">♙ &nbsp; Pacientes</button><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="laboratorio">▤ &nbsp; Laboratorio</button><button data-page="informes">▥ &nbsp; Informes</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
+<button class="active" data-page="inicio">▦ &nbsp; Inicio</button><button type="button" data-page="pacientes">♙ &nbsp; Pacientes</button><button data-page="agenda">▤ &nbsp; Agenda</button><button data-page="inventario">▧ &nbsp; Inventario</button><button data-page="ventas">◈ &nbsp; Ventas</button><button data-page="caja">▣ &nbsp; Caja</button><button data-page="laboratorio">▤ &nbsp; Laboratorio</button><button data-page="posventa">♡ &nbsp; Posventa</button><button data-page="informes">▥ &nbsp; Informes</button><button data-page="simulador">◎ &nbsp; Simulador óptico</button><button data-page="apariencia">◉ &nbsp; Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">✚ &nbsp; Historia clínica ↗</a></nav><footer>Piloto en validación: agenda, inventario, ventas y caja en Supabase.</footer></aside>
 <div class="main"><header class="top"><strong data-tsys-page-title>TsysOptics | Trendy Optics</strong><button id="auth-logout" type="button" hidden>Cerrar sesión</button></header>
-<div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><button type="button" data-page="pacientes">Pacientes</button><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="laboratorio">Pedidos</button><button data-page="informes">Informes</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">Clínica ↗</a></div>
+<div class="mobile-nav"><button class="active" data-page="inicio">Inicio</button><button type="button" data-page="pacientes">Pacientes</button><button data-page="agenda">Agenda</button><button data-page="inventario">Inventario</button><button data-page="ventas">Ventas</button><button data-page="laboratorio">Pedidos</button><button data-page="posventa">Posventa</button><button data-page="informes">Informes</button><button data-page="simulador">Lentes</button><button data-page="apariencia">Apariencia</button><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer">Clínica ↗</a></div>
 <main><div class="access-banner"><b>Sesión:</b> <span id="access-role">Verificando rol…</span><span id="access-details"></span></div><div class="warning"><strong>Estado del piloto:</strong> Pacientes, Historia clínica, Agenda, Inventario, Ventas y Caja de prueba utilizan Supabase. <strong>Simulador óptico sigue siendo un esquema de demostración.</strong> Caja dispone de apertura, arqueo y cierre de turnos en modalidad de prueba. No incluye facturación electrónica DIAN ni autorización para uso en producción.</div>
 <section class="page active" id="inicio"><div class="lead"><span class="label">PANEL PRINCIPAL</span><h1>Tu óptica, en un solo lugar.</h1><p>Pacientes, historias, agenda, inventario y ventas de prueba centralizados en Supabase.</p></div><div class="tiles"><div class="tile"><span>Citas</span><strong id="metric-citas">0</strong><small id="metric-citas-origin">Demo local</small></div><div class="tile"><span>Referencias</span><strong id="metric-productos">0</strong><small id="metric-productos-origen">Demo local</small></div><div class="tile"><span>Ventas</span><strong id="metric-ventas">$ 0</strong><small id="metric-ventas-origen">Demo local</small></div><div class="tile"><span>Historia clínica</span><strong>Original</strong><small>Conservada sin cambios</small></div></div><div class="cols"><div class="card dark"><span class="label" style="color:#BFBFBF">MÓDULO CLÍNICO</span><h2 id="clinical-card-title">Tu historia clínica actual</h2><p id="clinical-card-description">Accede al formulario optométrico de Trendy Optics, con sus campos e integración anterior con Google Sheets. La conexión requiere una auditoría de seguridad antes del uso centralizado.</p><a data-access-target="clinica" href="../index.html" target="_blank" rel="noopener noreferrer" class="btn alt" id="clinical-card-link">Abrir clínica ↗</a></div><div class="card"><h2>Accesos rápidos</h2><div class="quick"><button type="button" data-page="pacientes">Pacientes (Supabase)</button><button data-go="agenda" id="quick-cita">+ Registrar cita</button><button data-go="inventario">+ Agregar montura de prueba</button><button data-go="ventas">+ Registrar venta de prueba</button><button data-go="caja">▣ &nbsp; Abrir Caja</button><button data-go="simulador">◎ Abrir simulador óptico</button></div></div></div></section>
 <section class="page" id="pacientes"><div class="patients-spa-content"><div id="loading" class="card" role="status">Verificando permisos de acceso…</div>
@@ -474,6 +475,46 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   </div>
  </div>
 </section>
+<section class="page" id="posventa">
+ <span class="label">CICLO 6 · ATENCIÓN Y SEGUIMIENTO</span>
+ <h1>Posventa y seguimiento de pacientes</h1>
+ <p class="muted">Consulta los pedidos listos para recoger, documenta garantías y ajustes, prepara recordatorios por WhatsApp y revisa el historial de compras de cada paciente. No envía mensajes automáticamente.</p>
+ <div class="tiles posventa-resumen" id="posventa-resumen"></div>
+ <div class="card">
+  <div class="posventa-toolbar">
+   <h2>Pedidos listos para recoger</h2>
+   <button class="btn alt" type="button" id="posventa-refrescar" disabled>Actualizar información</button>
+  </div>
+  <p id="posventa-status" class="muted" role="status" aria-live="polite">Verificando permisos...</p>
+  <div id="posventa-entregas" class="list"></div>
+ </div>
+ <div class="cols" style="margin-top:16px;align-items:start">
+  <form class="card form" id="posventa-form">
+   <h2>Registrar garantía o seguimiento</h2>
+   <label>Paciente <select id="posventa-paciente" required><option value="">Seleccionar paciente</option></select></label>
+   <label>Venta relacionada (opcional) <select id="posventa-venta"><option value="">Sin venta asociada</option></select></label>
+   <label>Orden de laboratorio (opcional) <select id="posventa-orden"><option value="">Sin orden asociada</option></select></label>
+   <label>Motivo <select id="posventa-tipo"><option value="garantia">Garantía</option><option value="ajuste">Ajuste de montura o lentes</option><option value="control">Control visual</option><option value="recordatorio">Recordatorio de recogida</option><option value="otro">Otro seguimiento</option></select></label>
+   <label>Detalle del seguimiento <textarea id="posventa-descripcion" rows="3" minlength="3" maxlength="1200" required placeholder="DESCRIBE LA SITUACIÓN Y LOS PASOS A SEGUIR"></textarea></label>
+   <label>Fecha programada (opcional) <input type="date" id="posventa-fecha"></label>
+   <button id="posventa-guardar" class="btn" type="submit" disabled>Registrar seguimiento</button>
+   <p id="posventa-form-estado" class="muted" role="status" aria-live="polite"></p>
+  </form>
+  <div class="card">
+   <h2>Pendientes y garantías</h2>
+   <div class="form" style="margin-bottom:12px">
+    <label>Filtrar por estado <select id="posventa-filtro"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="resuelto">Resuelto</option><option value="cancelado">Cancelado</option></select></label>
+   </div>
+   <div id="posventa-lista" class="list"></div>
+  </div>
+ </div>
+ <div class="card" style="margin-top:16px">
+  <h2>Historial de compras y seguimiento del paciente</h2>
+  <div class="form" style="max-width:560px;margin-bottom:14px"><label>Consultar paciente <select id="posventa-consulta-paciente"><option value="">Consultar paciente</option></select></label></div>
+  <div class="list" id="posventa-historial"></div>
+  <p class="muted">Muestra las compras y órdenes del paciente que se encuentran en los registros consultados, junto con su seguimiento posventa. La historia clínica permanece en su módulo propio.</p>
+ </div>
+</section>
 <section class="page" id="informes">
  <span class="label">CICLO 4 Y 5 · INFORMES, GASTOS Y CIERRES</span>
  <h1>Informes y cierre de mes</h1>
@@ -720,7 +761,7 @@ const $=id=>document.getElementById(id),cop=n=>new Intl.NumberFormat("es-CO",{st
 const node=(tag,text)=>{const e=document.createElement(tag);e.textContent=text;return e};
 const save=()=>{try{localStorage.setItem(key,JSON.stringify(data));toast("Guardado localmente como prueba.")}catch{toast("No se pudo guardar en este navegador.")}};
 let timer;function toast(s){$("notice").textContent=s;$("notice").hidden=false;clearTimeout(timer);timer=setTimeout(()=>$("notice").hidden=true,3000)}
-function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas","caja","laboratorio","informes"].includes(page)}
+function canNavigate(page){return currentRole==="administrador" || !["inventario","ventas","caja","laboratorio","posventa","informes"].includes(page)}
 let patientsModuleStarted=false;
 function navigate(p){if(p==="pacientes"&&!patientsModuleStarted){patientsModuleStarted=true;import("./pacientes-spa.js?v=1").catch(()=>{patientsModuleStarted=false;toast("No se pudo cargar Pacientes. Intenta de nuevo.");});}if(!canNavigate(p)){toast("Módulo reservado al administrador.");return;}document.querySelectorAll(".page").forEach(x=>x.classList.toggle("active",x.id===p));document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===p));scrollTo({top:0,behavior:"instant"})}
 document.querySelectorAll("[data-page]").forEach(x=>x.addEventListener("click",()=>navigate(x.dataset.page)));
@@ -774,12 +815,13 @@ render();lens();
 // No se permite activar páginas inexistentes ni eludir los permisos por URL.
 const params=new URLSearchParams(location.search);
 const requestedModule=params.get("modulo") || (params.get("vista")==="apariencia"?"apariencia":null);
-if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","informes","simulador","apariencia"].includes(requestedModule)) {
+if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","posventa","informes","simulador","apariencia"].includes(requestedModule)) {
  if(canNavigate(requestedModule)) navigate(requestedModule);
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script><script type="module" src="./informes.js?v=20261030c5"></script>
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script>
+<script type="module" src="./posventa.js?v=20261030c6"></script><script type="module" src="./informes.js?v=20261030c5"></script>
 <script type="module" src="./finanzas.js?v=20261030c5"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030monturasfiltradas"></script><script type="module" src="./caja.js?v=20261030informes"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
