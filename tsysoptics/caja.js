@@ -38,18 +38,21 @@ function setControls(){
  $("caja-abrir-btn").disabled=!canOpen||doing!==null;
  $("caja-movimiento-btn").disabled=!open||doing!==null;
  $("caja-cierre-btn").disabled=!open||doing!==null;
- // Nunca ocultar las tres acciones si el estado todavía no pudo verificarse.
- // Mostrar la apertura deshabilitada permite al usuario identificar el problema.
- $("caja-abrir-form").hidden=stateKnown?!canOpen:false;
- $("caja-movimiento-form").hidden=!open;
- $("caja-cierre-form").hidden=!open;
+ // Las acciones siempre son visibles en PC, tablet y móvil.
+ // Un turno ya abierto no permite abrir un segundo: se habilita movimiento/cierre.
+ $("caja-abrir-form").hidden=false;
+ $("caja-movimiento-form").hidden=false;
+ $("caja-cierre-form").hidden=false;
+ $("caja-abrir-form").dataset.available=String(canOpen);
+ $("caja-movimiento-form").dataset.available=String(open);
+ $("caja-cierre-form").dataset.available=String(open);
  status("caja-accion-disponible",!admin
   ?"Acciones bloqueadas: se requiere una cuenta administradora activa."
   :!stateKnown
-  ?"No se pudo verificar el turno. Usa Actualizar estado de caja; no se permite operar hasta confirmar Supabase."
+  ?"No se ha podido verificar el turno. Pulsa Actualizar estado de caja."
   :open
-  ?"Hay un turno abierto. Disponibles: movimientos de efectivo y cierre con arqueo. No puedes abrir un segundo turno."
-  :"No hay un turno abierto. Disponible: Abrir caja para comenzar la jornada.");
+  ?"TURNO ABIERTO: usa Registrar movimiento o Cerrar y registrar arqueo. No es posible abrir otro turno."
+  :"TURNO CERRADO: registra el fondo inicial y pulsa Abrir caja.");
 }
 async function verify(){
  const {data,error}=await db.auth.getUser();
@@ -212,9 +215,24 @@ async function operation(name,work,statusId,success){
  finally{doing=null;setControls()}
 }
 $("caja-actualizar").addEventListener("click",refresh);
+for(const [buttonId,formId] of [
+ ["caja-ir-apertura","caja-abrir-form"],
+ ["caja-ir-movimientos","caja-movimiento-form"],
+ ["caja-ir-cierre","caja-cierre-form"]
+]){
+ $(buttonId).addEventListener("click",()=>{
+  $(formId).scrollIntoView({behavior:"smooth",block:"start"});
+  if(!stateKnown)void refresh();
+ });
+}
+document.querySelectorAll('[data-page="caja"],[data-go="caja"]').forEach(button=>{
+ button.addEventListener("click",()=>{if(admin&&!loading&&doing===null)void refresh();});
+});
+
 $("caja-abrir-form").addEventListener("submit",async e=>{
  e.preventDefault();
- if(!admin)return;
+ if(!admin){status("caja-abrir-status","Tu cuenta no tiene autorización para abrir Caja.");return;}
+ if(!stateKnown||snapshot?.estado==="abierta"){status("caja-abrir-status","Ya hay un turno abierto o todavía no se pudo verificar el estado. Actualiza Caja.");return;}
  const fondo=window.tsysParseCOP(new FormData(e.currentTarget).get("fondo"));
  if(!Number.isFinite(fondo)||fondo<0||fondo>999999999999){
   status("caja-abrir-status","Introduce un fondo inicial válido.");return;
@@ -225,7 +243,7 @@ $("caja-abrir-form").addEventListener("submit",async e=>{
   "caja-abrir-status","Turno de caja abierto en Supabase.");
 });
 $("caja-movimiento-form").addEventListener("submit",async e=>{
- e.preventDefault();if(!admin)return;
+ e.preventDefault();if(!admin||!stateKnown||snapshot?.estado!=="abierta"){status("caja-movimiento-status","No se puede registrar: primero verifica que el turno esté abierto.");return;}
  const fd=new FormData(e.currentTarget);
  const tipo=String(fd.get("tipo")||""),monto=window.tsysParseCOP(fd.get("monto")),motivo=String(fd.get("motivo")||"").trim();
  if(!["ingreso","egreso"].includes(tipo)||!Number.isFinite(monto)||monto<=0||motivo.length<3||motivo.length>160){
@@ -245,7 +263,7 @@ $("caja-movimiento-form").addEventListener("submit",async e=>{
  },"caja-movimiento-status","Movimiento de efectivo registrado.");
 });
 $("caja-cierre-form").addEventListener("submit",async e=>{
- e.preventDefault();if(!admin)return;
+ e.preventDefault();if(!admin||!stateKnown||snapshot?.estado!=="abierta"){status("caja-cierre-status","No se puede cerrar: verifica primero el turno abierto.");return;}
  const fd=new FormData(e.currentTarget);
  const contado=window.tsysParseCOP(fd.get("contado")),obs=String(fd.get("observaciones")||"").trim();
  if(!Number.isFinite(contado)||contado<0||obs.length>500){
