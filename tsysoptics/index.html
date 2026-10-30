@@ -483,10 +483,12 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
     <input type="month" id="informe-mes" aria-label="Mes del informe" required>
    </label>
    <button id="informe-generar" class="btn" type="button">Generar informe</button>
-   <button id="informe-pdf" class="btn alt" type="button" disabled>Exportar PDF</button>
-   <button id="informe-csv" class="btn alt" type="button" disabled>Exportar Excel (CSV)</button>
+   <button id="informe-xlsx" class="btn" type="button" disabled>Exportar Excel (.xlsx)</button>
+   <button id="informe-pdf" class="btn alt" type="button" disabled>Exportar PDF ejecutivo</button>
+   <button id="informe-csv" class="btn alt" type="button" disabled>CSV (alternativo)</button>
   </div>
   <p id="informe-status" class="muted" role="status" aria-live="polite">Selecciona un mes y genera el informe.</p>
+  <p class="muted">El Excel descarga un archivo <strong>.xlsx</strong> con pestañas y filtros para ventas, recaudos, productos, inventario actual, laboratorio y caja. El PDF es un resumen administrativo listo para imprimir. El CSV se conserva como alternativa sin formato.</p>
  </div>
  <div id="informe-resultado" hidden>
   <div class="report-summary" id="informe-indicadores"></div>
@@ -736,7 +738,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script><script type="module" src="./informes.js?v=20261030c4"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030informes"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./laboratorio.js?v=20261030logo"></script><script type="module" src="./informes.js?v=20261030excel-pdf-v2"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030pdfonepage"></script><script type="module" src="./caja.js?v=20261030informes"></script><script type="module" src="./identidad.js?v=20261030unlock"></script><script type="module" src="./auth.js?v=20261030informes"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
