@@ -190,6 +190,7 @@ $("cot-agregar").addEventListener("click",addItem);
 $("cot-filtro").addEventListener("change",renderQuotes);
 $("cot-refrescar").addEventListener("click",()=>void load());
 $("cot-form").addEventListener("submit",e=>void save(e));
+window.addEventListener("tsys:cotizaciones-refrescar",()=>void load());
 window.addEventListener("tsys:locked",reset);
 window.addEventListener("tsys:role",async e=>{const ok=e.detail?.role==="administrador"&&await isAdmin();allowed=ok;$("cot-guardar").disabled=!ok;$("cot-refrescar").disabled=!ok;if(ok)void load();else reset()});
 $("cot-vigencia").value=today();renderItems();reset();
