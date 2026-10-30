@@ -258,8 +258,9 @@ $("venta-whatsapp-comprobante").addEventListener("click",()=>{
   "Documento comercial interno. No equivale a factura electrónica DIAN."
  ].join("\n");
  const url="https://wa.me/?text="+encodeURIComponent(msg);
- const opened=window.open(url,"_blank","noopener,noreferrer");
- if(!opened)displayStatus("ventas-list-status","El navegador bloqueó WhatsApp. Permite ventanas emergentes para compartir el comprobante.");
+ const share=document.createElement("a");
+ share.href=url;share.target="_blank";share.rel="noopener noreferrer";
+ share.click();
 });
 receipt.addEventListener("click",e=>{if(e.target===receipt)receiptClose()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!receipt.hidden)receiptClose()});
@@ -399,6 +400,7 @@ form.addEventListener("submit",async e=>{
  registering=true;$("venta-guardar").disabled=true;
  displayStatus("venta-form-status","Registrando venta…");
  try{
+  if(!(await authorized())){displayStatus("venta-form-status","Tu sesión ya no autoriza registrar ventas.");return;}
   const {data,error}=await sb.rpc("crear_venta_tsysoptics",{
    p_items:cart.map(x=>({producto_id:x.producto_id,cantidad:x.cantidad})),
    p_paciente_id:paciente||null,
@@ -434,6 +436,7 @@ paymentsForm.addEventListener("submit",async e=>{
  collecting=true;$("ventas-registrar-abono").disabled=true;
  displayStatus("ventas-abono-status","Registrando cobro…");
  try{
+  if(!(await authorized())){displayStatus("ventas-abono-status","Tu sesión ya no autoriza registrar cobros.");return;}
   const {data,error}=await sb.rpc("registrar_abono_tsysoptics",{
    p_venta_id:sale.id,p_monto:monto,p_medio:medio,p_operacion_id:paymentToken
   });
