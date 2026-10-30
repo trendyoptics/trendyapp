@@ -16,6 +16,7 @@
   inventario:'<path d="m12 2 9 5-9 5-9-5zM3 7v10l9 5 9-5V7M12 12v10"/>',
   laboratorio:'<path d="M4 3h16v18H4zM8 7h8M8 11h8M8 15h5"/>',
   posventa:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
+  cotizaciones:'<path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/>',
   informes:'<path d="M4 20h16M7 17V9m5 8V4m5 13v-6"/>',
   simulador:'<circle cx="8" cy="12" r="4"/><circle cx="17" cy="12" r="4"/><path d="M12 12h1M3 12H2m19 0h1"/>',
   apariencia:'<path d="M12 2a10 10 0 0 0 0 20c2 0 3-2 2-4s1-3 3-3h2a3 3 0 0 0 3-3A10 10 0 0 0 12 2Z"/><path d="M7 10h.01M9 6h.01M14 6h.01M18 9h.01"/>',
@@ -33,7 +34,7 @@
  const all=[
   ["inicio","Inicio"],["pacientes","Pacientes"],["agenda","Agenda"],
   ["ventas","Ventas"],["caja","Caja"],["inventario","Inventario"],
-  ["laboratorio","Laboratorio"],["posventa","Posventa"],["informes","Informes"],
+  ["laboratorio","Laboratorio"],["posventa","Posventa"],["cotizaciones","Cotizaciones"],["informes","Informes"],
   ["simulador","Simulador"],["apariencia","Apariencia"],
   ["clinica","Clínica"],["devoluciones","Notas internas"]
  ];
@@ -81,8 +82,8 @@
   const url=new URL(window.location.href);
   const selected=url.searchParams.get("modulo");
   if(!selected)return;
-  const safe=new Set(["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","posventa","informes","simulador","apariencia"]);
-  const allowed=role==="administrador"||!["inventario","ventas","caja","laboratorio","posventa","informes"].includes(selected);
+  const safe=new Set(["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","posventa","cotizaciones","informes","simulador","apariencia"]);
+  const allowed=role==="administrador"||!["inventario","ventas","caja","laboratorio","posventa","cotizaciones","informes"].includes(selected);
   if(!safe.has(selected)||!allowed)return;
   const source=document.querySelector('.sidebar button[data-page="'+selected+'"]');
   if(!source)return;
@@ -103,7 +104,7 @@
   }
   for(const item of all){
    if(primary.includes(item[0]))continue;
-   if(role!=="administrador"&&["ventas","caja","inventario","laboratorio","posventa","informes","devoluciones"].includes(item[0]))continue;
+   if(role!=="administrador"&&["ventas","caja","inventario","laboratorio","posventa","cotizaciones","informes","devoluciones"].includes(item[0]))continue;
    menu.append(button(item,false));
   }
   dock.hidden=false;
