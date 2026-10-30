@@ -329,11 +329,19 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <p class="muted" id="venta-lente-ayuda">Para vender lentes, primero registra cada tipo y su precio en Inventario. Después selecciónalo aquí junto con la montura. El total se calcula con ambas referencias y el servidor comprueba el precio y las existencias.</p>
   <button class="btn alt" type="button" id="venta-ir-inventario-lentes" data-go="inventario">Registrar lente y precio en Inventario</button>
   <div class="card" style="background:#f1f5fa;border:1px solid #d4deec;padding:12px">
-   <label>Lente oftálmico para esta venta
-    <select id="venta-lente-producto"><option value="">Seleccionar lente y precio</option></select>
+   <h3 style="margin:0">Lente oftálmico personalizado</h3>
+   <p class="muted">Escribe el tipo de lente y el precio de venta. Al pulsar Agregar, se crea una referencia en Inventario con existencia inicial para esta venta y después se agrega al carrito.</p>
+   <label>Descripción del lente
+    <input id="venta-lente-descripcion" type="text" maxlength="120" minlength="3" autocomplete="off" placeholder="EJ. PROGRESIVO ANTIRREFLEJO BLUE CUT" />
    </label>
-   <p class="muted" id="venta-lente-precio" role="status">Selecciona un lente registrado en Inventario para ver su precio y disponibilidad.</p>
-   <button type="button" class="btn alt" id="venta-agregar-lente">Agregar lente al carrito</button>
+   <label>Precio del lente (COP)
+    <input id="venta-lente-precio-manual" type="text" inputmode="decimal" data-tsys-cop autocomplete="off" placeholder="EJ. 250000" />
+   </label>
+   <label>Cantidad de lentes
+    <input id="venta-lente-cantidad" type="number" min="1" max="20" step="1" value="1" />
+   </label>
+   <button type="button" class="btn alt" id="venta-agregar-lente">Registrar lente y agregar al carrito</button>
+   <p id="venta-lente-status" class="muted" role="status" aria-live="polite"></p>
   </div>
   <label>Cantidad <input name="cantidad" id="venta-cantidad" type="number" min="1" step="1" value="1" required></label>
   <button class="btn alt" type="button" id="venta-agregar-producto">Agregar al carrito</button>
@@ -395,6 +403,12 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <p id="caja-estado-mensaje" role="status" aria-live="polite">Consultando estado…</p>
   <p id="caja-turno-fechas" class="muted"></p>
   <p id="caja-accion-disponible" class="muted" role="status" aria-live="polite">Verificando qué operaciones están disponibles…</p>
+  <p class="muted">Si hay una caja abierta, no vuelvas a abrirla: usa <strong>Registrar movimiento</strong> o <strong>Cerrar turno</strong> en las secciones inferiores.</p>
+  <div class="caja-accesos" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">
+   <button type="button" class="btn alt" id="caja-ir-apertura">Apertura</button>
+   <button type="button" class="btn alt" id="caja-ir-movimientos">Movimientos</button>
+   <button type="button" class="btn alt" id="caja-ir-cierre">Cierre y arqueo</button>
+  </div>
   <button type="button" id="caja-actualizar" class="btn alt">Actualizar estado de caja</button>
  </div>
  <div class="venta-resumen" aria-label="Resumen de caja">
@@ -599,7 +613,7 @@ if(requestedModule && ["inicio","pacientes","agenda","inventario","ventas","caja
  else navigate("inicio");
 }
 })();
-</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030caja2"></script><script type="module" src="./caja.js?v=20261030caja2"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
+</script><script type="module" src="./agenda.js?v=20261030c3"></script><script type="module" src="./inventario.js?v=20261030caja2"></script><script type="module" src="./ventas.js?v=20261030lentes3"></script><script type="module" src="./caja.js?v=20261030lentes3"></script><script type="module" src="./identidad.js"></script><script type="module" src="./auth.js"></script><div id="venta-anular-modal" hidden role="dialog" aria-modal="true" aria-labelledby="venta-anular-titulo">
  <div class="venta-anular-panel">
   <h2 id="venta-anular-titulo">Anular venta sin pagos</h2>
   <p id="venta-anular-info">Solo se permite anular ventas sin recaudos. Los productos volverán al inventario y se conservará la evidencia de la operación.</p>
