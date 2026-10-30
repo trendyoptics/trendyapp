@@ -19,7 +19,7 @@ let adminReady=false;
 let initializing=false;
 let saving=false;
 let lastRequests=0;
-let editingId=null,editingState=null;
+let editingId=null,editingState=null,editingDate=null,editingHour=null;
 
 function bogotaNow(){
  const fields=new Intl.DateTimeFormat("en-GB",{
@@ -36,7 +36,7 @@ function validDate(d){
  return !Number.isNaN(v.getTime())&&v.toISOString().slice(0,10)===d;
 }
 function resetEditor(){
- editingId=null;editingState=null;
+ editingId=null;editingState=null;editingDate=null;editingHour=null;
  form.reset();
  $("agenda-form-title").textContent="Nueva cita";
  saveButton.textContent="Guardar cita";
@@ -44,7 +44,7 @@ function resetEditor(){
 }
 function openEditor(item){
  if(!adminReady||!["programada","confirmada"].includes(item.estado))return;
- editingId=item.id;editingState=item.estado;
+ editingId=item.id;editingState=item.estado;editingDate=item.fecha;editingHour=String(item.hora).slice(0,5);
  form.elements.referencia.value=item.referencia;
  form.elements.fecha.value=item.fecha;
  form.elements.hora.value=String(item.hora).slice(0,5);
@@ -79,6 +79,7 @@ function resetAdministrativeView(){
  $("agenda-filtro-fecha").value="";
  window.tsysAgendaMobileReset?.();
  $("agenda-filtro-estado").value="";
+ $("agenda-filtro-vista").value="proximas";
  patientLookupSeq++;clearTimeout(patientSearchTimer);
  patientSearch.value="";status("agenda-paciente-status","");
  patientSelect.replaceChildren(new Option("Sin paciente registrado",""));
@@ -148,7 +149,7 @@ async function loadPatients(term=patientSearch.value.trim()){
 patientSearch.addEventListener("input",()=>{
  clearTimeout(patientSearchTimer);
  patientLookupSeq++;
- patientSearchTimer=setTimeout(()=>{if(adminReady)void loadPatients();},350);
+ patientSearchTimer=setTimeout(()=>{if(adminReady)void loadPatients().catch(()=>status("agenda-paciente-status","No fue posible consultar pacientes. Revisa la conexión."));},350);
 });
 patientSelect.addEventListener("change",()=>{
  if(!adminReady)return;
@@ -267,7 +268,7 @@ form.addEventListener("submit",async event=>{
   return;
  }
  saving=true;saveButton.disabled=true;
- const editing=Boolean(editingId),id=editingId,originalState=editingState;
+ const editing=Boolean(editingId),id=editingId,originalState=editingState,oldDate=editingDate,oldHour=editingHour;
  status("agenda-save-status",editing?"Reprogramando cita…":"Guardando cita…");
  try{
   if(!(await verifyAdmin())){
@@ -278,7 +279,7 @@ form.addEventListener("submit",async event=>{
   const changes={referencia,fecha,hora,tipo,paciente_id:paciente||null};
   const {data,error}=editing
    ?await sb.from("citas_tsysoptics").update(changes)
-      .eq("id",id).eq("estado",originalState).select("id").maybeSingle()
+      .eq("id",id).eq("estado",originalState).eq("fecha",oldDate).eq("hora",oldHour).select("id").maybeSingle()
    :await sb.from("citas_tsysoptics").insert({...changes,estado:"programada"})
       .select("id").maybeSingle();
   if(error||!data){
@@ -374,7 +375,7 @@ function setupMobileAgenda(){
  summary.setAttribute("role","status");
  columns.before(tabs);
  tabs.after(calendar);calendar.after(summary);
- let start=monday(localDate(dateInput.value)||new Date());
+ let start=monday(localDate(dateInput.value)||localDate(todayBogota()));
  function renderWeek(){
   strip.replaceChildren();
   const fmt=new Intl.DateTimeFormat("es-CO",{day:"numeric",month:"short"});
@@ -384,7 +385,7 @@ function setupMobileAgenda(){
    const d=move(start,n),v=dateText(d),b=make("button","agenda-mobile-day");
    b.type="button";b.setAttribute("aria-pressed",String(dateInput.value===v));
    if(dateInput.value===v)b.classList.add("selected");
-   if(dateText(new Date())===v)b.classList.add("today");
+   if(todayBogota()===v)b.classList.add("today");
    b.append(make("small",null,wd.format(d).replace(".","")),
     make("strong",null,String(d.getDate())));
    b.setAttribute("aria-label",v);
@@ -392,7 +393,7 @@ function setupMobileAgenda(){
    strip.append(b);
   }
   all.classList.toggle("active",!dateInput.value);
-  today.classList.toggle("active",dateInput.value===dateText(new Date()));
+  today.classList.toggle("active",dateInput.value===todayBogota());
  }
  function selectDate(value,refresh=true){
   dateInput.value=value;
@@ -402,7 +403,7 @@ function setupMobileAgenda(){
  }
  prev.addEventListener("click",()=>selectDate(dateText(move(start,-7))));
  next.addEventListener("click",()=>selectDate(dateText(move(start,7))));
- today.addEventListener("click",()=>selectDate(dateText(new Date())));
+ today.addEventListener("click",()=>selectDate(todayBogota()));
  all.addEventListener("click",()=>selectDate(""));
  dateInput.addEventListener("change",()=>{
   if(dateInput.value)start=monday(localDate(dateInput.value)||new Date());
@@ -422,12 +423,12 @@ function setupMobileAgenda(){
   show("citas");tabs.scrollIntoView({behavior:"smooth",block:"start"});
  };
  window.tsysAgendaMobileReset=()=>{
-  dateInput.value="";start=monday(new Date());renderWeek();show("citas");
+  dateInput.value="";start=monday(localDate(todayBogota()));renderWeek();show("citas");
   summary.textContent="Selecciona un día para ver las citas.";
  };
  window.addEventListener("tsys:role",e=>{
   if(e.detail?.role==="administrador"&&media.matches&&!dateInput.value)
-   selectDate(dateText(new Date()),false);
+   selectDate(todayBogota(),false);
  });
  window.addEventListener("tsys:locked",()=>window.tsysAgendaMobileReset());
  media.addEventListener("change",()=>{if(!media.matches)show("citas");renderWeek()});
