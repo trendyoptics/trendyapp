@@ -180,8 +180,14 @@ async function refresh(){
 }
 async function operation(name,work,statusId,success){
  if(!admin||doing!==null)return;
- doing=name;setControls();status(statusId,"Procesando…");
+ doing=name;setControls();status(statusId,"Comprobando permisos y estado de Caja…");
  try{
+  if(!(await verify())){
+   reset();
+   status(statusId,"Tu sesión ya no está autorizada para operar Caja. Inicia sesión nuevamente.");
+   return;
+  }
+  status(statusId,"Procesando…");
   const {data,error}=await work();
   if(error||data===null||data===undefined){
    const msg=String(error?.message||"");

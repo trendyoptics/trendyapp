@@ -25,6 +25,7 @@ let saleToken=crypto.randomUUID();
 let paymentToken=crypto.randomUUID();
 let voidToken=crypto.randomUUID();
 let saleToVoid=null;
+let receiptSaleCurrent=null;
 const voidModal=$("venta-anular-modal");
 const voidForm=$("venta-anular-form");
 const voidMessage=$("venta-anular-status");
@@ -199,6 +200,7 @@ function appendCell(row,value){
 }
 function receiptOpen(sale){
  if(!sale)return;
+ receiptSaleCurrent=sale;
  const devuelta=sale.estado==="devuelta";
  $("venta-recibo-meta").textContent=(sale.estado==="anulada"?"ANULADA · Documento histórico · ":devuelta?"DEVUELTA · Comprobante original · ":"Comprobante ")+salesNumber(sale.numero)+" · "+new Date(sale.fecha).toLocaleString("es-CO",{timeZone:"America/Bogota"});
  $("venta-recibo-paciente").textContent="Paciente/cliente: "+(sale.paciente?.nombre_completo||"Consumidor final");
@@ -231,6 +233,7 @@ function receiptOpen(sale){
 }
 function receiptClose(){
  receipt.hidden=true;
+ receiptSaleCurrent=null;
  document.body.classList.remove("venta-imprimiendo");
 }
 $("venta-cerrar-comprobante").addEventListener("click",receiptClose);
@@ -239,6 +242,26 @@ $("venta-imprimir-comprobante").addEventListener("click",()=>{
  window.print();
 });
 window.addEventListener("afterprint",()=>document.body.classList.remove("venta-imprimiendo"));
+$("venta-whatsapp-comprobante").addEventListener("click",()=>{
+ const sale=receiptSaleCurrent;
+ if(!sale)return;
+ if(!window.confirm("¿Preparar un mensaje comercial de esta venta para compartir manualmente en WhatsApp? Revisa el destinatario y los importes antes de enviarlo."))return;
+ const lineas=(sale.lineas||[]).map(l=>"- "+l.nombre_snapshot+" × "+l.cantidad+": "+money(l.total_linea)).join("\n");
+ const msg=[
+  "TRENDYOPTICS · COMPROBANTE INTERNO",
+  "Venta: "+salesNumber(sale.numero),
+  "Cliente: "+(sale.paciente?.nombre_completo||"Consumidor final"),
+  "Productos:\n"+(lineas||"Sin detalle"),
+  "Total: "+money(sale.total),
+  "Abonado: "+money(sale.abonado),
+  "Saldo pendiente: "+money(sale.saldo),
+  "Documento comercial interno. No equivale a factura electrónica DIAN."
+ ].join("\n");
+ const url="https://wa.me/?text="+encodeURIComponent(msg);
+ const share=document.createElement("a");
+ share.href=url;share.target="_blank";share.rel="noopener noreferrer";
+ share.click();
+});
 receipt.addEventListener("click",e=>{if(e.target===receipt)receiptClose()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!receipt.hidden)receiptClose()});
 
@@ -377,6 +400,7 @@ form.addEventListener("submit",async e=>{
  registering=true;$("venta-guardar").disabled=true;
  displayStatus("venta-form-status","Registrando venta…");
  try{
+  if(!(await authorized())){displayStatus("venta-form-status","Tu sesión ya no autoriza registrar ventas.");return;}
   const {data,error}=await sb.rpc("crear_venta_tsysoptics",{
    p_items:cart.map(x=>({producto_id:x.producto_id,cantidad:x.cantidad})),
    p_paciente_id:paciente||null,
@@ -412,6 +436,7 @@ paymentsForm.addEventListener("submit",async e=>{
  collecting=true;$("ventas-registrar-abono").disabled=true;
  displayStatus("ventas-abono-status","Registrando cobro…");
  try{
+  if(!(await authorized())){displayStatus("ventas-abono-status","Tu sesión ya no autoriza registrar cobros.");return;}
   const {data,error}=await sb.rpc("registrar_abono_tsysoptics",{
    p_venta_id:sale.id,p_monto:monto,p_medio:medio,p_operacion_id:paymentToken
   });
@@ -420,6 +445,8 @@ paymentsForm.addEventListener("submit",async e=>{
   paymentsForm.reset();window.tsysFormatCOPInputs(paymentsForm);
   displayStatus("ventas-abono-status","Abono registrado correctamente en Supabase.");
   await refreshSales();
+  const updated=sales.find(s=>s.id===sale.id);
+  if(updated)receiptOpen(updated);
  }catch{
   displayStatus("ventas-abono-status","No se pudo confirmar el abono. Actualiza el historial antes de repetir.");
  }finally{
