@@ -273,46 +273,49 @@ $("search").addEventListener("input",()=>{
  clearTimeout(searchTimer);
  searchTimer=setTimeout(()=>{if(authorized&&!busy)void searchPatients()},380);
 });
-if(await requireAdmin()){
- authorized=true;$("loading").hidden=true;$("panel").hidden=false;
- await searchPatients();
- // Al regresar desde Clínica, recuperar la ficha por ID con lectura autorizada.
- const requestedId=new URLSearchParams(location.search).get("paciente");
- if(requestedId && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(requestedId)){
-  const {data:returnedPatient,error:returnedError}=await sb.from("pacientes_tsysoptics")
-   .select("id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps")
-   .eq("id",requestedId).maybeSingle();
-  if(authorized&&!returnedError&&returnedPatient){
-   choosePatient(returnedPatient);
-   history.replaceState(null,"",location.pathname);
-  }else if(authorized){status("No fue posible recuperar la ficha solicitada.");}
- }
-}else showDenied("Acceso denegado. Inicia sesión con un administrador activo en TsysOptics y vuelve a abrir este módulo.");
-// Recupera Pacientes cuando la sesión administrativa se establece después de importar el módulo.
-window.addEventListener("tsys:role",async e=>{
- if(e.detail?.role!=="administrador"){showDenied("Acceso reservado al administrador.");return;}
- if(authorized)return;
- $("loading").hidden=false;$("loading").textContent="Verificando acceso a Pacientes…";
+let recoveryBusy=false;
+async function restorePatients(){
+ if(recoveryBusy)return;
+ recoveryBusy=true;
+ $("loading").hidden=false;
+ $("loading").textContent="Verificando acceso a Pacientes…";
  try{
-  if(await requireAdmin()){
-   authorized=true;$("loading").hidden=true;$("panel").hidden=false;
-   showPatientView("buscar");
-   await searchPatients();
-  }else showDenied("No se pudo verificar tu sesión de administrador. Cierra sesión y vuelve a ingresar.");
- }catch{showDenied("No se pudo iniciar Pacientes. Comprueba la conexión e inténtalo de nuevo.");}
+  // La restauración de sesión puede tardar al volver desde la pantalla clínica.
+  let ok=false;
+  for(let i=0;i<3;i++){
+   try{ok=await requireAdmin()}catch{ok=false}
+   if(ok)break;
+   if(i<2)await new Promise(resolve=>setTimeout(resolve,350*(i+1)));
+  }
+  if(!ok){showDenied("No se pudo verificar el acceso a Pacientes. Regresa a Inicio y comprueba la sesión.");return;}
+  authorized=true;$("loading").hidden=true;$("panel").hidden=false;
+  await searchPatients();
+  const requestedId=new URLSearchParams(location.search).get("paciente");
+  if(requestedId && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(requestedId)){
+   const {data:p,error}=await sb.from("pacientes_tsysoptics")
+    .select("id,tipo_documento,documento,nombre_completo,fecha_nacimiento,telefono,direccion,eps")
+    .eq("id",requestedId).maybeSingle();
+   if(!error&&p){
+    choosePatient(p);
+    const url=new URL(location.href);url.searchParams.delete("paciente");url.searchParams.delete("modulo");
+    history.replaceState(null,"",url.pathname+url.search+url.hash);
+   }else status("No fue posible recuperar la ficha solicitada. Puedes buscarla manualmente.");
+  }
+ }catch(err){
+  if(!authorized)showDenied("No se pudo cargar Pacientes. Comprueba la conexión y vuelve a entrar.");
+  console.error("Error al recuperar Pacientes",err);
+ }finally{recoveryBusy=false}
+}
+void restorePatients();
+window.addEventListener("tsys:role",e=>{
+ if(e.detail?.role!=="administrador"){showDenied("Acceso reservado al administrador.");return;}
+ if(!authorized)void restorePatients();
 });
-document.addEventListener("visibilitychange",async()=>{
- if(document.hidden||!authorized)return;
- if(!(await requireAdmin())){
-  showDenied("Tu acceso ya no está autorizado. Vuelve al panel e inicia sesión de nuevo.");
- }
+window.addEventListener("tsys:locked",()=>showDenied("Sesión cerrada."));
+document.addEventListener("visibilitychange",()=>{
+ if(!document.hidden&&!authorized)void restorePatients();
 });
-window.addEventListener("pageshow",async event=>{
- if(!event.persisted||!authorized)return;
- // Safari puede restaurar la pantalla desde memoria al volver de Clínica.
- if(!(await requireAdmin())){
-  showDenied("Tu sesión ya no está autorizada. Accede nuevamente desde el panel.");
-  return;
- }
- void searchPatients();
+window.addEventListener("pageshow",()=>{
+ if(!authorized)void restorePatients();
+ else void searchPatients();
 });
