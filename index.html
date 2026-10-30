@@ -1313,15 +1313,24 @@ async function saveClinicalHistory() {
     clinicalMessage("Completa tipo de documento, documento y nombre del paciente.");
     return;
   }
-  if (d.fechaNacimiento && !/^\d{4}-\d{2}-\d{2}$/.test(d.fechaNacimiento)) {
+  if (d.fechaNacimiento && (!/^\d{4}-\d{2}-\d{2}$/.test(d.fechaNacimiento) ||
+      Number.isNaN(new Date(d.fechaNacimiento + "T12:00:00").getTime()))) {
     clinicalMessage("Verifica la fecha de nacimiento.");
     return;
   }
   const date = d.fechaConsulta || new Date().toISOString().slice(0,10);
   const time = String(d.horaConsulta || "12:00").slice(0,5);
   const dateObj = new Date(date + "T" + time + ":00");
-  if (Number.isNaN(dateObj.getTime())) {
+  if (Number.isNaN(dateObj.getTime()) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     clinicalMessage("Verifica la fecha y hora de consulta.");
+    return;
+  }
+  if (dateObj.getTime() > Date.now() + 5 * 60 * 1000) {
+    clinicalMessage("La fecha y hora de la consulta no pueden estar en el futuro.");
+    return;
+  }
+  if (d.fechaNacimiento && d.fechaNacimiento > date) {
+    clinicalMessage("La fecha de nacimiento no puede ser posterior a la consulta.");
     return;
   }
   const phoneDigits = String(d.telefono || "").replace(/^\+?57\s*/, "").trim();
@@ -1355,7 +1364,8 @@ async function saveClinicalHistory() {
     currentHistoricalData = null;
     const confirmed = await supabase.from("historias_clinicas_tsysoptics")
       .select("id,paciente_id,fecha_consulta,datos_clinicos,estado").eq("id",data).maybeSingle();
-    if (!confirmed.error && confirmed.data && confirmed.data.estado === "finalizada") {
+    const historyVerified = !confirmed.error && confirmed.data && confirmed.data.estado === "finalizada";
+    if (historyVerified) {
       fillClinicalForm(confirmed.data);
     } else {
       clinicalMessage("Historia guardada. Abre la consulta desde el historial para confirmar los datos antes de imprimir.");
@@ -1365,7 +1375,7 @@ async function saveClinicalHistory() {
     currentPatientId = patientRow?.id || currentPatientId;
     updateNewConsultationButton();
     await updateHistoryCount();
-    clinicalMessage("Historia clínica guardada en Supabase.");
+    if (historyVerified) clinicalMessage("Historia clínica guardada y verificada en Supabase.");
   } catch {
     clinicalMessage("No se pudo conectar con Supabase. Inténtalo de nuevo.");
   } finally {
