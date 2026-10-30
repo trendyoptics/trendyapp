@@ -483,6 +483,10 @@ async function refreshSummary(){
  $("ventas-abonado").textContent=money(r.recibido);
  $("ventas-pendiente").textContent=money(r.pendiente);
  if(typeof window.tsysVentasSetTotal==="function")window.tsysVentasSetTotal(Number(r.total)||0);
+ const hoy=await sb.rpc("resumen_ventas_hoy_tsysoptics");
+ if(!isActive)return;
+ if(!hoy.error&&Array.isArray(hoy.data)&&hoy.data[0])window.tsysVentasSetHoy?.(Number(hoy.data[0].total)||0,Number(hoy.data[0].cantidad)||0);
+ else window.tsysVentasSetHoy?.(null,null);
 }
 async function refreshSales(){
  if(!isActive)return;
