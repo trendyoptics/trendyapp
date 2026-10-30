@@ -17,7 +17,7 @@ const lensCatalog=$("venta-lente-catalogo");
 const lensName=$("venta-lente-descripcion");
 const lensPrice=$("venta-lente-precio-manual");
 const lensQuantity=$("venta-lente-cantidad");
-let creatingLens=false;
+let creatingLens=false,confirmingLens=false;
 let receiptContext=null,receiptRequest=0;
 const LENS_CATALOG=[
  ["CR BLUE",100000],["CR FOTO BLUE",220000],["POLY BLUE",180000],
@@ -244,7 +244,7 @@ function lensConfirm(nombre,precio,cantidad){
  });
 }
 $("venta-agregar-lente").addEventListener("click",async()=>{
- if(creatingLens)return;
+ if(creatingLens||confirmingLens)return;
  const button=$("venta-agregar-lente");
  displayStatus("venta-lente-status","Verificando datos del lente...");
  const nombre=lensName.value.trim().toLocaleUpperCase("es-CO");
@@ -270,7 +270,10 @@ $("venta-agregar-lente").addEventListener("click",async()=>{
  if(!(await authorized())){
   displayStatus("venta-lente-status","Tu sesión no tiene permiso para registrar lentes. Comprueba el usuario administrador.");return;
  }
- if(!(await lensConfirm(nombre,precio,cantidad))){
+ confirmingLens=true;
+ let confirmed=false;
+ try{confirmed=await lensConfirm(nombre,precio,cantidad)}finally{confirmingLens=false}
+ if(!confirmed){
   displayStatus("venta-lente-status","Registro cancelado. No se creó ninguna referencia.");return;
  }
  if(creatingLens)return;
