@@ -123,9 +123,13 @@
         <a href="./tsysoptics/?vista=apariencia" class="tsys-theme-link flex items-center gap-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-2 rounded-lg border border-slate-700" title="Cambiar los colores de TsysOptics">
           <i data-lucide="palette" class="w-4 h-4"></i><span class="hidden sm:inline">Apariencia</span>
         </a>
-        <button type="button" onclick="limpiarFormulario()" class="flex items-center gap-1 text-xs font-semibold bg-rose-950/60 hover:bg-rose-900/80 text-rose-200 px-2.5 py-2 rounded-lg border border-rose-800/50">
+        <button type="button" onclick="limpiarFormulario()" title="Nueva consulta: conserva los datos del paciente" class="flex items-center gap-1 text-xs font-semibold bg-rose-950/60 hover:bg-rose-900/80 text-rose-200 px-2.5 py-2 rounded-lg border border-rose-800/50">
           <i data-lucide="file-plus-2" class="w-4 h-4 text-rose-400"></i>
-          <span class="hidden md:inline">Nueva</span>
+          <span class="hidden md:inline">Nueva consulta</span>
+        </button>
+        <button type="button" onclick="limpiarFormulario(false)" title="Cambiar a otro paciente y limpiar la identificación actual" class="flex items-center gap-1 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-2 rounded-lg border border-slate-600">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Nuevo paciente</span>
         </button>
       </div>
     </div>
@@ -1009,8 +1013,19 @@
       document.getElementById('hcConsecutivo').textContent = `HC-${m}${d}-${Math.floor(1000 + Math.random() * 9000)}`;
     }
 
-    function limpiarFormulario() {
-      window.tsysResetHistoriaActual?.();
+    // Nueva consulta conserva la ficha del paciente; cambiar de paciente es una acción separada.
+    function limpiarFormulario(conservarPaciente = true) {
+      const clavesPaciente = ["tipoDoc","documento","nombre","fechaNacimiento","telefono","direccion","eps"];
+      const datosPaciente = {};
+      if (conservarPaciente) {
+        for (const clave of clavesPaciente) datosPaciente[clave] = document.getElementById(clave)?.value ?? "";
+      }
+      const aviso = conservarPaciente
+        ? "¿Iniciar otra consulta para este paciente? Se limpiarán los datos clínicos sin guardar, pero se conservarán sus datos personales y las consultas anteriores."
+        : "¿Cambiar a un paciente nuevo? Se limpiarán también el nombre, documento y los datos de contacto actuales. Las consultas guardadas permanecerán en el historial.";
+      if (!window.confirm(aviso)) return false;
+
+      window.tsysResetHistoriaActual?.(conservarPaciente);
       document.getElementById('hcForm').dataset.tsysHistoriaFinalizada = "false";
       document.getElementById('hcForm').reset();
       setTodayDate();
@@ -1022,8 +1037,19 @@
       document.getElementById('precioTotalDisplay').value = "0";
       document.getElementById('valorAbonadoDisplay').value = "0";
       document.getElementById('saldoPendienteDisplay').value = "0";
+      if (conservarPaciente) {
+        for (const [clave, valor] of Object.entries(datosPaciente)) {
+          const campo = document.getElementById(clave);
+          if (campo) campo.value = valor;
+        }
+        calcularEdad();
+      }
       generarConsecutivo();
-      mostrarToast("Formulario limpio para nuevo paciente");
+      window.tsysActualizarBotonNuevaConsulta?.();
+      mostrarToast(conservarPaciente
+        ? "Nueva consulta: datos del paciente conservados"
+        : "Formulario listo para un paciente distinto");
+      return true;
     }
 
     function cargarConfig() {
@@ -1221,11 +1247,11 @@ window.tsysActualizarContador = updateHistoryCount;
  // no valores que el navegador pudiera autocompletar o modificar en la pantalla.
 window.tsysDatosImpresion = () => currentHistoryIsFinalized && currentHistoricalData
   ? { ...currentHistoricalData } : null;
-window.tsysResetHistoriaActual = () => {
+window.tsysResetHistoriaActual = (conservarPaciente = false) => {
   const clinicalForm = field("hcForm");
   if (clinicalForm) clinicalForm.dataset.tsysHistoriaFinalizada = "false";
   currentHistoryId = null;
-  currentPatientId = null;
+  if (!conservarPaciente) currentPatientId = null;
   currentHistoryIsFinalized = false;
   currentHistoricalData = null;
   window.tsysTelefonoHistoricoInvalido = false;
@@ -1390,26 +1416,10 @@ const newPatientConsultationButton = document.getElementById("tsys-nueva-consult
 function updateNewConsultationButton(){
  if(newPatientConsultationButton) newPatientConsultationButton.hidden = !currentPatientId;
 }
+window.tsysActualizarBotonNuevaConsulta = updateNewConsultationButton;
 newPatientConsultationButton?.addEventListener("click",()=>{
- if(!currentPatientId || saveBusy) return;
- if(!window.confirm("¿Iniciar una consulta nueva para este paciente? Los cambios sin guardar del formulario actual se perderán; las historias guardadas se conservarán.")) return;
- const id=currentPatientId;
- const keep={};
- for(const key of ["tipoDoc","documento","nombre","fechaNacimiento","telefono","direccion","eps"]){
-  keep[key]=field(key)?.value || "";
- }
- if(typeof window.limpiarFormulario !== "function"){
-  clinicalMessage("No se pudo preparar una nueva consulta.");return;
- }
- window.limpiarFormulario();
- currentPatientId=id;
- for(const [key,value] of Object.entries(keep)) setField(key,value);
- currentHistoryId=null;
- currentHistoryIsFinalized=false;
- currentHistoricalData=null;
- field("hcForm").dataset.tsysHistoriaFinalizada="false";
- clinicalMessage("Nueva consulta preparada para el paciente. La historia anterior permanece guardada.");
- updateNewConsultationButton();
+ if(!currentPatientId || saveBusy)return;
+ window.limpiarFormulario(true);
 });
 
 
