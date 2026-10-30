@@ -19,6 +19,7 @@ function reset(){
  allowed=false;request++;items=[];patients=[];quotes=[];
  window.tsysCotizacionesSetPendientes?.(null);
  window.tsysCotizacionesSetVencidas?.(null);
+ window.tsysCotizacionesSetAprobadas?.(null);
  for(const id of ["cot-items","cot-lista"])$(id).replaceChildren();
  $("cot-guardar").disabled=true;$("cot-refrescar").disabled=true;set("cot-status","Acceso reservado al administrador.");
 }
@@ -147,6 +148,7 @@ async function load(){
   renderQuotes();
   window.tsysCotizacionesSetPendientes?.(quotes.filter(x=>["borrador","enviada"].includes(x.estado)&&x.vigente_hasta>=today()).length);
   window.tsysCotizacionesSetVencidas?.(quotes.filter(x=>!["convertida","rechazada"].includes(x.estado)&&x.vigente_hasta<today()).length);
+  window.tsysCotizacionesSetAprobadas?.(quotes.filter(x=>x.estado==="aprobada").length);
   set("cot-status",quotes.length+" cotizaciones consultadas.");
  }catch(e){set("cot-status","Error al consultar cotizaciones: "+(e?.message||e))}
 }
@@ -191,6 +193,7 @@ $("cot-agregar-lente").addEventListener("click",()=>addItem("Lente oftálmico"))
 $("cot-filtro").addEventListener("change",renderQuotes);
 window.addEventListener("tsys:cotizaciones-ver-pendientes",()=>{$("cot-filtro").value="pendiente";renderQuotes()});
 window.addEventListener("tsys:cotizaciones-ver-vencidas",()=>{$("cot-filtro").value="vencida";renderQuotes()});
+window.addEventListener("tsys:cotizaciones-ver-aprobadas",()=>{$("cot-filtro").value="aprobada";renderQuotes()});
 $("cot-refrescar").addEventListener("click",()=>void load());
 $("cot-form").addEventListener("submit",e=>void save(e));
 window.addEventListener("tsys:cotizaciones-refrescar",()=>void load());
