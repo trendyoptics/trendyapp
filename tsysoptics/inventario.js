@@ -16,7 +16,8 @@ const select=$("inventario-ajuste-producto");
 let products=[];
 let serverCount=0,mobileStockFilter="todos";
 let adminReady=false,initializing=false,busy=false,adjusting=false;
-let generation=0;
+let generation=0,loadingMore=false;
+const pageSize=250;
 const money=value=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(Number(value)||0);
 function status(id,msg){$(id).textContent=msg}
 function element(tag,value,css){
@@ -95,7 +96,7 @@ function render(){
  if(!adminReady)return;
  const query=normalizeFilter($("inventario-buscar").value.trim());
  const mobile=window.matchMedia("(max-width: 850px)").matches;
- const filter=mobile?mobileStockFilter:"todos";
+ const filter=mobile?mobileStockFilter:$("inventario-filtro-stock").value;
  const visible=products.filter(p=>
   (!query||normalizeFilter(p.codigo+" "+p.nombre).includes(query))
   &&matchingStock(p,filter)
@@ -146,7 +147,8 @@ function render(){
   }
  }
  const limit=serverCount>products.length
-  ?" Solo se cargaron las primeras "+products.length+" referencias por orden alfabético. Hay más registros en el servidor." : "";
+  ?" Mostrando "+products.length+" de "+serverCount+" referencias; pulsa Cargar más para ver el resto." : "";
+ $("inventario-mas").hidden=serverCount<=products.length;
  status("inventario-list-status",visible.length+" de "+products.length+
   " referencias cargadas mostradas."+limit);
  notifyInventoryMetrics();
@@ -168,20 +170,37 @@ function fillAdjustList(){
  }
  if(products.some(p=>p.id===previous))select.value=previous;
 }
-async function loadProducts(){
- if(!adminReady)return;
- const mine=++generation;
- status("inventario-list-status","Consultando inventario…");
- const {data,error,count}=await db.from("productos_tsysoptics")
-  .select("id,codigo,nombre,tipo,precio_venta,costo_compra,cantidad,stock_minimo,activo",{count:"exact"})
-  .order("nombre",{ascending:true}).limit(250);
- if(!adminReady||mine!==generation)return;
- if(error){status("inventario-list-status","No se pudo consultar el inventario en Supabase.");return}
- products=data||[];
- serverCount=count||products.length;
- if(typeof window.tsysInventarioSetCount==="function")window.tsysInventarioSetCount(serverCount);
- fillAdjustList();
- render();
+async function loadProducts(more=false){
+ if(!adminReady||loadingMore)return;
+ const mine=more?generation:++generation;
+ const offset=more?products.length:0;
+ if(more)loadingMore=true;
+ const button=$("inventario-mas");
+ button.disabled=true;
+ status("inventario-list-status",more?"Cargando más referencias…":"Consultando inventario…");
+ try{
+  const {data,error,count}=await db.from("productos_tsysoptics")
+   .select("id,codigo,nombre,tipo,precio_venta,costo_compra,cantidad,stock_minimo,activo",{count:"exact"})
+   .order("nombre",{ascending:true}).order("id",{ascending:true})
+   .range(offset,offset+pageSize-1);
+  if(!adminReady||mine!==generation)return;
+  if(error){
+   status("inventario-list-status","No se pudo consultar el inventario en Supabase.");
+   return;
+  }
+  const rows=data||[];
+  products=more?[...new Map([...products,...rows].map(p=>[p.id,p])).values()]:rows;
+  serverCount=count??products.length;
+  if(typeof window.tsysInventarioSetCount==="function")window.tsysInventarioSetCount(serverCount);
+  fillAdjustList();
+  render();
+ }catch{
+  if(adminReady&&mine===generation)
+   status("inventario-list-status","No se pudo cargar el inventario. Comprueba la conexión.");
+ }finally{
+  loadingMore=false;
+  button.disabled=false;
+ }
 }
 async function loadMovements(){
  if(!adminReady)return;
@@ -214,7 +233,7 @@ form.addEventListener("submit",async e=>{
  const values=new FormData(form);
  const id=String(values.get("editar_id")||"");
  const codigo=String(values.get("codigo")||"").trim().toUpperCase();
- const nombre=String(values.get("nombre")||"").trim();
+ const nombre=String(values.get("nombre")||"").trim().toLocaleUpperCase("es-CO");
  const tipo=String(values.get("tipo")||"");
  const precio=window.tsysParseCOP(values.get("precio"));
  const rawCost=String(values.get("costo")||"").trim();
@@ -232,6 +251,7 @@ form.addEventListener("submit",async e=>{
  busy=true;$("inventario-guardar").disabled=true;
  status("inventario-form-status","Guardando referencia…");
  try{
+  if(!(await isAdmin())){reset();status("inventario-form-status","La sesión ya no permite modificar inventario.");return;}
   const result=id?
    await db.from("productos_tsysoptics").update(payload).eq("id",id).select("id").maybeSingle():
    await db.from("productos_tsysoptics").insert(payload).select("id").maybeSingle();
@@ -265,6 +285,7 @@ adjustForm.addEventListener("submit",async e=>{
  adjusting=true;$("inventario-ajuste-guardar").disabled=true;
  status("inventario-ajuste-status","Registrando ajuste…");
  try{
+  if(!(await isAdmin())){reset();status("inventario-ajuste-status","La sesión ya no permite ajustar existencias.");return;}
   const {error}=await db.rpc("ajustar_existencias_tsysoptics",{
    p_producto_id:id,p_nueva_cantidad:quantity,p_motivo:motivo
   });
@@ -281,8 +302,9 @@ async function toggleActive(p,button){
  if(!window.confirm("¿Quieres "+action+" esta referencia? No se borrará su historial."))return;
  button.disabled=true;
  try{
+  if(!(await isAdmin())){reset();status("inventario-list-status","La sesión ya no permite cambiar referencias.");return;}
   const {data,error}=await db.from("productos_tsysoptics")
-   .update({activo:!p.activo}).eq("id",p.id).select("id").maybeSingle();
+   .update({activo:!p.activo}).eq("id",p.id).eq("activo",p.activo).select("id").maybeSingle();
   if(error||!data){status("inventario-list-status","No se pudo cambiar el estado.");return}
   await refresh();
  }catch{status("inventario-list-status","No se pudo actualizar el estado.")}
@@ -290,6 +312,8 @@ async function toggleActive(p,button){
 }
 $("inventario-actualizar").addEventListener("click",refresh);
 $("inventario-buscar").addEventListener("input",render);
+$("inventario-filtro-stock").addEventListener("change",render);
+$("inventario-mas").addEventListener("click",()=>loadProducts(true));
 window.matchMedia("(max-width: 850px)").addEventListener("change",()=>{
  if(adminReady)render();
 });
@@ -305,8 +329,9 @@ async function activate(){
  }finally{initializing=false}
 }
 function reset(){
- adminReady=false;initializing=false;generation++;
+ adminReady=false;initializing=false;generation++;loadingMore=false;
  products=[];serverCount=0;mobileStockFilter="todos";
+ $("inventario-filtro-stock").value="todos";$("inventario-mas").hidden=true;
  list.replaceChildren();movements.replaceChildren();
  window.tsysInventarioMobileReset?.();
  notifyInventoryMetrics();
