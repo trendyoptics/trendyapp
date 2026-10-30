@@ -25,70 +25,71 @@ export async function generateLabOrderPdf(db,order){
  if(!history)throw Error("El paciente no tiene una historia clínica finalizada. No se generará una orden sin fórmula.");
  const patient=patientRes.data,identity=identityRes.data||{},d=history.datos_clinicos||{};
  const {jsPDF}=await import("https://esm.sh/jspdf@2.5.2");
- const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:[139.7,215.9]});
- const L=9,R=130.7,W=R-L,MAX=202;
- let y=12;
- const dark=[11,28,64],soft=[85,95,110];
- const text=(value,x,yValue,opts)=>pdf.text(moneyless(value),x,yValue,opts);
- function font(size=7,bold=false){pdf.setFont("helvetica",bold?"bold":"normal");pdf.setFontSize(size)}
- function line(){pdf.setDrawColor(...dark);pdf.setLineWidth(.2);pdf.line(L,y,R,y);y+=3}
- function block(title){
-  pdf.setFillColor(232,237,246);pdf.rect(L,y-3,W,5,"F");
-  font(7.2,true);pdf.setTextColor(...dark);text(title,L+2,y);y+=6;
- }
- function row(label,value,{size=7,limit=2}={}){
-  if(!moneyless(value))return;
-  font(size,true);pdf.setTextColor(...dark);
-  const labelText=label+": ";
-  const labelWidth=pdf.getTextWidth(labelText);
-  text(labelText,L+1,y);
-  font(size);pdf.setTextColor(...soft);
-  const words=pdf.splitTextToSize(moneyless(value),Math.max(20,W-labelWidth-3));
-  for(const [i,part] of words.slice(0,limit).entries())text(part,L+1+labelWidth,y+i*3.4);
-  y+=3.8*Math.min(words.length,limit)+1;
- }
- font(11,true);pdf.setTextColor(...dark);text("ORDEN DE LABORATORIO",L,y);y+=4;
- font(6.7);text("TsysOptics - Sistema de gestión",L,y);y+=4;
- font(8,true);text(identity.nombre_optica||"ÓPTICA",L,y);y+=4;
- font(6.5);text("N.º V-"+String(sale.numero).padStart(6,"0")+"   ·   ORDEN "+order.id.slice(0,8).toUpperCase(),L,y);y+=4;
- line();
- block("PACIENTE Y PEDIDO");
- row("PACIENTE",patient.nombre_completo);
- row("DOCUMENTO",(patient.tipo_documento||"")+" "+(patient.documento||""));
- row("TELÉFONO",patient.telefono||"NO REGISTRADO");
- row("LABORATORIO",order.laboratorio);
- row("ENTREGA ESTIMADA",date(order.fecha_entrega_estimada));
- row("CONSULTA",history.fecha_consulta?new Date(history.fecha_consulta).toLocaleDateString("es-CO"):"");
- line();
- block("FÓRMULA ÓPTICA");
- const col=[L+2,L+19,L+44,L+69,L+89,L+109];
- font(6.5,true);pdf.setTextColor(...dark);
- ["OJO","ESF","CIL","EJE","ADD","DNP"].forEach((z,i)=>text(z,col[i],y));y+=5;
+ const pdf=new jsPDF({orientation:"landscape",unit:"mm",format:[215.9,139.7]});
+ // Media carta REAL, apaisada: 21,59 x 13,97 cm.
+ // Dos columnas eliminan el espacio vacío de la versión vertical.
+ const navy=[11,28,64],grey=[85,95,110],M=8,COL=96,GAP=7;
+ const left=M,right=M+COL+GAP;
+ const write=(v,x,y)=>pdf.text(moneyless(v),x,y);
+ const font=(n=7,bold=false)=>{pdf.setFont("helvetica",bold?"bold":"normal");pdf.setFontSize(n)};
+ const section=(title,x,y)=>{
+  pdf.setFillColor(232,237,246);pdf.rect(x,y-3,COL,6,"F");
+  font(7.5,true);pdf.setTextColor(...navy);write(title,x+2,y+1);
+  return y+9;
+ };
+ const field=(label,value,x,y,width=COL,limit=2)=>{
+  if(!moneyless(value))return y;
+  font(7,true);pdf.setTextColor(...navy);
+  const prefix=label+": ";
+  const pw=pdf.getTextWidth(prefix);
+  write(prefix,x+1,y);
+  font(7);pdf.setTextColor(...grey);
+  const lines=pdf.splitTextToSize(moneyless(value),Math.max(22,width-pw-3)).slice(0,limit);
+  lines.forEach((t,i)=>write(t,x+1+pw,y+i*3.7));
+  return y+Math.max(1,lines.length)*4.3;
+ };
+ font(12,true);pdf.setTextColor(...navy);write("ORDEN DE LABORATORIO",M,11);
+ font(7);write("TsysOptics - Sistema de gestión",M,16);
+ font(9,true);write(identity.nombre_optica||"ÓPTICA",M,22);
+ font(7);write("VENTA V-"+String(sale.numero).padStart(6,"0")+" · ORDEN "+order.id.slice(0,8).toUpperCase(),right,12);
+ font(7);write("FECHA PREVISTA: "+date(order.fecha_entrega_estimada),right,18);
+ pdf.setDrawColor(...navy);pdf.setLineWidth(.25);pdf.line(M,26,215.9-M,26);
+ let ly=section("PACIENTE Y LABORATORIO",left,33);
+ ly=field("PACIENTE",patient.nombre_completo,left,ly);
+ ly=field("DOCUMENTO",(patient.tipo_documento||"")+" "+(patient.documento||""),left,ly);
+ ly=field("TELÉFONO",patient.telefono||"NO REGISTRADO",left,ly);
+ ly=field("LABORATORIO",order.laboratorio,left,ly);
+ ly=field("CONSULTA",history.fecha_consulta?new Date(history.fecha_consulta).toLocaleDateString("es-CO"):"",left,ly);
+ ly=Math.max(ly+4,68);
+ ly=section("FÓRMULA ÓPTICA",left,ly);
+ const coords=[left+1,left+15,left+34,left+53,left+68,left+84];
+ font(6.7,true);pdf.setTextColor(...navy);
+ ["OJO","ESF","CIL","EJE","ADD","DNP"].forEach((v,i)=>write(v,coords[i],ly));
+ ly+=5;
  for(const [eye,prefix] of [["OD","od"],["OI","oi"]]){
   const values=[eye,signed(d[prefix+"Esfera"]),signed(d[prefix+"Cilindro"]),moneyless(d[prefix+"Eje"])||"—",signed(d[prefix+"Adicion"]),moneyless(d[prefix+"Dnp"])||"—"];
-  font(7);pdf.setTextColor(...soft);values.forEach((z,i)=>text(z,col[i],y));y+=5;
+  font(6.8);pdf.setTextColor(...grey);values.forEach((v,i)=>write(v,coords[i],ly));ly+=5.3;
  }
- row("DISTANCIA PUPILAR",d.dp);
- line();
- block("LENTES, MONTURA Y ESPECIFICACIONES");
+ ly=field("DP",d.dp,left,ly+1);
+ let ry=section("LENTES, MONTURA Y MATERIALES",right,33);
  const lines=sale.lineas||[];
- if(!lines.length)row("DETALLE","NO REGISTRADO");
+ if(!lines.length)ry=field("DETALLE","NO REGISTRADO",right,ry);
  for(const item of lines.slice(0,6)){
-  if(y>160)break;
-  row("REFERENCIA",item.nombre_snapshot+" · "+item.codigo_snapshot+" · CANT: "+item.cantidad,{size:6.8,limit:2});
+  const value=moneyless(item.nombre_snapshot)+" · "+moneyless(item.codigo_snapshot)+" · "+item.cantidad+" UND";
+  const next=field("REF",value,right,ry,COL,2);
+  if(next>94) {ry=field("ADICIONAL","CONSULTAR VENTA ORIGINAL",right,ry,COL,1);break}
+  ry=next;
  }
- if(lines.length>6)row("OTRAS REFERENCIAS",String(lines.length-6)+" MÁS");
- line();
- block("INDICACIONES PARA FABRICACIÓN");
- row("OBSERVACIONES",order.observaciones||"SIN INDICACIONES ADICIONALES",{size:6.7,limit:5});
- if(d.dp)row("DP",d.dp);
- // Espacio libre para apuntes y control de calidad del laboratorio.
- y=Math.min(Math.max(y+5,174),184);
- font(7);pdf.setTextColor(...dark);text("CONTROL DEL LABORATORIO",L,y);y+=6;
- pdf.setDrawColor(170);pdf.line(L,y,R,y);y+=9;pdf.line(L,y,R,y);y+=9;
- font(6.2);pdf.setTextColor(...soft);
- text("RECIBIÓ: ___________________    FECHA: __________",L,203);
- text("ORDEN INTERNA DE FABRICACIÓN · SIN VALORES COMERCIALES",L,210);
+ if(lines.length>6)ry=field("RESTO",String(lines.length-6)+" REFERENCIAS MÁS",right,ry,COL,1);
+ ry=Math.max(ry+3,86);
+ ry=section("INDICACIONES DE FABRICACIÓN",right,ry);
+ ry=field("NOTAS",order.observaciones||"SIN INDICACIONES ADICIONALES",right,ry,COL,4);
+ // No llevar el control al fondo: dejar sólo un espacio breve para firmas.
+ const controlY=Math.min(Math.max(ry+4,109),120);
+ font(7,true);pdf.setTextColor(...navy);write("RECIBIÓ: __________________  FECHA: __________",right,controlY);
+ pdf.setDrawColor(170);pdf.line(right,controlY+5,right+COL,controlY+5);
+ font(6.2);pdf.setTextColor(...grey);
+ write("ORDEN INTERNA DE FABRICACIÓN · SIN VALORES COMERCIALES",M,133);
  const blob=pdf.output("blob");
  return {blob,filename:"Orden_Laboratorio_V-"+String(sale.numero).padStart(6,"0")+".pdf"};
 }
