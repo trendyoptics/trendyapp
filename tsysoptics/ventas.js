@@ -12,7 +12,10 @@ const receipt=$("venta-comprobante");
 const cartRoot=$("venta-carrito");
 const saleList=$("lista-ventas");
 const productSelect=$("venta-producto");
-const lensSelect=$("venta-lente-producto");
+const lensName=$("venta-lente-descripcion");
+const lensPrice=$("venta-lente-precio-manual");
+const lensQuantity=$("venta-lente-cantidad");
+let creatingLens=false;
 const patientSelect=$("venta-paciente");
 const paymentSaleSelect=$("ventas-abono-venta");
 const money=n=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:2}).format(Number(n)||0);
@@ -165,35 +168,57 @@ function fillOptions(){
   const opt=new Option(p.codigo+" · "+p.nombre+" · "+money(p.precio_venta)+" ("+p.cantidad+" uds)",p.id);
   productSelect.append(opt);
  }
- const prevLens=lensSelect.value;
- lensSelect.replaceChildren(new Option("Seleccionar lente y precio",""));
- for(const p of products.filter(p=>p.activo&&p.cantidad>0&&p.tipo==="Lente oftálmico")){
-  lensSelect.append(new Option(p.nombre+" · "+money(p.precio_venta)+" ("+p.cantidad+" uds)",p.id));
- }
  if(Array.from(productSelect.options).some(o=>o.value===previously))productSelect.value=previously;
- if(Array.from(lensSelect.options).some(o=>o.value===prevLens))lensSelect.value=prevLens;
- updateLensPrice();
  window.dispatchEvent(new CustomEvent("tsys:ventas-busqueda",{detail:{cantidad:available.length}}));
  const current=patientSelect.value;
  patientSelect.replaceChildren(new Option("Consumidor final",""));
  for(const p of patients)patientSelect.append(new Option(p.nombre_completo+" · "+p.tipo_documento+" "+p.documento,p.id));
  if(Array.from(patientSelect.options).some(o=>o.value===current))patientSelect.value=current;
 }
-function updateLensPrice(){
- const p=products.find(p=>p.id===lensSelect.value);
- $("venta-lente-precio").textContent=p
-  ?"Lente: "+p.nombre+" · Precio unitario: "+money(p.precio_venta)+" · Existencias: "+p.cantidad
-  :"Selecciona un lente registrado en Inventario para ver su precio y disponibilidad.";
-}
-lensSelect.addEventListener("change",updateLensPrice);
-$("venta-agregar-lente").addEventListener("click",()=>{
- if(!lensSelect.value){
-  displayStatus("venta-form-status","Primero selecciona el lente oftálmico que quieres vender.");
+// El lente personalizado se registra como referencia de Inventario antes de venderlo.
+// No se inventan líneas de venta sin existencias ni se cambian precios sólo en el navegador.
+$("venta-agregar-lente").addEventListener("click",async()=>{
+ if(creatingLens)return;
+ if(!isActive||!cajaAbierta){
+  displayStatus("venta-lente-status","Abre o verifica Caja antes de preparar la venta.");return;
+ }
+ const nombre=lensName.value.trim().toLocaleUpperCase("es-CO");
+ const precio=window.tsysParseCOP(lensPrice.value);
+ const cantidad=Number(lensQuantity.value);
+ if(nombre.length<3||nombre.length>120||!Number.isFinite(precio)||precio<=0||
+    precio>999999999999||!Number.isSafeInteger(cantidad)||cantidad<1||cantidad>20){
+  displayStatus("venta-lente-status","Escribe un lente de 3 a 120 caracteres, precio positivo y cantidad entre 1 y 20.");
   return;
  }
- productSelect.value=lensSelect.value;
- form.elements.cantidad.value="1";
- $("venta-agregar-producto").click();
+ if(cart.length>=20){
+  displayStatus("venta-lente-status","El carrito admite como máximo 20 referencias.");return;
+ }
+ if(!window.confirm("¿Registrar una nueva referencia de lente en Inventario por "+money(precio)+
+    " y agregar "+cantidad+" unidad(es) a esta venta? La referencia permanecerá en Inventario aunque canceles el carrito."))return;
+ creatingLens=true;
+ const button=$("venta-agregar-lente");button.disabled=true;
+ displayStatus("venta-lente-status","Registrando lente en Supabase…");
+ try{
+  if(!(await authorized())){displayStatus("venta-lente-status","La sesión ya no autoriza registrar referencias.");return;}
+  const codigo="LEN-"+crypto.randomUUID().slice(0,12).toUpperCase();
+  const {data,error}=await sb.from("productos_tsysoptics").insert({
+   codigo,nombre,tipo:"Lente oftálmico",precio_venta:precio,costo_compra:null,
+   cantidad,stock_minimo:0,activo:true
+  }).select("id,codigo,nombre,tipo,precio_venta,cantidad,activo").single();
+  if(error||!data){
+   displayStatus("venta-lente-status","No se pudo registrar el lente. Verifica permisos, precio y conexión.");
+   return;
+  }
+  products.push(data);
+  cart.push({producto_id:data.id,cantidad});
+  fillOptions();renderCart();
+  lensName.value="";lensPrice.value="";lensQuantity.value="1";
+  window.dispatchEvent(new Event("tsys:inventario-refrescar"));
+  displayStatus("venta-lente-status","Lente registrado con código "+codigo+
+   " y agregado al carrito. Al confirmar la venta se descontarán sus existencias.");
+ }catch{
+  displayStatus("venta-lente-status","No se pudo confirmar el registro. Consulta Inventario antes de volver a intentar.");
+ }finally{creatingLens=false;button.disabled=false}
 });
 window.tsysVentasMobileFiltrar=value=>{
  mobileProductFilter=String(value||"").slice(0,100);
@@ -496,8 +521,8 @@ function reset(){
  receiptClose();
  saleList.replaceChildren();cartRoot.replaceChildren();
  productSelect.replaceChildren(new Option("Seleccionar referencia",""));
- lensSelect.replaceChildren(new Option("Seleccionar lente y precio",""));
- updateLensPrice();
+ lensName.value="";lensPrice.value="";lensQuantity.value="1";
+ displayStatus("venta-lente-status","");
  window.dispatchEvent(new CustomEvent("tsys:ventas-carrito",{detail:{unidades:0,total:0}}));
  window.dispatchEvent(new CustomEvent("tsys:ventas-lista"));
  patientSelect.replaceChildren(new Option("Consumidor final",""));
