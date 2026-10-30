@@ -51,7 +51,7 @@ function applyRole(role) {
 
   for (const element of app.querySelectorAll("[data-page], [data-go]")) {
     const section = element.dataset.page || element.dataset.go;
-    const isLocked = restricted && ["ventas", "inventario", "caja", "laboratorio", "posventa", "informes"].includes(section);
+    const isLocked = restricted && ["ventas", "inventario", "caja", "laboratorio", "posventa", "cotizaciones", "informes"].includes(section);
     if ("disabled" in element) element.disabled = isLocked;
     element.classList.toggle("role-locked", isLocked);
     element.setAttribute("aria-disabled", String(isLocked));
