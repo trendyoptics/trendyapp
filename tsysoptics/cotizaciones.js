@@ -17,6 +17,7 @@ async function isAdmin(){
 }
 function reset(){
  allowed=false;request++;items=[];patients=[];quotes=[];
+ window.tsysCotizacionesSetPendientes?.(null);
  for(const id of ["cot-items","cot-lista"])$(id).replaceChildren();
  $("cot-guardar").disabled=true;$("cot-refrescar").disabled=true;set("cot-status","Acceso reservado al administrador.");
 }
@@ -142,7 +143,9 @@ async function load(){
   // Los pacientes solo se consultan como respaldo para documentos históricos.
   // Su ausencia o una falla de lectura no debe bloquear cotizaciones independientes.
   patients=c.error?[]:(c.data||[]);quotes=q.data||[];
-  renderQuotes();set("cot-status",quotes.length+" cotizaciones consultadas.");
+  renderQuotes();
+  window.tsysCotizacionesSetPendientes?.(quotes.filter(x=>["borrador","enviada"].includes(x.estado)&&x.vigente_hasta>=today()).length);
+  set("cot-status",quotes.length+" cotizaciones consultadas.");
  }catch(e){set("cot-status","Error al consultar cotizaciones: "+(e?.message||e))}
 }
 async function save(event){
