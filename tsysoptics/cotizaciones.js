@@ -109,7 +109,7 @@ async function printQuote(q,button){
 function renderQuotes(){
  const root=$("cot-lista");root.replaceChildren();
  const filter=$("cot-filtro").value;
- const shown=quotes.filter(x=>!filter||filter===x.estado||filter==="vencida"&&x.estado!=="convertida"&&x.estado!=="rechazada"&&x.vigente_hasta<today());
+ const shown=quotes.filter(x=>!filter||filter===x.estado||(filter==="pendiente"&&["borrador","enviada"].includes(x.estado)&&x.vigente_hasta>=today())||(filter==="vencida"&&x.estado!=="convertida"&&x.estado!=="rechazada"&&x.vigente_hasta<today()));
  const summary={pendientes:quotes.filter(q=>["borrador","enviada"].includes(q.estado)).length,aprobadas:quotes.filter(q=>q.estado==="aprobada").length,vencidas:quotes.filter(q=>q.vigente_hasta<today()&&!["convertida","rechazada"].includes(q.estado)).length,convertidas:quotes.filter(q=>q.estado==="convertida").length};
  for(const [name,value] of Object.entries(summary))set("cot-ind-"+name,String(value));
  if(!shown.length)root.append(el("p","No hay cotizaciones con este filtro.","muted"));
@@ -187,6 +187,7 @@ async function changeState(q,next,button){
 $("cot-agregar-montura").addEventListener("click",()=>addItem("Montura"));
 $("cot-agregar-lente").addEventListener("click",()=>addItem("Lente oftálmico"));
 $("cot-filtro").addEventListener("change",renderQuotes);
+window.addEventListener("tsys:cotizaciones-ver-pendientes",()=>{$("cot-filtro").value="pendiente";renderQuotes()});
 $("cot-refrescar").addEventListener("click",()=>void load());
 $("cot-form").addEventListener("submit",e=>void save(e));
 window.addEventListener("tsys:cotizaciones-refrescar",()=>void load());
