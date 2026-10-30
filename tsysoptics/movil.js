@@ -36,7 +36,7 @@
   ["ventas","Ventas"],["caja","Caja"],["inventario","Inventario"],
   ["laboratorio","Laboratorio"],["posventa","Posventa"],["cotizaciones","Cotizaciones"],["informes","Informes"],
   ["simulador","Simulador"],["apariencia","Apariencia"],
-  ["clinica","Clínica"],["devoluciones","Notas internas"]
+  ["clinica","Clínica"],["devoluciones","Devoluciones"]
  ];
  let role=null,moreButton=null;
  function closeMore(){shade.hidden=true;sheet.hidden=true;if(moreButton)moreButton.setAttribute("aria-expanded","false")}
@@ -48,7 +48,6 @@
    if(link&&!link.classList.contains("role-locked"))location.assign(link.href);
    return;
   }
-  if(destination==="devoluciones"){if(role==="administrador")location.assign("./devoluciones.html");return}
   const source=document.querySelector('.sidebar button[data-page="'+destination+'"]');
   if(source){
    source.click();
@@ -82,8 +81,8 @@
   const url=new URL(window.location.href);
   const selected=url.searchParams.get("modulo");
   if(!selected)return;
-  const safe=new Set(["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","posventa","cotizaciones","informes","simulador","apariencia"]);
-  const allowed=role==="administrador"||!["inventario","ventas","caja","laboratorio","posventa","cotizaciones","informes"].includes(selected);
+  const safe=new Set(["inicio","pacientes","agenda","inventario","ventas","caja","laboratorio","posventa","devoluciones","cotizaciones","informes","simulador","apariencia"]);
+  const allowed=role==="administrador"||!["inventario","ventas","caja","laboratorio","posventa","devoluciones","cotizaciones","informes"].includes(selected);
   if(!safe.has(selected)||!allowed)return;
   const source=document.querySelector('.sidebar button[data-page="'+selected+'"]');
   if(!source)return;
