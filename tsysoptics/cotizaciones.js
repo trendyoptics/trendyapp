@@ -135,7 +135,7 @@ function renderQuotes(){
 }
 async function load(){
  if(!allowed)return;const t=++request;set("cot-status","Cargando cotizaciones…");
- window.dispatchEvent(new CustomEvent("tsys:cotizaciones-carga",{detail:{mensaje:"Actualizando indicadores de cotizaciones…"}}));
+ window.dispatchEvent(new CustomEvent("tsys:cotizaciones-carga",{detail:{mensaje:"Actualizando indicadores de cotizaciones…",cargando:true}}));
  try{
   const [q,c]=await Promise.all([
    db.from("cotizaciones_tsysoptics").select("id,numero,paciente_id,cliente_nombre,cliente_documento,cliente_telefono,fecha,vigente_hasta,estado,items,total,observaciones,venta_id").order("creado_en",{ascending:false}).limit(1000),
@@ -151,9 +151,9 @@ async function load(){
   window.tsysCotizacionesSetVencidas?.(quotes.filter(x=>!["convertida","rechazada"].includes(x.estado)&&x.vigente_hasta<today()).length);
   window.tsysCotizacionesSetAprobadas?.(quotes.filter(x=>x.estado==="aprobada").length);
   set("cot-status",quotes.length+" cotizaciones consultadas.");
-  window.dispatchEvent(new CustomEvent("tsys:cotizaciones-carga",{detail:{mensaje:"Cotizaciones actualizadas correctamente."}}));
- }catch(e){set("cot-status","Error al consultar cotizaciones: "+(e?.message||e));
-  window.dispatchEvent(new CustomEvent("tsys:cotizaciones-carga",{detail:{mensaje:"No se pudieron actualizar las cotizaciones. Revisa el módulo para ver el error."}}))}
+  window.dispatchEvent(new CustomEvent("tsys:cotizaciones-carga",{detail:{mensaje:"Cotizaciones actualizadas correctamente.",cargando:false}}));
+ }catch(e){if(t!==request||!allowed)return;set("cot-status","Error al consultar cotizaciones: "+(e?.message||e));
+  window.dispatchEvent(new CustomEvent("tsys:cotizaciones-carga",{detail:{mensaje:"No se pudieron actualizar las cotizaciones. Revisa el módulo para ver el error.",cargando:false}}))}
 }
 async function save(event){
  event.preventDefault();if(busy||!allowed)return;
