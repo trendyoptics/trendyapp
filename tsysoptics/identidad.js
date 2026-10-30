@@ -168,8 +168,9 @@ if($("tsys-app")?.dataset.role==="administrador"){canEdit=true;togglePermissions
 const docForm=$("documentos-config-form");
 const docEditor=$("documentos-config-editor");
 const docStatus=$("documentos-config-status");
-const docKeys={titulo_documento:"documentos-titulo",nota_garantia:"documentos-garantia",pie_documento:"documentos-pie",mensaje_whatsapp:"documentos-whatsapp"};
+const docKeys={nit_optica:"documentos-nit",direccion_optica:"documentos-direccion",telefono_optica:"documentos-telefono",titulo_documento:"documentos-titulo",nota_garantia:"documentos-garantia",pie_documento:"documentos-pie",mensaje_whatsapp:"documentos-whatsapp"};
 const docDefaults={
+ nit_optica:"",direccion_optica:"",telefono_optica:"",
  titulo_documento:"HISTORIA CLÍNICA Y COMPROBANTE DE VENTA",
  nota_garantia:"NO SE DA GARANTÍA POR FÓRMULAS DE OTRO LUGAR.",
  pie_documento:"Comprobante comercial interno. No equivale a factura electrónica DIAN.",
@@ -182,7 +183,7 @@ function fillDocPrefs(){
 function docPermission(){docEditor.disabled=!canEdit||savingDocs;}
 async function loadDocPrefs(){
  const {data,error}=await db.from("identidad_optica_tsysoptics")
-  .select("titulo_documento,nota_garantia,pie_documento,mensaje_whatsapp").eq("id",1).maybeSingle();
+  .select("nit_optica,direccion_optica,telefono_optica,titulo_documento,nota_garantia,pie_documento,mensaje_whatsapp").eq("id",1).maybeSingle();
  if(error||!data){docStatus.textContent="No se pudo consultar la configuración de documentos.";return;}
  docPrefs={...docDefaults,...data};fillDocPrefs();docPermission();
  window.dispatchEvent(new CustomEvent("tsys:documentos-config",{detail:{...docPrefs}}));
@@ -190,7 +191,8 @@ async function loadDocPrefs(){
 docForm.addEventListener("submit",async e=>{
  e.preventDefault();if(!canEdit||savingDocs)return;
  const payload=Object.fromEntries(Object.entries(docKeys).map(([key,id])=>[key,$(id).value.trim()]));
- if(payload.titulo_documento.length<2||payload.titulo_documento.length>100||
+ if(payload.nit_optica.length>35||payload.direccion_optica.length>180||payload.telefono_optica.length>50||
+    payload.titulo_documento.length<2||payload.titulo_documento.length>100||
     payload.nota_garantia.length>500||payload.pie_documento.length>500||
     payload.mensaje_whatsapp.length<5||payload.mensaje_whatsapp.length>700){
   docStatus.textContent="Revisa las longitudes permitidas de los textos.";return;
@@ -198,7 +200,7 @@ docForm.addEventListener("submit",async e=>{
  savingDocs=true;docPermission();docStatus.textContent="Guardando personalización…";
  try{
   const {data,error}=await db.from("identidad_optica_tsysoptics").update(payload).eq("id",1)
-    .select("titulo_documento,nota_garantia,pie_documento,mensaje_whatsapp").single();
+    .select("nit_optica,direccion_optica,telefono_optica,titulo_documento,nota_garantia,pie_documento,mensaje_whatsapp").single();
   if(error||!data){docStatus.textContent="No se pudo guardar la personalización.";return;}
   docPrefs={...data};fillDocPrefs();
   window.dispatchEvent(new CustomEvent("tsys:documentos-config",{detail:{...docPrefs}}));
