@@ -32,6 +32,24 @@ function render(){
     if(error){setStatus("No se pudo cambiar el estado: "+error.message);b.disabled=false;return;}
     setStatus("Estado actualizado.");await reload();
   });
+  if(o.estado==="preparacion"){
+   const invite=document.createElement("button");invite.type="button";invite.textContent="Invitar administrador";invite.style.marginLeft="8px";
+   invite.addEventListener("click",async()=>{
+    if(!confirm("¿Enviar invitación de acceso a "+o.correo_contacto+" para "+o.nombre+"?"))return;
+    invite.disabled=true;setStatus("Enviando invitación...");
+    const {data:sessionData}=await db.auth.getSession();
+    if(!sessionData?.session){setStatus("Debes iniciar sesión de nuevo.");invite.disabled=false;return;}
+    try{
+     const response=await fetch(SUPABASE_URL+"/functions/v1/tsysoptics-invitar-administrador",{
+      method:"POST",headers:{"Authorization":"Bearer "+sessionData.session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,"Content-Type":"application/json"},body:JSON.stringify({optica_id:o.id})
+     });
+     const data=await response.json();
+     setStatus(response.ok?data.mensaje:(data.error||"No fue posible enviar la invitación."));
+    }catch{setStatus("No se pudo conectar con el servicio de invitaciones.");}
+    finally{invite.disabled=false;}
+   });
+   td.append(invite);
+  }
   td.append(b);tr.append(td);$("body").append(tr);
  }
 }
