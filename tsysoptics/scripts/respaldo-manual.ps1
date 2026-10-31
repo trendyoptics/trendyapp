@@ -1,30 +1,50 @@
+# TsysOptics - respaldo manual de SOLO LECTURA (Supabase Free)
+# Requisitos: Supabase CLI, Docker Desktop iniciado, "supabase login" y
+# "supabase link --project-ref rzeqdhddbmxcpyzssuod" desde el directorio de trabajo.
+# Nunca pegar ni guardar contrasenas o cadenas de conexion en este script.
 param(
-  [Parameter(Mandatory=$true)][string]$DbUrl,
   [string]$Destination = (Join-Path $HOME "TsysOptics-Backups")
 )
 $ErrorActionPreference = "Stop"
-if (-not (Get-Command supabase -ErrorAction SilentlyContinue)) { throw "Instala Supabase CLI antes de comenzar." }
-if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw "Instala Docker Desktop antes de comenzar." }
-$null = docker info 2>$null
-if ($LASTEXITCODE -ne 0) { throw "Inicia Docker Desktop y vuelve a ejecutar." }
-if ($DbUrl -notmatch '^postgres(ql)?://') { throw "DbUrl debe ser una URL de PostgreSQL." }
-$stamp=Get-Date -Format 'yyyyMMdd-HHmmss'
-$folder=Join-Path $Destination $stamp
+$expectedProject = "rzeqdhddbmxcpyzssuod"
+if (-not (Get-Command supabase -ErrorAction SilentlyContinue)) { throw "No se encuentra Supabase CLI." }
+if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw "No se encuentra Docker Desktop." }
+& docker info *> $null
+if ($LASTEXITCODE -ne 0) { throw "Docker Desktop no esta iniciado." }
+
+# No adivinar proyectos: exige proyecto vinculado y valida la referencia.
+$configFile = Join-Path (Get-Location) "supabase\.temp\project-ref"
+if (-not (Test-Path -LiteralPath $configFile)) {
+  throw "Proyecto no vinculado en esta carpeta. Ejecuta: supabase login; supabase link --project-ref $expectedProject"
+}
+$actualProject = (Get-Content -LiteralPath $configFile -Raw).Trim()
+if ($actualProject -ne $expectedProject) { throw "Proyecto incorrecto vinculado. No se realizo respaldo." }
+$stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$folder = Join-Path $Destination $stamp
 New-Item -ItemType Directory -Path $folder -Force | Out-Null
-# Evitar colocar credenciales en el archivo de salida o mensajes de error.
 try {
-  & supabase db dump --db-url $DbUrl --role-only --file (Join-Path $folder "roles.sql")
-  if ($LASTEXITCODE -ne 0) { throw "Fallo al exportar roles." }
-  & supabase db dump --db-url $DbUrl --file (Join-Path $folder "schema.sql")
-  if ($LASTEXITCODE -ne 0) { throw "Fallo al exportar esquema." }
-  & supabase db dump --db-url $DbUrl --data-only --use-copy --file (Join-Path $folder "data.sql")
-  if ($LASTEXITCODE -ne 0) { throw "Fallo al exportar datos." }
-  $files = @("roles.sql","schema.sql","data.sql") | ForEach-Object { Get-Item (Join-Path $folder $_) }
-  if (@($files | Where-Object Length -eq 0).Count -gt 0) { throw "Se detecto un archivo vacio." }
-  $files | Get-FileHash -Algorithm SHA256 | Select-Object @{Name="Archivo";Expression={Split-Path $_.Path -Leaf}},Hash | Export-Csv (Join-Path $folder "SHA256.csv") -NoTypeInformation -Encoding UTF8
-  Write-Host "Exportacion completada. Archivos y hashes: $folder"
-  Write-Warning "NO se ha probado restauracion. Verifica cifrado, Auth, Storage y copia fuera del equipo."
+  # Los comandos --linked son lecturas. No incluyen db reset, db push ni imports.
+  & supabase db dump --linked --role-only --file (Join-Path $folder "roles.sql")
+  if ($LASTEXITCODE -ne 0) { throw "No se pudo exportar roles." }
+  & supabase db dump --linked --file (Join-Path $folder "schema.sql")
+  if ($LASTEXITCODE -ne 0) { throw "No se pudo exportar esquema." }
+  & supabase db dump --linked --data-only --use-copy --file (Join-Path $folder "data.sql")
+  if ($LASTEXITCODE -ne 0) { throw "No se pudo exportar datos." }
+
+  $files = @("roles.sql","schema.sql","data.sql") | ForEach-Object {
+    Get-Item -LiteralPath (Join-Path $folder $_)
+  }
+  if (@($files | Where-Object { $_.Length -le 0 }).Count -gt 0) {
+    throw "Hay archivos vacios. El respaldo NO se considera completo."
+  }
+  $files | Get-FileHash -Algorithm SHA256 |
+    Select-Object @{Name="Archivo";Expression={Split-Path $_.Path -Leaf}},Hash |
+    Export-Csv -LiteralPath (Join-Path $folder "SHA256.csv") -NoTypeInformation -Encoding UTF8
+  $files | Select-Object Name,Length | Format-Table
+  Write-Host "RESPALDO GENERADO: $folder"
+  Write-Warning "Sin restauracion probada. Cifra la carpeta y copia a almacenamiento externo."
+  Write-Warning "NO incluye objetos de Storage ni garantiza recuperar usuarios de Auth."
 } catch {
-  Write-Error "La exportacion no fue completada. Revisa Docker, conectividad y permisos. Verifica/elimina archivos parciales: $folder"
-  exit 1
+  Write-Warning "Respaldo INCOMPLETO. Los archivos parciales estan en: $folder"
+  throw
 }
