@@ -56,3 +56,12 @@ Para habilitar:
 - **Usuarios externos:** cuenta individual, acceso mínimo configurable y revocable; sin acceso clínico o exportación total por defecto; alta mediante invitación segura sin contraseñas compartidas.
 - **Protección:** exportación manual mensual no es respaldo automático. Mantener respaldos y recuperación de servicio aparte. La cuenta de superadministrador no recibe datos clínicos de terceros por defecto.
 - **Estado:** especificación, sin habilitación de descarga ni creación de usuarios multiempresa hasta validar aislamiento por óptica.
+
+## Identidad de marca blanca por óptica (decisión comercial)
+Cada administrador de óptica puede modificar logo, nombre comercial, razón social, NIT, dirección, teléfonos, WhatsApp, correo, eslogan, colores, temas, textos y plantillas desde su panel. La configuración es **por optica_id** y jamás global; no requiere intervención del superadministrador. Su cuenta no altera la marca de otras ópticas ni los datos propios del superadministrador.
+
+Toda salida nueva debe utilizar una única capa de identidad del negocio: dashboard, cotizaciones, comprobantes de ventas, facturas donde proceda, órdenes de laboratorio, fórmulas e historias clínicas, citas, mensajes, notificaciones, reportes Excel y PDF. Aplicar identidad comercial sin suprimir datos fiscales o clínicos obligatorios. La facturación electrónica legal requiere integración y validación normativa aparte, no se equipara a imprimir comprobantes.
+
+**Trazabilidad:** congelar datos de emisor y versión de plantilla aplicables al momento de expedir cada documento; los cambios de logo o nombre solo afectan documentos futuros y nunca reescriben documentos históricos. Logo e imágenes alojados privadamente con controles de acceso y validación de formato/tamaño. Plantillas de mensajes deben usar variables permitidas y evitar divulgar datos clínicos sensibles por canales inseguros.
+
+**Dependencias previas a activación:** crear modelo multiempresa, permisos por óptica, migración segura de identidad actual y pruebas de no contaminación entre negocios. Mantener integración Drive/Sheets propia del superadministrador separada de clientes.
