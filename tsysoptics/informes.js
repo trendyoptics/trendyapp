@@ -166,7 +166,8 @@ function render(r){
  const metrics=[
   ["Ventas vigentes del mes",money(t.salesTotal),number(t.salesCount)+" operaciones"],
   ["Recaudos registrados",money(t.paymentsTotal),"Pagos recibidos durante el mes, antes de reembolsos"],
-  ["Reembolsos registrados",money(t.refundedTotal),number(t.refundCount)+" devoluciones del periodo"],
+  ["Reembolsos registrados en el mes",money(t.refundedTotal),number(t.refundCount)+" devoluciones · salidas de dinero documentadas"],
+  ["Cobros menos reembolsos",money(t.paymentsTotal-t.refundedTotal),"Cobros del periodo menos reembolsos del periodo; no equivale a utilidad"],
   ["Saldos pendientes",money(t.balanceNow),"Saldo actual de ventas del mes"],
   ["Unidades vendidas",number(t.unitsSold),"Referencias de ventas vigentes"],
   ["Existencias actuales",number(t.stockUnits),"Al consultar, NO al cierre histórico"],
@@ -180,6 +181,7 @@ function render(r){
  list($("informe-medios"),r.methods.map(([k,v])=>[k.toLocaleUpperCase("es-CO"),money(v)]));
  list($("informe-productos"),[
   ["Ventas anuladas",number(t.voidCount)],["Ventas devueltas",number(t.returnedCount)],
+  ["Reembolsos del periodo",money(t.refundedTotal),number(t.refundCount)+" devoluciones registradas"],
   ["Costo productos vendidos",money(t.estimatedCost),"Estimación por costos históricos registrados"],
   ["Margen bruto estimado",money(t.salesTotal-t.estimatedCost),"Sin gastos, impuestos ni ajustes contables"],
   ...r.top.slice(0,12).map(x=>[x.nombre||x.codigo,money(x.valor),number(x.unidades)+" unidad(es)"])
