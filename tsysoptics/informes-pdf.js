@@ -77,6 +77,7 @@ export async function createMonthlyPdf(report,identity={}){
   const items=[
    ["VENTAS DEL MES",COP(report.totals.salesTotal)],
    ["RECAUDOS DEL MES",COP(report.totals.paymentsTotal)],
+   ["REEMBOLSOS DEL MES",COP(report.totals.refundedTotal)],
    ["SALDO ACTUAL",COP(report.totals.balanceNow)],
    ["UNIDADES VENDIDAS",INT(report.totals.unitsSold)],
    ["EXISTENCIAS HOY",INT(report.totals.stockUnits)],
