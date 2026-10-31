@@ -120,7 +120,11 @@ function renderHistory(){
   group.append(html("strong",saleLabel(v)));
   group.append(html("small","Estado "+v.estado+" · Abonado "+COP(v.abonado)+" · Saldo "+COP(v.saldo)));
   const labs=orders.filter(o=>o.venta_id===v.id);
-  for(const o of labs)group.append(html("small","Laboratorio "+o.laboratorio+" · "+(named[o.estado]||o.estado)));
+  for(const o of labs){
+   group.append(html("small","Laboratorio "+o.laboratorio+" · "+(named[o.estado]||o.estado)));
+   if(o.fecha_entrega_estimada)group.append(html("small","Entrega prevista: "+date(o.fecha_entrega_estimada)));
+   if(o.estado==="entregado"&&o.fecha_entrega_paciente)group.append(html("small","Entregado al paciente: "+date(o.fecha_entrega_paciente)));
+  }
   row.append(group);root.append(row);
  }
  for(const n of notesPatient){
