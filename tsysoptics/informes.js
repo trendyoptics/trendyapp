@@ -163,6 +163,9 @@ function metric(label,value,note){
 }
 function render(r){
  const t=r.totals,box=$("informe-indicadores");box.replaceChildren();
+ $("informe-cobros-conciliacion").textContent=money(t.paymentsTotal);
+ $("informe-reembolsos-conciliacion").textContent=money(t.refundedTotal);
+ $("informe-neto-conciliacion").textContent=money(t.paymentsTotal-t.refundedTotal);
  const metrics=[
   ["Ventas vigentes del mes",money(t.salesTotal),number(t.salesCount)+" operaciones"],
   ["Recaudos registrados",money(t.paymentsTotal),"Pagos recibidos durante el mes, antes de reembolsos"],
