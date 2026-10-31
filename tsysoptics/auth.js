@@ -86,7 +86,7 @@ function locked(text = "") {
   clearRole();
 }
 async function actualizarAccesosSuperadmin(role) {
-  const ids=["tsys-superadmin-opticas","tsys-superadmin-alta","tsys-mobile-opticas","tsys-mobile-alta"];
+  const ids=["tsys-superadmin-opticas","tsys-superadmin-alta","tsys-mobile-opticas","tsys-mobile-alta","tsys-admin-shortcuts"];
   ids.forEach(id=>{const x=document.getElementById(id);if(x)x.hidden=true;});
   if(role!=="administrador" || !client)return;
   // El servidor decide: una cuenta común recibe 42501 y no muestra las funciones de propietario SaaS.
