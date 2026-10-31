@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><title>TsysOptics · Administración de mi óptica</title>
+<style>
+:root{font:15px/1.5 system-ui,sans-serif;color:#081226;background:#f2f2f2}*{box-sizing:border-box}
+body{margin:0}.shell{max-width:940px;margin:auto;padding:22px}header{background:#081226;color:white;padding:18px 24px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}header a{color:white}
+.card{background:white;border:1px solid #d8e0e9;border-radius:13px;padding:20px;margin:16px 0}
+h1{font-size:25px;margin:0}h2{font-size:19px;margin:0 0 12px}
+p,.hint{color:#566378}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+label{font-weight:650;display:grid;gap:5px}input{font:inherit;padding:11px;border:1px solid #b8c4d3;border-radius:8px;min-width:0}button{font:inherit;padding:10px 15px;background:#0b1c40;color:#fff;border:0;border-radius:8px;cursor:pointer}
+button:disabled{opacity:.5}.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.status{padding:9px 0;min-height:24px;color:#344761}.notice{background:#edf2f8;padding:12px;border-radius:8px}
+@media(max-width:600px){.fields{grid-template-columns:1fr}.shell{padding:14px}}
+[hidden]{display:none!important}
+</style></head>
+<body><header><h1>TsysOptics · Mi óptica</h1><a href="./index.html">Volver al sistema</a></header>
+<main class="shell">
+<section id="login" class="card"><h2>Acceder a la administración</h2><form id="login-form" class="fields">
+<label>Correo<input id="login-correo" type="email" autocomplete="username" required></label>
+<label>Contraseña<input id="login-clave" type="password" autocomplete="current-password" required></label>
+<div><button type="submit">Entrar</button></div></form></section>
+<section id="panel" hidden>
+<div class="row"><h2 id="optica-nombre">Mi óptica</h2><button type="button" id="logout">Cerrar sesión</button></div>
+<div class="notice">Cada cambio afecta exclusivamente tu óptica. Los registros clínicos y financieros están protegidos por permisos separados.</div>
+<section class="card"><h2>Personalizar identidad</h2>
+<form id="marca-form" class="fields">
+<label>Nombre comercial<input id="nombre" maxlength="120" minlength="2" required></label>
+<label>Teléfono<input id="telefono" maxlength="80"></label>
+<label>Dirección<input id="direccion" maxlength="200"></label>
+<label>WhatsApp<input id="whatsapp" maxlength="80"></label>
+<label>Correo comercial<input id="correo" type="email" maxlength="160"></label>
+<label>Eslogan<input id="eslogan" maxlength="200"></label>
+<label>Color principal<input id="color" type="color" value="#0b1c40"></label>
+<div class="row"><button type="submit">Guardar identidad</button></div>
+</form></section>
+<section class="card"><h2>Usuarios y reportes</h2>
+<p>La creación de usuarios externos y los informes por óptica se habilitarán cuando estén comprobadas las reglas de separación de datos. No compartas tu contraseña.</p>
+<button disabled>Invitar usuario externo</button> <button disabled>Descargar informe completo</button>
+</section>
+</section><p class="status" id="estado" role="status" aria-live="polite"></p>
+</main><script type="module" src="./mi-optica.js?v=20261031a"></script></body></html>
