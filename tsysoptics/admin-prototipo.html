@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TsysOptics Admin · Prototipo</title>
+<title>TsysOptics Admin · Ópticas y licencias</title>
 <style>
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#081226;background:#f2f2f2}*{box-sizing:border-box}
 body{margin:0}.layout{max-width:1140px;margin:auto;padding:22px}.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
@@ -16,14 +16,18 @@ table{width:100%;border-collapse:collapse;background:white;border-radius:12px;ov
 button{font:inherit;border:1px solid #b3bed0;background:#edf1f7;color:#0b1c40;border-radius:7px;padding:9px 11px;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}.foot{font-size:12px}
 @media(max-width:650px){.cards{grid-template-columns:1fr 1fr}.table-wrap{overflow-x:auto}table{min-width:730px}.layout{padding:14px}}
-</style>
+button.primary{background:#0B1C40;color:white}.controls{display:flex;flex-wrap:wrap;gap:8px}.authbox{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.authbox input{flex:1;min-width:180px}.authbox button{white-space:nowrap}.status{margin:8px 0;color:#394760}.secure[hidden],.authbox[hidden]{display:none!important}</style>
 </head>
 <body><main class="layout">
-<header class="head"><div><span class="tag">SUPERADMINISTRADOR · VISTA PREVIA</span><h1>Ópticas y licencias</h1><p>Directorio central y control de acceso del servicio TsysOptics.</p></div><button type="button" disabled title="Pendiente de aprovisionamiento seguro">+ Registrar óptica</button></header>
-<div class="banner"><strong>Prototipo sin conexión a clientes.</strong> No muestra datos reales ni permite suspender licencias. Antes de activar estos controles se requiere backend autenticado, roles de superadministrador y separación por óptica.</div>
-<section class="cards" aria-label="Indicadores de ópticas"><article class="card"><small>Ópticas registradas</small><strong>—</strong><small>Pendiente de conexión</small></article><article class="card"><small>Suscripciones activas</small><strong>—</strong><small>Pendiente de conexión</small></article><article class="card"><small>Próximas a vencer</small><strong>—</strong><small>Pendiente de conexión</small></article></section>
-<section aria-label="Directorio"><h2>Directorio de clientes</h2><div class="toolbar"><input aria-label="Buscar óptica" placeholder="Buscar por nombre, NIT o correo" disabled><select aria-label="Filtrar estado" disabled><option>Todos los estados</option><option>Activas</option><option>Suspendidas</option></select></div>
-<div class="table-wrap"><table><thead><tr><th>Óptica</th><th>Administrador</th><th>Plan</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="6">Todavía no existe un directorio multiempresa conectado. No se muestran clientes ficticios como si fueran reales.</td></tr></tbody></table></div></section>
+<header class="head"><div><span class="tag">SUPERADMINISTRADOR · CONTROL DE LICENCIAS</span><h1>Ópticas y licencias</h1><p>Directorio central y control de acceso del servicio TsysOptics.</p></div><button id="logout" type="button" hidden>Cerrar sesión</button></header>
+<div class="banner"><strong>Alta comercial en preparación.</strong> Puedes registrar ópticas y gestionar su estado de preparación o suspensión. La activación del servicio está bloqueada hasta que certifiquemos la separación clínica entre ópticas. Esta pantalla no accede a pacientes.</div>
+<section class="card authbox" id="login-box"><form id="login-form" class="authbox"><input type="email" id="email" placeholder="Correo de superadministrador" autocomplete="username" required><input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" required><button class="primary" type="submit">Ingresar</button></form></section>
+<p role="status" aria-live="polite" class="status" id="status">Inicia sesión con tu cuenta autorizada.</p>
+<section class="card secure" id="create-box" hidden><h2>Registrar óptica</h2><form id="new-form" class="authbox"><input id="nombre" minlength="2" maxlength="120" required placeholder="Nombre de la óptica"><input id="correo" type="email" required placeholder="Correo del propietario"><select id="plan"><option value="basico">Básico</option><option value="profesional">Profesional</option><option value="empresarial">Empresarial</option></select><label>Vencimiento <input id="vence" type="date"></label><button class="primary" type="submit">Registrar en preparación</button></form><p class="foot">Registrar la óptica no crea todavía credenciales del propietario ni habilita acceso clínico.</p></section>
+<section class="cards secure" id="cards" hidden aria-label="Indicadores de ópticas"><article class="card"><small>Ópticas registradas</small><strong id="count-total">0</strong><small>Registradas</small></article><article class="card"><small>Suscripciones activas</small><strong id="count-active">0</strong><small>Aún sin activación comercial</small></article><article class="card"><small>Próximas a vencer</small><strong id="count-expire">0</strong><small>Dentro de 30 días</small></article></section>
+<section class="secure" hidden id="directory" aria-label="Directorio"><h2>Directorio de clientes</h2><div class="toolbar"><input aria-label="Buscar óptica" placeholder="Buscar por nombre o correo" id="filter"><select id="state-filter" aria-label="Filtrar estado"><option value="todas">Todos los estados</option><option value="preparacion">En preparación</option><option value="activa">Activas</option><option value="suspendida">Suspendidas</option></select></div>
+<div class="table-wrap"><table><thead><tr><th>Óptica</th><th>Administrador</th><th>Plan</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="body"><tr><td colspan="6">Inicia sesión para consultar las ópticas registradas.</td></tr></tbody></table></div></section>
 <section class="card" style="margin-top:20px"><h2>Funciones previstas por óptica</h2><p>Activar o suspender una licencia; ampliar o reducir módulos contratados; modificar límites de usuarios; gestionar fecha de vencimiento; reenviar invitación al administrador y revisar la auditoría de cambios.</p><p><strong>Regla de seguridad:</strong> suspender el servicio no elimina información, no desactiva la exportación segura que corresponda y no concede al superadministrador acceso clínico automático.</p></section>
-<p class="foot">TsysOptics Admin · Prototipo de interfaz. No es el panel de producción ni está enlazado desde la aplicación clínica.</p>
+<p class="foot">TsysOptics Admin · Control comercial inicial. No representa certificación multiempresa. La identidad y los historiales de cada óptica requieren migración antes de activar clientes.</p>
+<script type="module" src="./admin-saas.js?v=20261030a"></script>
 </main></body></html>
