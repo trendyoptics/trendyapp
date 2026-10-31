@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TsysOptics Admin · Prototipo</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#081226;background:#f2f2f2}*{box-sizing:border-box}
+body{margin:0}.layout{max-width:1140px;margin:auto;padding:22px}.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-size:clamp(24px,4vw,34px);margin:6px 0}p{color:#585F73}.tag{display:inline-block;padding:5px 10px;border-radius:7px;background:#e9eef5;color:#0B1C40;font-size:12px;font-weight:700}
+.banner{background:#fff3db;color:#573c00;border:1px solid #e8c782;padding:13px;border-radius:9px;margin:20px 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{background:#fff;border:1px solid #dce2eb;border-radius:12px;padding:19px}
+.card strong{font-size:29px;display:block}.card small{color:#585F73}
+input,select{padding:11px;border:1px solid #c4ccd8;border-radius:8px;background:white;font:inherit;max-width:100%}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}input{flex:1;min-width:200px}
+table{width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden}th,td{text-align:left;padding:14px 12px;border-bottom:1px solid #e4e8ee;font-size:13px}th{background:#e9eef5}
+button{font:inherit;border:1px solid #b3bed0;background:#edf1f7;color:#0b1c40;border-radius:7px;padding:9px 11px;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}.foot{font-size:12px}
+@media(max-width:650px){.cards{grid-template-columns:1fr 1fr}.table-wrap{overflow-x:auto}table{min-width:730px}.layout{padding:14px}}
+</style>
+</head>
+<body><main class="layout">
+<header class="head"><div><span class="tag">SUPERADMINISTRADOR · VISTA PREVIA</span><h1>Ópticas y licencias</h1><p>Directorio central y control de acceso del servicio TsysOptics.</p></div><button type="button" disabled title="Pendiente de aprovisionamiento seguro">+ Registrar óptica</button></header>
+<div class="banner"><strong>Prototipo sin conexión a clientes.</strong> No muestra datos reales ni permite suspender licencias. Antes de activar estos controles se requiere backend autenticado, roles de superadministrador y separación por óptica.</div>
+<section class="cards" aria-label="Indicadores de ópticas"><article class="card"><small>Ópticas registradas</small><strong>—</strong><small>Pendiente de conexión</small></article><article class="card"><small>Suscripciones activas</small><strong>—</strong><small>Pendiente de conexión</small></article><article class="card"><small>Próximas a vencer</small><strong>—</strong><small>Pendiente de conexión</small></article></section>
+<section aria-label="Directorio"><h2>Directorio de clientes</h2><div class="toolbar"><input aria-label="Buscar óptica" placeholder="Buscar por nombre, NIT o correo" disabled><select aria-label="Filtrar estado" disabled><option>Todos los estados</option><option>Activas</option><option>Suspendidas</option></select></div>
+<div class="table-wrap"><table><thead><tr><th>Óptica</th><th>Administrador</th><th>Plan</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="6">Todavía no existe un directorio multiempresa conectado. No se muestran clientes ficticios como si fueran reales.</td></tr></tbody></table></div></section>
+<section class="card" style="margin-top:20px"><h2>Funciones previstas por óptica</h2><p>Activar o suspender una licencia; ampliar o reducir módulos contratados; modificar límites de usuarios; gestionar fecha de vencimiento; reenviar invitación al administrador y revisar la auditoría de cambios.</p><p><strong>Regla de seguridad:</strong> suspender el servicio no elimina información, no desactiva la exportación segura que corresponda y no concede al superadministrador acceso clínico automático.</p></section>
+<p class="foot">TsysOptics Admin · Prototipo de interfaz. No es el panel de producción ni está enlazado desde la aplicación clínica.</p>
+</main></body></html>
