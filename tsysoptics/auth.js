@@ -137,6 +137,11 @@ async function verifyUser() {
     return;
   }
   showApp(profile.rol);
+  if(profile.rol==="administrador" && user.email?.toLowerCase()==="jonierramos23@gmail.com"){
+    // El servidor comprueba correo verificado, perfil activo y ausencia de otro superadministrador.
+    // El frontend no puede conceder privilegios por sí solo.
+    await client.rpc("activar_superadmin_inicial_tsysoptics");
+  }
   await actualizarAccesosSuperadmin(profile.rol);
 }
 form.addEventListener("submit", async (event) => {
