@@ -43,3 +43,18 @@ Comprobar en la versión instalada de la CLI los parámetros disponibles con `su
 - Separación clara de datos DEMO y registros reales.
 
 Documentación: https://supabase.com/docs/guides/platform/backups y https://supabase.com/docs/reference/cli/supabase-db-dump
+
+
+## Puesta en marcha del respaldo desde Windows (Supabase Free)
+
+1. Instalar Docker Desktop y la Supabase CLI; iniciar Docker Desktop.
+2. Abrir PowerShell en la carpeta local del proyecto (la que contiene o contendrá `supabase/`).
+3. Ejecutar `supabase login` y `supabase link --project-ref rzeqdhddbmxcpyzssuod`. Introducir credenciales solamente en la consola local y en las pantallas oficiales; **nunca en ChatGPT**.
+4. Ejecutar `powershell -NoProfile -File .\\tsysoptics\\scripts\\respaldo-manual.ps1` desde la raíz del repositorio. En Windows PowerShell los archivos pueden necesitar una política de ejecución autorizada por el propietario.
+5. Verificar que en `$HOME\\TsysOptics-Backups\\<fecha>` estén `roles.sql`, `schema.sql`, `data.sql` y `SHA256.csv`. Verificar los hashes antes y después de copiar los archivos.
+6. Cifrar la copia, almacenarla fuera del equipo y establecer frecuencia diaria, responsable y retención. El script **no automatiza** tareas programadas, cifrado, copia remota ni recuperación.
+7. La primera restauración debe efectuarse en otra base de datos, nunca en el proyecto operativo. Guardar evidencia del éxito y cotejar las relaciones y conteos.
+
+**Limitación importante:** los volcados de Supabase CLI no equivalen a un respaldo integral del proyecto: datos administrados por Auth, configuración del proyecto, objetos de Storage e integraciones como Google Sheets requieren comprobación y respaldo independientes. No usar con datos reales hasta validar esa cobertura.
+
+**Puesta en marcha autorizada:** la interfaz puede mantenerse como piloto con registros de prueba mientras se completa la recuperación. No eliminar la advertencia de piloto ni mezclar registros DEMO con pacientes reales.
