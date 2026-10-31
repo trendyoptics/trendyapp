@@ -177,6 +177,19 @@ async function save(event){
  if(!patientId){status("posventa-form-estado","Selecciona un paciente.");return}
  const payload={paciente_id:patientId,venta_id:$("posventa-venta").value||null,orden_id:$("posventa-orden").value||null,
   tipo:$("posventa-tipo").value,descripcion:$("posventa-descripcion").value.trim(),fecha_programada:$("posventa-fecha").value||null};
+ if(payload.venta_id&&!sales.some(v=>v.id===payload.venta_id&&v.paciente_id===patientId&&v.estado==="emitida")){
+  status("posventa-form-estado","La venta seleccionada no corresponde a una venta vigente de este paciente. Actualiza el módulo.");return;
+ }
+ if(payload.orden_id){
+  const order=orders.find(o=>o.id===payload.orden_id);
+  const linked=sales.find(v=>v.id===order?.venta_id);
+  if(!order||!linked||linked.paciente_id!==patientId||linked.estado!=="emitida"||
+    (payload.venta_id&&payload.venta_id!==order.venta_id)){
+   status("posventa-form-estado","El pedido no corresponde al paciente y la venta seleccionados. Actualiza el módulo.");return;
+  }
+  // Guardar la venta vinculada para que el seguimiento sea trazable incluso sin selección previa.
+  payload.venta_id=order.venta_id;
+ }
  if(payload.descripcion.length<3){status("posventa-form-estado","Describe el motivo en al menos tres caracteres.");return}
  busy=true;$("posventa-guardar").disabled=true;
  try{
