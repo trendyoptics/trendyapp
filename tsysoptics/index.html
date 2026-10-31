@@ -896,6 +896,15 @@ function lens(){
 for(const id of ["potencia","indice","diametro"])$(id).addEventListener("input",lens);
 function applyDashboardRole(role){
  currentRole=role;
+ if(role!=="administrador"){
+  // No conservar métricas administrativas de una sesión anterior al cambiar de rol.
+  ventasTotalRemoto=null;ventasHoy=null;inventoryCount=null;labProceso=null;labEntregas=null;
+  for(const id of ["metric-ventas","metric-ventas-hoy","metric-ventas-mes","metric-productos","metric-lab-proceso","metric-lab-entregas"]){
+   const el=document.getElementById(id);if(el)el.textContent="Acceso restringido";
+  }
+  const stockAlert=document.getElementById("dashboard-alerta-stock");
+  if(stockAlert){stockAlert.hidden=true;stockAlert.textContent="";}
+ }
  const limited=role!=="administrador";
  const details=document.getElementById("access-details");
  if(details)details.textContent=limited?"Inventario, ventas, caja, laboratorio e informes bloqueados. Agenda de prueba y simulador disponibles.":"Acceso administrativo a agenda, inventario, ventas, caja, laboratorio e informes en Supabase.";
