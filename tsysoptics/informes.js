@@ -212,7 +212,8 @@ function render(r){
  $("informe-nota").textContent="Periodo de ventas y recaudos: "+r.month+
   ". Cifras de ventas calculadas con el estado vigente al consultar; devoluciones y anulaciones se excluyen del total vigente. Recaudos incluyen pagos registrados durante el mes, incluso de ventas anteriores: no equivalen necesariamente a las ventas del mes ni descuentan posibles devoluciones externas. Stock, saldos y pedidos abiertos reflejan el momento de consulta ("+
   new Date(r.generatedAt).toLocaleString("es-CO")+
-  "). Costo y margen son estimaciones, no utilidad contable. "+(isCurrent?"El mes está en curso: informe provisional.":"Mes seleccionado.");
+  "). Costo y margen son estimaciones, no utilidad contable. "+(isCurrent?"El mes está en curso: informe provisional.":"Mes seleccionado.")+
+  (r.storedClose?" Existe un cierre histórico guardado para este periodo. Este informe es una consulta actualizada y NO modifica ni sustituye ese cierre.":" No existe cierre histórico guardado para este periodo.");
  $("informe-resultado").hidden=false;
 }
 async function generate(){
