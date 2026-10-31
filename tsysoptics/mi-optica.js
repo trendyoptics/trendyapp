@@ -8,11 +8,12 @@ function vista(autorizado){el("login").hidden=autorizado;el("panel").hidden=!aut
 async function cargar(){
  const {data,error}=await db.rpc("mi_perfil_saas_tsysoptics");
  if(error){vista(false);estado("No se pudo comprobar el permiso: "+error.message);return;}
- const admin=(data||[]).find(o=>o.rol==="administrador"&&o.estado==="activa");
+ const admin=(data||[]).find(o=>o.rol==="administrador"&&["activa","preparacion"].includes(o.estado));
  if(!admin){optica=null;vista(false);estado("Esta cuenta aún no dispone de una óptica activa como administrador.");return;}
  optica=admin;
  el("nombre").value=admin.nombre;
  el("optica-nombre").textContent=admin.nombre;
+ el("licencia-notice").textContent=admin.estado==="preparacion"?"Tu óptica está en preparación. Puedes configurar los datos comerciales, pero no acceder todavía a pacientes, ventas o historias clínicas.":"Tu óptica tiene una licencia activa. Los módulos operativos requieren comprobación de aislamiento."; 
  vista(true);estado("Sesión autorizada.");
 }
 el("login-form").addEventListener("submit",async e=>{
@@ -25,12 +26,32 @@ el("login-form").addEventListener("submit",async e=>{
 el("marca-form").addEventListener("submit",async e=>{
  e.preventDefault();
  if(!optica)return;
- const config={telefono:el("telefono").value.trim(),direccion:el("direccion").value.trim(),whatsapp:el("whatsapp").value.trim(),correo:el("correo").value.trim(),eslogan:el("eslogan").value.trim(),color_primario:el("color").value};
+ const config={nit:el("nit").value.trim(),telefono:el("telefono").value.trim(),direccion:el("direccion").value.trim(),whatsapp:el("whatsapp").value.trim(),correo:el("correo").value.trim(),eslogan:el("eslogan").value.trim(),color_primario:el("color").value};
  estado("Guardando configuración...");
  const {error}=await db.rpc("actualizar_marca_mi_optica_tsysoptics",{p_optica:optica.optica_id,p_nombre:el("nombre").value.trim(),p_config:config});
  if(error){estado("No se pudo guardar: "+error.message);return;}
  el("optica-nombre").textContent=el("nombre").value.trim();estado("Identidad guardada en tu óptica.");
 });
 el("logout").addEventListener("click",async()=>{await db.auth.signOut();optica=null;vista(false);estado("Sesión cerrada.");});
+el("password-form").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const password=el("new-password").value;
+ if(password.length<12){estado("La contraseña debe tener al menos 12 caracteres.");return;}
+ const {error}=await db.auth.updateUser({password});
+ if(error){estado("No se pudo establecer la contraseña: "+error.message);return;}
+ el("new-password").value="";el("password-setup").hidden=true;
+ estado("Contraseña establecida. Tu cuenta ya está preparada.");
+ await cargar();
+});
+db.auth.onAuthStateChange((event,session)=>{
+ if(event==="SIGNED_OUT"){optica=null;vista(false);el("password-setup").hidden=true;}
+ if(event==="SIGNED_IN" && session && (location.hash.includes("type=invite") || new URLSearchParams(location.search).has("token_hash"))){
+  el("password-setup").hidden=false;vista(false);estado("Establece la contraseña de tu invitación.");
+ }
+});
 const {data:{session}}=await db.auth.getSession();
-if(session)await cargar();else vista(false);
+if(session){
+ const inviteFlow=location.hash.includes("type=invite")||location.search.includes("type=invite");
+ if(inviteFlow){vista(false);el("password-setup").hidden=false;estado("Crea tu contraseña para terminar la invitación.");}
+ else await cargar();
+}else vista(false);
