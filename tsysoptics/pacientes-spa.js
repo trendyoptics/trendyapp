@@ -168,10 +168,17 @@ $("profile-new").addEventListener("click",()=>{
 form.addEventListener("input",()=>{dirty=true});
 
 async function requireAdmin(){
- const {data,error}=await sb.auth.getUser();if(error||!data?.user)return false;
- const {data:profile,error:pError}=await sb.from("usuarios_tsysoptics").select("rol,activo").eq("id",data.user.id).maybeSingle();
- externalReadOnly=!pError&&profile?.activo===true&&profile?.rol==="externo";
- return !pError&&profile?.activo===true&&["administrador","externo"].includes(profile?.rol);
+ // El acceso ya se verifica en auth.js; esta instancia Supabase puede estar
+ // recuperando su sesión al montar Pacientes. Nunca elevar un usuario externo.
+ const {data:sessionData}=await sb.auth.getSession();
+ if(!sessionData?.session?.user)return false;
+ const roleFromPanel=document.getElementById("tsys-app")?.dataset.role;
+ if(!["administrador","externo"].includes(roleFromPanel))return false;
+ const {data:profile,error:pError}=await sb.from("usuarios_tsysoptics")
+  .select("rol,activo").eq("id",sessionData.session.user.id).maybeSingle();
+ if(pError||profile?.activo!==true||profile.rol!==roleFromPanel)return false;
+ externalReadOnly=profile.rol==="externo";
+ return true;
 }
 function showDenied(text){
  externalReadOnly=false;authorized=false;searchRequest++;historyRequest++;
