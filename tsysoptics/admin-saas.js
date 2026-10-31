@@ -49,6 +49,23 @@ function render(){
     finally{invite.disabled=false;}
    });
    td.append(invite);
+   const recovery=document.createElement("button");recovery.type="button";recovery.textContent="Crear enlace de acceso";recovery.style.marginLeft="8px";
+   recovery.addEventListener("click",async()=>{
+    if(!confirm("Generar un enlace privado para que el propietario establezca su contraseña sin enviar correos. Solo compártelo con el propietario verificado."))return;
+    recovery.disabled=true;setStatus("Generando enlace...");
+    try{
+     const {data:{session}}=await db.auth.getSession();
+     if(!session)throw Error("Inicia sesión de nuevo.");
+     const response=await fetch(SUPABASE_URL+"/functions/v1/tsysoptics-recuperacion-manual",{method:"POST",headers:{"Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_PUBLISHABLE_KEY,"Content-Type":"application/json"},body:JSON.stringify({optica_id:o.id})});
+     const data=await response.json();
+     if(!response.ok)throw Error(data.error||"No se pudo generar.");
+     const field=document.createElement("textarea");field.readOnly=true;field.value=data.enlace;field.rows=4;field.style.width="100%";
+     const wrap=document.createElement("div");wrap.className="card";wrap.append(document.createTextNode("Enlace privado de recuperación para "+o.nombre+". Copia y entrégalo solo al propietario. Quien tenga este enlace podrá establecer la contraseña."),field);
+     const copy=document.createElement("button");copy.type="button";copy.textContent="Copiar enlace";copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(field.value);setStatus("Enlace copiado.");}catch{field.select();setStatus("Selecciona y copia el enlace.");}});
+     wrap.append(copy);$("status").after(wrap);setStatus("Enlace generado. No se envió correo.");
+    }catch(err){setStatus("Error: "+err.message);}finally{recovery.disabled=false;}
+   });td.append(recovery);
+
   }
   td.append(b);tr.append(td);$("body").append(tr);
  }
