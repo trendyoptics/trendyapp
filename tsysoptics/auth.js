@@ -85,6 +85,15 @@ function locked(text = "") {
   if (text) message(text);
   clearRole();
 }
+async function actualizarAccesosSuperadmin(role) {
+  const ids=["tsys-superadmin-opticas","tsys-superadmin-alta","tsys-mobile-opticas","tsys-mobile-alta"];
+  ids.forEach(id=>{const x=document.getElementById(id);if(x)x.hidden=true;});
+  if(role!=="administrador" || !client)return;
+  // El servidor decide: una cuenta común recibe 42501 y no muestra las funciones de propietario SaaS.
+  const {error}=await client.rpc("listar_opticas_superadmin_tsysoptics");
+  if(error)return;
+  ids.forEach(id=>{const x=document.getElementById(id);if(x)x.hidden=false;});
+}
 function showApp(role) {
   applyRole(role);
   finishLoading();
@@ -128,6 +137,7 @@ async function verifyUser() {
     return;
   }
   showApp(profile.rol);
+  await actualizarAccesosSuperadmin(profile.rol);
 }
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
