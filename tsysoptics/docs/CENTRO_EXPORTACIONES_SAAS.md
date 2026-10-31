@@ -47,3 +47,12 @@ Para habilitar:
 - Exportación no altera ventas, caja, inventario ni historias.
 - Sin intervención manual del propietario ni del superadministrador.
 - Restauración de respaldos verificada aparte: una exportación XLSX **no sustituye un backup**.
+
+## Decisión comercial: dos modalidades de administración (30/10/2026)
+- **Superadministrador / óptica propia:** conservar la integración existente de historia clínica con Google Drive/Sheets en tiempo real, sin replicar por defecto la información clínica de los clientes al Drive del proveedor.
+- **Administrador de una óptica cliente:** gestionar desde su panel sus propios usuarios (incluidos externos), invitaciones, estados y permisos; sin configurar infraestructura ni acceder a otra óptica.
+- **Clientes:** las historias clínicas, movimientos, ventas y demás transacciones se guardan inmediatamente en la base operativa segregada por óptica. El **informe es mensual**, disponible al cerrar el mes, para descargar XLSX con hojas de los siete módulos y resumen. El historial completo y las obligaciones de conservación no pueden depender de que el cliente descargue el informe.
+- **Informe mensual:** períodos naturales completos según zona horaria de la óptica. El 01/11/2026 se habilita octubre de 2026. Pacientes creados en el mes vs catálogo acumulado y estado de inventario al cierre deben distinguirse explícitamente.
+- **Usuarios externos:** cuenta individual, acceso mínimo configurable y revocable; sin acceso clínico o exportación total por defecto; alta mediante invitación segura sin contraseñas compartidas.
+- **Protección:** exportación manual mensual no es respaldo automático. Mantener respaldos y recuperación de servicio aparte. La cuenta de superadministrador no recibe datos clínicos de terceros por defecto.
+- **Estado:** especificación, sin habilitación de descarga ni creación de usuarios multiempresa hasta validar aislamiento por óptica.
