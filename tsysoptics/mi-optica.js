@@ -21,29 +21,38 @@ async function cargar(){
  mostrar("panel");estado("Acceso confirmado a "+admin.nombre+".");
 }
 async function comenzar(){
- const params=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.replace(/^#/,""));
- const token=params.get("token_hash")||hash.get("token_hash");
- const type=params.get("type")||hash.get("type");
- const code=params.get("code");
- let callback=false;
- if(token && ["invite","recovery"].includes(type)){
-  callback=true;estado("Verificando invitación...");
-  const {error}=await db.auth.verifyOtp({token_hash:token,type});
-  if(error){mostrar("login");estado("La invitación no es válida o ha vencido. Solicita una nueva.");return;}
- }else if(code){
-  callback=true;estado("Validando acceso...");
-  const {error}=await db.auth.exchangeCodeForSession(code);
-  if(error){mostrar("login");estado("El enlace no pudo verificarse. Solicita una nueva invitación.");return;}
- }else if(["invite","recovery"].includes(type)||hash.has("access_token")){
-  callback=true;
+ const query=new URLSearchParams(location.search);
+ const hash=new URLSearchParams(location.hash.replace(/^#/,""));
+ const type=query.get("type")||hash.get("type");
+ const fromEmail=type==="recovery"||type==="invite"||query.has("code")||query.has("token_hash")||hash.has("access_token");
+ // Supabase procesa automáticamente el code PKCE y los tokens URL
+ // (detectSessionInUrl:true). No consumir el mismo código dos veces.
+ const {data:{session},error}=await db.auth.getSession();
+ if(error){mostrar("login");estado("No se pudo verificar el enlace: "+error.message);return;}
+ if(!session){
+  const token=query.get("token_hash")||hash.get("token_hash");
+  if(token && ["invite","recovery"].includes(type)){
+   const verified=await db.auth.verifyOtp({token_hash:token,type});
+   if(!verified.error && verified.data.session){
+    history.replaceState(null,"",location.pathname);
+    mostrar("password-setup");
+    estado("Enlace confirmado. Ya puedes establecer tu contraseña.");
+    return;
+   }
+  }
+  mostrar("login");
+  estado(fromEmail?"El enlace no estableció una sesión válida. Solicita recuperación de contraseña para generar un enlace nuevo.":"Inicia sesión con el correo de tu óptica.");
+  return;
  }
- const {data:{session}}=await db.auth.getSession();
- if(!session){mostrar("login");estado(callback?"No se pudo confirmar la sesión de la invitación. Abre nuevamente el enlace original.":"Inicia sesión para administrar tu óptica.");return;}
- if(callback){
+ if(fromEmail){
+  const {data:{user},error:userError}=await db.auth.getUser();
+  if(userError||!user){mostrar("login");estado("No se pudo verificar la identidad del enlace.");return;}
   history.replaceState(null,"",location.pathname);
-  mostrar("password-setup");estado("Sesión verificada. Define tu contraseña.");
+  mostrar("password-setup");
+  estado("Sesión verificada. Crea tu contraseña.");
  }else await cargar();
 }
+
 el("login-form").addEventListener("submit",async e=>{
  e.preventDefault();estado("Verificando credenciales...");
  const {error}=await db.auth.signInWithPassword({email:el("login-correo").value.trim(),password:el("login-clave").value});
@@ -63,7 +72,8 @@ el("password-form").addEventListener("submit",async e=>{
  if(error){estado("Supabase rechazó la contraseña: "+error.message);return;}
  el("new-password").value="";
  // Confirmar nueva contraseña mediante sesión fresca antes de dar acceso.
- await db.auth.refreshSession();
+ const fresh=await db.auth.getSession();
+ if(!fresh.data.session){mostrar("login");estado("La contraseña se cambió, pero la sesión terminó. Ingresa con tu nueva contraseña.");return;}
  await cargar();
 });
 el("marca-form").addEventListener("submit",async e=>{
