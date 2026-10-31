@@ -5,7 +5,7 @@ const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:"pkc
 const $=id=>document.getElementById(id);
 const status=t=>{$("status").textContent=t;};
 const form=$("patient-form"), save=$("save");
-let selectedId=null,busy=false,dirty=false,historyRequest=0,searchRequest=0,authorized=false;
+let selectedId=null,busy=false,dirty=false,historyRequest=0,searchRequest=0,authorized=false,externalReadOnly=false;
 function resetForm(){
  form.reset();selectedId=null;dirty=false;historyRequest++;
  $("history-link").hidden=true;
@@ -134,10 +134,13 @@ function choosePatient(p){
  form.elements.tipo_documento.disabled=true;form.elements.documento.disabled=true;
  $("form-title").textContent="Editar paciente";
  save.textContent="Guardar cambios";$("cancel").hidden=false;
+ if(externalReadOnly){save.hidden=true;$("cancel").hidden=true;for(const el of form.querySelectorAll("input,select,textarea"))el.disabled=true;}
  const href="../index.html?paciente="+encodeURIComponent(p.id);
- $("history-link").href=href;$("history-link").hidden=false;
- $("profile-clinical").href=href;
- $("profile-new-clinical").href=href+"&nueva=1";
+ $("history-link").href=href;$("history-link").hidden=externalReadOnly;
+ $("profile-clinical").href=externalReadOnly?"./clinica-completa-demo.html":href;
+ $("profile-clinical").hidden=externalReadOnly;
+ $("profile-new-clinical").href=externalReadOnly?"./clinica-completa-demo.html":href+"&nueva=1";
+ $("profile-new-clinical").hidden=externalReadOnly;
  $("profile-new-clinical").setAttribute("aria-label","Iniciar una nueva consulta clínica de "+p.nombre_completo);
  setText("patient-profile-name",p.nombre_completo);
  setText("patient-profile-document",p.tipo_documento+" · "+p.documento);
@@ -167,10 +170,11 @@ form.addEventListener("input",()=>{dirty=true});
 async function requireAdmin(){
  const {data,error}=await sb.auth.getUser();if(error||!data?.user)return false;
  const {data:profile,error:pError}=await sb.from("usuarios_tsysoptics").select("rol,activo").eq("id",data.user.id).maybeSingle();
- return !pError && profile?.activo===true && profile?.rol==="administrador";
+ externalReadOnly=!pError&&profile?.activo===true&&profile?.rol==="externo";
+ return !pError&&profile?.activo===true&&["administrador","externo"].includes(profile?.rol);
 }
 function showDenied(text){
- authorized=false;searchRequest++;historyRequest++;
+ externalReadOnly=false;authorized=false;searchRequest++;historyRequest++;
  $("results").replaceChildren();$("patient-history-list").replaceChildren();
  $("patient-profile").hidden=true;
  $("loading").textContent=text;$("loading").hidden=false;$("panel").hidden=true
@@ -228,7 +232,7 @@ function renderPatients(rows,searched){
  }
 }
 form.addEventListener("submit",async e=>{
- e.preventDefault();if(busy)return;
+ e.preventDefault();if(busy||externalReadOnly){if(externalReadOnly)status("La cuenta externa solo puede consultar pacientes de demostración.");return;}
  const nombre=rowField("nombre_completo"),tipo=rowField("tipo_documento"),doc=rowField("documento").toUpperCase();
  if(doc.length<3||doc.length>30||!nombre){status("Ingresa un documento válido y el nombre completo del paciente.");return}
  if(nombre.length<3||nombre.length>150){status("El nombre debe tener entre 3 y 150 caracteres.");return}
@@ -293,6 +297,12 @@ async function restorePatients(){
   }
   if(!ok){showDenied("No se pudo verificar el acceso a Pacientes. Regresa a Inicio y comprueba la sesión.");return;}
   authorized=true;$("loading").hidden=true;$("panel").hidden=false;
+  if(externalReadOnly){
+   save.hidden=true;
+   document.querySelectorAll("#patient-tabs [data-view=registrar]").forEach(b=>b.hidden=true);
+   showPatientView("buscar");
+   status("Consulta de pacientes DEMO en modo solo lectura.");
+  }else{save.hidden=false;document.querySelectorAll("#patient-tabs [data-view=registrar]").forEach(b=>b.hidden=false);}
   await searchPatients();
   const requestedId=new URLSearchParams(location.search).get("paciente");
   if(requestedId && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(requestedId)){
@@ -312,7 +322,7 @@ async function restorePatients(){
 }
 void restorePatients();
 window.addEventListener("tsys:role",e=>{
- if(e.detail?.role!=="administrador"){showDenied("Acceso reservado al administrador.");return;}
+ if(!["administrador","externo"].includes(e.detail?.role)){showDenied("Acceso no autorizado.");return;}
  if(!authorized)void restorePatients();
 });
 window.addEventListener("tsys:locked",()=>showDenied("Sesión cerrada."));
