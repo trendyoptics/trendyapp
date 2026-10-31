@@ -1,7 +1,7 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
-import {exportMonthlyXlsx} from "./informes-excel.js?v=20261030c5";
-import {createMonthlyPdf} from "./informes-pdf.js?v=20261030c5";
+import {exportMonthlyXlsx} from "./informes-excel.js?v=20261030c13-reembolsos";
+import {createMonthlyPdf} from "./informes-pdf.js?v=20261030c13-reembolsos";
 
 // Informes de solo lectura. RLS de Supabase restringe las tablas al administrador.
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
