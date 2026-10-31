@@ -132,6 +132,13 @@ async function verifyUser() {
     .eq("id", user.id)
     .maybeSingle();
   if (error) { locked("No se pudo validar tu perfil. Comprueba la conexión y la política de acceso."); return; }
+  if(!profile?.activo){
+    const {data:members,error:tenantError}=await client.rpc("mi_perfil_saas_tsysoptics");
+    if(!tenantError && (members||[]).some(m=>m.rol==="administrador"&&["preparacion","activa"].includes(m.estado))){
+      window.location.replace("./mi-optica.html");
+      return;
+    }
+  }
   if (!profile?.activo || !ALLOWED_ROLES.has(profile.rol) || (profile.rol === "externo" && user.email?.toLowerCase() !== EXTERNAL_EMAIL)) {
     locked("La cuenta existe, pero aún no tiene permiso para este panel piloto.");
     return;
