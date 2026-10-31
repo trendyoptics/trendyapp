@@ -87,7 +87,12 @@ el("reset-password").addEventListener("click",async()=>{
  const email=el("login-correo").value.trim();
  if(!email){estado("Escribe primero tu correo en el campo de acceso.");return;}
  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:new URL("./mi-optica.html",location.href).href});
- estado(error?"No se pudo solicitar la recuperación: "+error.message:"Si existe una cuenta para este correo, recibirás instrucciones para crear una contraseña nueva.");
+ if(error){
+  const limitada=error.status===429 || /rate limit|too many requests/i.test(error.message||"");
+  estado(limitada?"Supabase alcanzó el límite temporal de correos. No sigas pulsando recuperar: espera a que se restablezca el envío o utiliza una sesión ya abierta.":"No se pudo solicitar recuperación: "+error.message);
+  return;
+ }
+ estado("Si la cuenta existe, recibirás un enlace. Revisa tu bandeja y spam.");
 });
 el("logout").addEventListener("click",async()=>{await db.auth.signOut();optica=null;mostrar("login");estado("Sesión cerrada.");});
 await comenzar();
