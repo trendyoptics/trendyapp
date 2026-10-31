@@ -613,6 +613,7 @@ h1{font-size:clamp(25px,3vw,33px);color:var(--navy);letter-spacing:-.7px;margin:
   <p class="muted">El Excel descarga un archivo <strong>.xlsx</strong> con pestañas y filtros para ventas, recaudos, gastos, productos, inventario actual, laboratorio, caja y cierres históricos. El PDF es un resumen administrativo listo para imprimir. El CSV se conserva como alternativa sin formato.</p>
  </div>
  <div id="informe-resultado" hidden>
+  <div class="card" id="informe-conciliacion" style="margin-bottom:16px;border:1px solid #585F73" aria-live="polite"><h2>Conciliación de cobros y reembolsos</h2><div class="money"><span>Cobros registrados</span><strong id="informe-cobros-conciliacion">…</strong></div><div class="money" style="margin-top:8px"><span>Reembolsos registrados</span><strong id="informe-reembolsos-conciliacion">…</strong></div><div class="money" style="margin-top:8px"><strong>Cobros menos reembolsos</strong><strong id="informe-neto-conciliacion">…</strong></div><p class="muted">Cifras del periodo seleccionado. No representan utilidad neta ni saldo disponible en Caja.</p></div>
   <div class="report-summary" id="informe-indicadores"></div>
   <div class="cols report-grids">
    <div class="card"><h2>Recaudos por medio de pago</h2><div id="informe-medios"></div></div>
