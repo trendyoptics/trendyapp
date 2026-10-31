@@ -173,7 +173,13 @@ form.addEventListener("submit", async (event) => {
       setPasswordVisibility(false);
       await verifyUser();
     }
-  } catch (e) { message("No se pudo completar la operación. Verifica tus credenciales y prueba de nuevo."); }
+  } catch (e) {
+    const msg=String(e?.message||"");
+    if(/invalid login credentials/i.test(msg))message("Supabase rechazó el correo o la contraseña. Tu cuenta no fue eliminada. Comprueba que seleccionaste la cuenta principal y que el navegador no autocompletó una clave anterior.");
+    else if(e?.status===429||/rate limit|too many requests/i.test(msg))message("Supabase ha limitado temporalmente los intentos. Espera antes de volver a probar.");
+    else if(/email not confirmed/i.test(msg))message("El correo todavía no está confirmado.");
+    else message("No se pudo iniciar sesión. Error de autenticación: "+(e?.status||"servicio no disponible")+".");
+  }
   finally { processing = false; submit.disabled = !client; }
 });
 recover.addEventListener("click", () => { window.location.assign("./recuperar.html"); });
