@@ -106,6 +106,8 @@ function build(book,r,company){
   row("VENTAS ANULADAS",t.voidCount,"Estado actual"),
   row("VENTAS DEVUELTAS",t.returnedCount,"Estado actual"),
   row("RECAUDOS DEL MES (COP)",cop(t.paymentsTotal),"Pagos recibidos en el mes, incluso de ventas anteriores"),
+  row("REEMBOLSOS DEL MES (COP)",cop(t.refundedTotal),"Devoluciones registradas durante el periodo"),
+  row("RECAUDOS MENOS REEMBOLSOS (COP)",cop(t.paymentsTotal-t.refundedTotal),"No representa utilidad neta ni saldo de caja"),
   row("SALDO ACTUAL DE VENTAS DEL MES (COP)",cop(t.balanceNow),"No es necesariamente el saldo al último día del mes"),
   row("UNIDADES VENDIDAS",t.unitsSold,"Detalle de ventas vigentes"),
   row("COSTO ESTIMADO VENDIDO (COP)",cop(t.estimatedCost),"Costos históricos de productos vendidos"),
