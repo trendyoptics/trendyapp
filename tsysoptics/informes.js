@@ -81,7 +81,7 @@ async function fetchBySaleIds(ids){
 async function collect(month){
  const {start,end,next}=monthBounds(month);
  const during=(col)=>q=>q.gte(col,start).lt(col,end);
- const [sales,payments,stock,stockMoves,cashMoves,shifts,orders,expenses,storedClose]=await Promise.all([
+ const [sales,payments,stock,stockMoves,cashMoves,shifts,orders,expenses,refunds,storedClose]=await Promise.all([
   fetchAll("ventas_tsysoptics","id,numero,fecha,total,abonado,saldo,estado",during("fecha"),"fecha"),
   fetchAll("pagos_ventas_tsysoptics","id,venta_id,monto,medio,registrado_en",during("registrado_en"),"id"),
   fetchAll("productos_tsysoptics","id,codigo,nombre,tipo,cantidad,stock_minimo,costo_compra,precio_venta,activo",q=>q,"codigo"),
@@ -90,6 +90,7 @@ async function collect(month){
   fetchAll("turnos_caja_tsysoptics","id,estado,cerrada_en,diferencia",during("cerrada_en"),"cerrada_en"),
   fetchAll("ordenes_laboratorio_tsysoptics","id,venta_id,laboratorio,estado,creado_en,fecha_entrega_estimada,fecha_entrega_paciente",q=>q,"creado_en"),
   fetchAll("gastos_tsysoptics","id,fecha,categoria,descripcion,monto,medio,referencia",q=>q.gte("fecha",month+"-01").lt("fecha",next+"-01"),"fecha"),
+  fetchAll("devoluciones_ventas_tsysoptics","id,numero_venta,fecha,motivo,monto_reembolsado,saldo_condonado,reintegro_stock",during("fecha"),"fecha"),
   db.from("cierres_mensuales_tsysoptics").select("periodo,datos,cerrado_en").eq("periodo",month).maybeSingle().then(({data,error})=>{if(error)throw Error("No se pudo consultar cierre histórico. "+error.message);return data})
  ]);
  const valid=sales.filter(x=>x.estado==="emitida");
@@ -118,6 +119,8 @@ async function collect(month){
   voidCount:sales.filter(x=>x.estado==="anulada").length,
   returnedCount:sales.filter(x=>x.estado==="devuelta").length,
   paymentsTotal:sum(payments,x=>x.monto),
+  refundedTotal:sum(refunds,x=>x.monto_reembolsado),
+  refundCount:refunds.length,
   balanceNow:sum(valid,x=>x.saldo),
   unitsSold:sum(lines,x=>x.cantidad),
   estimatedCost:sum(lines,x=>(Number(x.costo_unitario)||0)*(Number(x.cantidad)||0)),
@@ -135,7 +138,7 @@ async function collect(month){
   labCreated:orderMonth.length,labOpenNow:orders.filter(o=>activeStates.has(o.estado)).length,
   labOverdueNow:overdue.length
  };
- return {month,after:next,generatedAt:new Date().toISOString(),sales,payments,stock,stockMoves,cashMoves,expenses,storedClose,
+ return {month,after:next,generatedAt:new Date().toISOString(),sales,payments,stock,stockMoves,cashMoves,expenses,refunds,storedClose,
   shifts,orders,orderMonth,valid,lines,lowStock,methods:[...methodTotals.entries()].sort((a,b)=>b[1]-a[1]),
   top:[...totals.values()].sort((a,b)=>b.valor-a.valor),labStatus:[...labStatus.entries()],totals:computed};
 }
@@ -162,7 +165,8 @@ function render(r){
  const t=r.totals,box=$("informe-indicadores");box.replaceChildren();
  const metrics=[
   ["Ventas vigentes del mes",money(t.salesTotal),number(t.salesCount)+" operaciones"],
-  ["Recaudos registrados",money(t.paymentsTotal),"Pagos recibidos durante el mes"],
+  ["Recaudos registrados",money(t.paymentsTotal),"Pagos recibidos durante el mes, antes de reembolsos"],
+  ["Reembolsos registrados",money(t.refundedTotal),number(t.refundCount)+" devoluciones del periodo"],
   ["Saldos pendientes",money(t.balanceNow),"Saldo actual de ventas del mes"],
   ["Unidades vendidas",number(t.unitsSold),"Referencias de ventas vigentes"],
   ["Existencias actuales",number(t.stockUnits),"Al consultar, NO al cierre histórico"],
@@ -233,6 +237,8 @@ function sections(r){
    ["Ventas vigentes (COP)",t.salesTotal],["Ventas vigentes (cantidad)",t.salesCount],
    ["Anuladas (cantidad)",t.voidCount],["Devueltas (cantidad)",t.returnedCount],
    ["Recaudos registrados en el periodo (COP)",t.paymentsTotal],
+   ["Reembolsos registrados en el periodo (COP)",t.refundedTotal],
+   ["Recaudos menos reembolsos del periodo (COP)",t.paymentsTotal-t.refundedTotal],
    ["Saldos actuales de ventas del periodo (COP)",t.balanceNow],
    ["Unidades vendidas en ventas vigentes",t.unitsSold],
    ["Costo estimado de unidades vendidas (COP)",t.estimatedCost],
@@ -252,6 +258,7 @@ function sections(r){
    ["Ingresos manuales en caja (COP)",t.cashIn],
    ["Egresos manuales en caja (COP)",t.cashOut]
   ]},
+  {title:"DEVOLUCIONES REGISTRADAS EN EL MES",rows:[["Venta","Fecha","Motivo","Reembolso COP","Saldo cancelado COP","Reintegra inventario"],...r.refunds.map(d=>[d.numero_venta,fmtDate(d.fecha),d.motivo,d.monto_reembolsado,d.saldo_condonado,d.reintegro_stock?"SI":"NO"])]},
   {title:"PAGOS POR MEDIO",rows:[["Medio","Monto COP"],...r.methods.map(([m,v])=>[m,v])]},
   {title:"PRODUCTOS VENDIDOS EN EL MES",rows:[["Código","Referencia","Unidades","Ventas COP","Costo COP"],
    ...r.top.map(x=>[x.codigo,x.nombre,x.unidades,x.valor,x.costo])]},
