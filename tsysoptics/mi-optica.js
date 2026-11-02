@@ -1,6 +1,6 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./supabase-config.js";
-const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{flowType:"pkce",persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
 const el=id=>document.getElementById(id);
 const estado=m=>el("estado").textContent=m;
 let optica=null;
@@ -22,35 +22,41 @@ async function cargar(){
 }
 async function comenzar(){
  const query=new URLSearchParams(location.search);
- const hash=new URLSearchParams(location.hash.replace(/^#/,""));
+ const hash=new URLSearchParams(location.hash.slice(1));
  const type=query.get("type")||hash.get("type");
- const fromEmail=type==="recovery"||type==="invite"||query.has("code")||query.has("token_hash")||hash.has("access_token");
- // Supabase procesa automáticamente el code PKCE y los tokens URL
- // (detectSessionInUrl:true). No consumir el mismo código dos veces.
- const {data:{session},error}=await db.auth.getSession();
- if(error){mostrar("login");estado("No se pudo verificar el enlace: "+error.message);return;}
- if(!session){
-  const token=query.get("token_hash")||hash.get("token_hash");
-  if(token && ["invite","recovery"].includes(type)){
-   const verified=await db.auth.verifyOtp({token_hash:token,type});
-   if(!verified.error && verified.data.session){
-    history.replaceState(null,"",location.pathname);
-    mostrar("password-setup");
-    estado("Enlace confirmado. Ya puedes establecer tu contraseña.");
-    return;
+ const access=hash.get("access_token");
+ const refresh=hash.get("refresh_token");
+ const token=query.get("token_hash")||hash.get("token_hash");
+ const code=query.get("code");
+ const esEnlace=Boolean(access||token||code||type==="invite"||type==="recovery");
+ if(esEnlace){
+   estado("Verificando enlace seguro...");
+   let error=null;
+   if(access&&refresh){
+     ({error}=await db.auth.setSession({access_token:access,refresh_token:refresh}));
+   }else if(token&&["invite","recovery"].includes(type)){
+     ({error}=await db.auth.verifyOtp({token_hash:token,type}));
+   }else if(code){
+     ({error}=await db.auth.exchangeCodeForSession(code));
+   }else{
+     error=new Error("Enlace incompleto: falta el código de acceso.");
    }
-  }
-  mostrar("login");
-  estado(fromEmail?"El enlace no estableció una sesión válida. Solicita recuperación de contraseña para generar un enlace nuevo.":"Inicia sesión con el correo de tu óptica.");
-  return;
+   if(error){
+     mostrar("login");
+     estado("No se pudo validar el enlace: "+error.message+". Genera uno nuevo desde Ópticas conectadas.");
+     return;
+   }
+   const {data:{user},error:userError}=await db.auth.getUser();
+   if(userError||!user){mostrar("login");estado("No se pudo confirmar la cuenta del enlace.");return;}
+   // No dejar tokens en el historial o capturas del navegador.
+   history.replaceState(null,"",location.pathname);
+   mostrar("password-setup");
+   estado("Enlace validado para "+user.email+". Establece tu contraseña.");
+   return;
  }
- if(fromEmail){
-  const {data:{user},error:userError}=await db.auth.getUser();
-  if(userError||!user){mostrar("login");estado("No se pudo verificar la identidad del enlace.");return;}
-  history.replaceState(null,"",location.pathname);
-  mostrar("password-setup");
-  estado("Sesión verificada. Crea tu contraseña.");
- }else await cargar();
+ const {data:{session}}=await db.auth.getSession();
+ if(session)await cargar();
+ else{mostrar("login");estado("Ingresa con el correo de la óptica.");}
 }
 
 el("login-form").addEventListener("submit",async e=>{
