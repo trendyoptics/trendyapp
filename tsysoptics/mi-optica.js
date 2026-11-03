@@ -28,7 +28,7 @@ async function cargar(){
   if(/^#[0-9a-f]{6}$/i.test(c.color_primario||""))el("color").value=c.color_primario;
  }
  if(admin.estado==="activa" && new URLSearchParams(location.search).get("configurar")!=="1"){
-   location.replace("./panel-cliente.html");return;
+   location.replace("./panel-a2.html");return;
  }
  mostrar("panel");estado("Acceso confirmado a "+admin.nombre+".");
 }
