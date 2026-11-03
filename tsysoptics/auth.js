@@ -126,22 +126,34 @@ async function verifyUser() {
   const user = userResult?.user;
   if (authError || !user) { currentUserId = null; locked("Ingresa con el correo y la contraseña de TsysOptics."); return; }
   currentUserId = user.id;
-  const { data: profile, error } = await client
-    .from("usuarios_tsysoptics")
-    .select("id,rol,activo")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (error) { locked("No se pudo validar tu perfil. Comprueba la conexión y la política de acceso."); return; }
-  if(!profile?.activo){
-    const {data:members,error:tenantError}=await client.rpc("mi_perfil_saas_tsysoptics");
-    if(!tenantError && (members||[]).some(m=>m.rol==="administrador"&&["preparacion","activa"].includes(m.estado))){
-      window.location.replace("./mi-optica.html");
+  // Resolución central de permisos: el mismo login sirve para todos los perfiles.
+  // Las RPC verifican la pertenencia en Supabase, nunca en el navegador.
+  const {error:superError}=await client.rpc("listar_opticas_superadmin_tsysoptics");
+  if(!superError){
+    const {data:ownProfile}=await client.from("usuarios_tsysoptics").select("rol,activo").eq("id",user.id).maybeSingle();
+    if(ownProfile?.activo && ownProfile.rol==="administrador"){
+      showApp("administrador");
+      await actualizarAccesosSuperadmin("administrador");
+      return;
+    }
+    window.location.replace("./admin-prototipo.html");return;
+  }
+  const {data:members,error:tenantError}=await client.rpc("mi_perfil_saas_tsysoptics");
+  if(!tenantError){
+    const member=(members||[]).find(m=>m.rol==="administrador"&&["preparacion","activa"].includes(m.estado));
+    if(member){
+      window.location.replace(member.estado==="activa"?"./panel-cliente.html":"./mi-optica.html");
       return;
     }
   }
-  if (!profile?.activo || !ALLOWED_ROLES.has(profile.rol) || (profile.rol === "externo" && user.email?.toLowerCase() !== EXTERNAL_EMAIL)) {
-    locked("La cuenta existe, pero aún no tiene permiso para este panel piloto.");
-    return;
+  const { data: profile, error } = await client
+    .from("usuarios_tsysoptics")
+    .select("id,rol,activo")
+    .eq("id",user.id)
+    .maybeSingle();
+  if(error){locked("No se pudo verificar el perfil.");return;}
+  if(!profile?.activo || !ALLOWED_ROLES.has(profile.rol) || (profile.rol==="externo"&&user.email?.toLowerCase()!==EXTERNAL_EMAIL)){
+    locked("Esta cuenta no tiene un acceso activo asignado.");return;
   }
   showApp(profile.rol);
   if(profile.rol==="administrador" && user.email?.toLowerCase()==="jonierramos23@gmail.com"){
