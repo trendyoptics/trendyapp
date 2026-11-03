@@ -142,7 +142,7 @@ async function verifyUser() {
   if(!tenantError){
     const member=(members||[]).find(m=>m.rol==="administrador"&&["preparacion","activa"].includes(m.estado));
     if(member){
-      window.location.replace(member.estado==="activa"?"./panel-cliente.html":"./mi-optica.html");
+      window.location.replace(member.estado==="activa"?"./panel-a2.html":"./mi-optica.html");
       return;
     }
   }
