@@ -18,6 +18,15 @@ async function cargar(){
  el("licencia-notice").textContent=admin.estado==="preparacion"?
  "Puedes personalizar tu óptica. El acceso a historias clínicas, ventas e inventario se habilitará cuando se certifique el aislamiento de datos.":
  "Tu óptica está activa. Las funciones operativas requieren los permisos correspondientes.";
+ const out=await db.rpc("mi_identidad_optica_saas_tsysoptics");
+ if(out.error){mostrar("login");estado("Error al cargar identidad: "+out.error.message);return;}
+ const identidad=(out.data||[]).find(x=>x.optica_id===admin.optica_id);
+ if(identidad){
+  el("nit").value=identidad.nit||"";
+  const c=identidad.configuracion||{};
+  for(const k of ["telefono","direccion","whatsapp","correo","eslogan"]){el(k).value=c[k]||"";}
+  if(/^#[0-9a-f]{6}$/i.test(c.color_primario||""))el("color").value=c.color_primario;
+ }
  mostrar("panel");estado("Acceso confirmado a "+admin.nombre+".");
 }
 async function comenzar(){
