@@ -83,7 +83,7 @@ function render(){
 }
 async function reload(){
  const {data,error}=await db.rpc("listar_opticas_superadmin_tsysoptics");
- if(error){setStatus("Acceso denegado o servicio no disponible: "+error.message);show(false);return;}
+ if(error){const {data:{user}}=await db.auth.getUser();setStatus(error.code==="42501"||/autorizado/i.test(error.message)?"Cuenta actual: "+(user?.email||"sin sesión")+". Este panel es exclusivo del superadministrador. Cierra la sesión de la óptica de prueba e ingresa con tu cuenta principal.":"No se pudo consultar el directorio: "+error.message);show(false);return;}
  opticas=data||[];show(true);render();setStatus("Directorio actualizado. No se muestran datos clínicos.");
 }
 function show(ok){
@@ -111,4 +111,4 @@ $("new-form").addEventListener("submit",async e=>{
 $("filter").addEventListener("input",render);
 $("state-filter").addEventListener("change",render);
 const {data:{session}}=await db.auth.getSession();
-if(session)await reload();else show(false);
+if(session)await reload();else {show(false);setStatus("Ingresa con la cuenta principal de superadministrador, no con la cuenta de prueba.");}
