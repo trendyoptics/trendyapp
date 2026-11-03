@@ -27,6 +27,9 @@ async function cargar(){
   for(const k of ["telefono","direccion","whatsapp","correo","eslogan"]){el(k).value=c[k]||"";}
   if(/^#[0-9a-f]{6}$/i.test(c.color_primario||""))el("color").value=c.color_primario;
  }
+ if(admin.estado==="activa" && new URLSearchParams(location.search).get("configurar")!=="1"){
+   location.replace("./panel-cliente.html");return;
+ }
  mostrar("panel");estado("Acceso confirmado a "+admin.nombre+".");
 }
 async function comenzar(){
