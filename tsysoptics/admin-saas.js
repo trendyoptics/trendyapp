@@ -67,6 +67,17 @@ function render(){
    });td.append(recovery);
 
   }
+  if(o.estado==="preparacion"){
+   const activate=document.createElement("button");activate.type="button";activate.textContent="Habilitar panel inicial";activate.style.marginLeft="8px";
+   activate.title="Activa solamente el módulo nuevo de registros aislados; no habilita los módulos clínicos anteriores.";
+   activate.addEventListener("click",async()=>{
+    if(!confirm("Habilitar panel inicial de registros independientes para "+o.nombre+"? No se activan aún historias clínicas ni ventas antiguas."))return;
+    activate.disabled=true;
+    const {error}=await db.rpc("activar_optica_saas_aislada_tsysoptics",{p_optica:o.id});
+    if(error){setStatus("No se pudo activar: "+error.message);activate.disabled=false;return;}
+    await reload();setStatus("Panel inicial habilitado; módulos históricos permanecen separados.");
+   });td.append(activate);
+  }
   td.append(b);tr.append(td);$("body").append(tr);
  }
 }
