@@ -28,6 +28,19 @@ el("registro").addEventListener("submit",async e=>{
  if(error){mensaje("No se pudo guardar: "+error.message);return;}
  el("registro").reset();await cargar();mensaje("Registro guardado en tu óptica.");
 });
+for(const link of document.querySelectorAll(".side [data-filter]")){
+ link.addEventListener("click",()=>{
+  const tipo=link.dataset.filter;
+  el("tipo").value=tipo;
+  document.querySelectorAll(".side a").forEach(x=>x.classList.remove("active"));
+  link.classList.add("active");
+  mensaje("Módulo "+link.textContent.trim()+": registros de tu óptica. Completa los datos y pulsa Guardar registro.");
+  el("nombre").focus({preventScroll:true});
+ });
+}
+for(const link of document.querySelectorAll(".side [data-action='exportar']")){
+ link.addEventListener("click",()=>el("exportar").click());
+}
 el("actualizar").addEventListener("click",cargar);
 el("salir").addEventListener("click",async()=>{await db.auth.signOut();location.replace("./index.html")});
 el("exportar").addEventListener("click",()=>{
