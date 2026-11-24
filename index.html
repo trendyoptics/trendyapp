@@ -1111,7 +1111,7 @@
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./tsysoptics/supabase-config.js";
-import { descargarHistoriaClinicaPDF } from "./tsysoptics/descarga-historia.js?v=20261124-layout2";
+import { descargarHistoriaClinicaPDF } from "./tsysoptics/descarga-historia.js?v=20261124-layout3";
 
 const gate = document.getElementById("tsys-clinica-gate");
 const gateMessage = document.getElementById("tsys-clinica-gate-message");
@@ -1355,7 +1355,7 @@ async function openHistoryModal(patientId = null) {
         const pdfButton = document.createElement("button");
         pdfButton.type = "button";
         pdfButton.className = "ml-2 bg-emerald-100 text-emerald-900 font-bold px-2.5 py-1 rounded";
-        pdfButton.textContent = "Descargar PDF";
+        pdfButton.textContent = "Descargar PDF nuevo";
         pdfButton.title = "Descarga la historia clínica con logo y formato profesional";
         pdfButton.addEventListener("click", () => {
           pdfButton.disabled = true;
