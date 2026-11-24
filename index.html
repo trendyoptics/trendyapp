@@ -1347,6 +1347,26 @@ async function openHistoryModal(patientId = null) {
       btn.type = "button"; btn.className = "bg-sky-100 text-sky-800 font-bold px-2.5 py-1 rounded"; btn.textContent = "Cargar";
       btn.addEventListener("click", () => window.tsysCargarHistoriaClinica(r.id));
       action.append(btn);
+      if (r.estado === "finalizada") {
+        const pdfButton = document.createElement("button");
+        pdfButton.type = "button";
+        pdfButton.className = "ml-2 bg-emerald-100 text-emerald-900 font-bold px-2.5 py-1 rounded";
+        pdfButton.textContent = "Guardar PDF";
+        pdfButton.title = "Abre la versión imprimible para guardar como PDF";
+        pdfButton.addEventListener("click", async () => {
+          pdfButton.disabled = true;
+          try {
+            const loaded = await loadHistory(r.id);
+            if (!loaded) return;
+            // Conserva los datos históricos originales; no actualiza la consulta.
+            // El diálogo del navegador permite elegir «Guardar como PDF».
+            window.imprimirMediaCarta();
+          } finally {
+            pdfButton.disabled = false;
+          }
+        });
+        action.append(pdfButton);
+      }
       tbody.append(tr);
     }
   }
@@ -1361,10 +1381,11 @@ async function loadHistory(id) {
     .from("historias_clinicas_tsysoptics")
     .select("id,paciente_id,fecha_consulta,datos_clinicos,estado")
     .eq("id", id).single();
-  if (error || !data) { clinicalMessage("No se pudo cargar la historia clínica."); return; }
+  if (error || !data) { clinicalMessage("No se pudo cargar la historia clínica."); return false; }
   fillClinicalForm(data);
   if (typeof window.closeHistoryModal === "function") window.closeHistoryModal();
   clinicalMessage("Historia clínica cargada.");
+  return true;
 }
 window.tsysCargarHistoriaClinica = loadHistory;
 window.cargarPaciente = loadHistory;
