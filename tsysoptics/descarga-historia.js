@@ -180,7 +180,7 @@ export function descargarHistoriaClinicaPDF(registro, identidad = {}, logoImagen
   const archivo=new Blob(partes,{type:"application/pdf"});
   const url=URL.createObjectURL(archivo);
   const nombreArchivo=("Historia_clinica_"+nombre).normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"_").slice(0,90)+".pdf";
+    .replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"_").slice(0,75)+"_formato_clinico_"+Date.now()+".pdf";
   const enlace=document.createElement("a"); enlace.href=url; enlace.download=nombreArchivo;
   document.body.append(enlace); enlace.click(); enlace.remove();
   setTimeout(()=>URL.revokeObjectURL(url),60000);
