@@ -168,7 +168,7 @@ export function descargarHistoriaClinicaPDF(registro, identidad = {}, logoImagen
     const pg=3+i*3, imagen=pg+1, contenido=pg+2, jpeg=binario(base64);
     objeto(pg,"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /XObject << /Img"+i+" "+imagen+" 0 R >> >> /Contents "+contenido+" 0 R >>");
     offsets[imagen]=longitud;
-    ascii(imagen+" 0 obj\n<< /Type /XObject /Subtype /Image /Width "+ancho+" /Height "+alto+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+jpeg.length+" >>\nstream\n");
+    ascii(imagen+" 0 obj\n<< /Type /XObject /Subtype /Image /Width "+W+" /Height "+H+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+jpeg.length+" >>\nstream\n");
     add(jpeg); ascii("\nendstream\nendobj\n");
     const dibujo="q 612 0 0 792 0 0 cm /Img"+i+" Do Q";
     objeto(contenido,"<< /Length "+enc.encode(dibujo).length+" >>\nstream\n"+dibujo+"\nendstream");
