@@ -10,6 +10,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
   
@@ -887,7 +888,7 @@
       return raw;
     }
 
-    function imprimirMediaCarta() {
+    function imprimirMediaCarta(imprimir = true) {
       const d = window.tsysDatosImpresion?.() || obtenerDatos();
       if (!d.nombre) {
         mostrarToast("⚠️ Por favor ingresa el nombre del paciente antes de imprimir");
@@ -947,7 +948,7 @@
       document.getElementById('p_metodo').textContent = d.metodoPago || '—';
       document.getElementById('p_optometra').textContent = d.optometra || '—';
 
-      window.print();
+      if (imprimir) window.print();
     }
     window.imprimirMediaCarta = imprimirMediaCarta;
 
@@ -1359,9 +1360,40 @@ async function openHistoryModal(patientId = null) {
           try {
             const loaded = await loadHistory(r.id);
             if (!loaded) return;
-            // Conserva los datos históricos originales; no actualiza la consulta.
-            // El diálogo del navegador permite elegir «Guardar como PDF».
-            window.imprimirMediaCarta();
+            // Genera un PDF descargable sin alterar la historia finalizada.
+            window.imprimirMediaCarta(false);
+            if (!window.html2pdf) {
+              clinicalMessage("No se pudo cargar el generador de PDF. Revisa la conexión y vuelve a intentar.");
+              return;
+            }
+            const original = field("print-area");
+            const copy = original.cloneNode(true);
+            copy.removeAttribute("id");
+            copy.classList.remove("hidden");
+            Object.assign(copy.style, {
+              display: "block", position: "fixed", left: "-12000px", top: "0",
+              width: "760px", maxWidth: "760px", minHeight: "0", background: "#fff",
+              color: "#000", padding: "12px", zIndex: "-1"
+            });
+            document.body.append(copy);
+            const patientName = (r.paciente?.nombre_completo || r.datos_clinicos?.nombre || "paciente")
+              .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+              .replace(/[^a-zA-Z0-9_-]+/g, "_").slice(0, 65);
+            try {
+              await window.html2pdf().set({
+                margin: 5,
+                filename: "Historia_clinica_" + patientName + "_" + String(r.id).slice(0, 8) + ".pdf",
+                image: {type: "jpeg", quality: 0.98},
+                html2canvas: {scale: 2, useCORS: true, backgroundColor: "#ffffff"},
+                jsPDF: {unit: "mm", format: "letter", orientation: "portrait"},
+                pagebreak: {mode: ["css", "legacy"]}
+              }).from(copy).save();
+            } catch (pdfError) {
+              clinicalMessage("No se pudo descargar el PDF. Intenta de nuevo o usa Imprimir desde la historia.");
+              console.error("Error al generar PDF clínico", pdfError);
+            } finally {
+              copy.remove();
+            }
           } finally {
             pdfButton.disabled = false;
           }
